@@ -1,6 +1,6 @@
--- ALTER TABLE `users`
---     ADD COLUMN `dd_keys` TEXT DEFAULT '{}'
--- ;
+ALTER TABLE `users`
+    ADD COLUMN `dd_keys` TEXT DEFAULT '[]'
+;
 
 DROP TABLE IF EXISTS `jobs`;
 CREATE TABLE `jobs` (
@@ -86,39 +86,17 @@ INSERT INTO `job_grades` (job_name, grade, name, label, salary) VALUES
 	('simeon', 4, 'boss', 'Boss', 0)
 ;
 
--- DROP TABLE IF EXISTS `dd_societies`;
--- CREATE TABLE `dd_societies` (
--- 	`id` VARCHAR(100) NOT NULL,
--- 	`grades` LONGTEXT NOT NULL DEFAULT '{}',
--- 	`colour` TINYINT NOT NULL DEFAULT 0,
--- 	`account` INT NOT NULL DEFAULT 0,
+DROP TABLE IF EXISTS `dd_bills`;
+CREATE TABLE `dd_bills` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`player` VARCHAR(100) NOT NULL,
+	`target` VARCHAR(100) NOT NULL,
+	`amount` INT NOT NULL,
+	`details` TEXT NOT NULL,
+	`timestamp` INT NOT NULL,
 
--- 	PRIMARY KEY (`id`)
--- );
-
--- INSERT INTO `dd_societies` (id, grades, colour) VALUES
--- 	('Doka & Doka', '{"1":{"name":"Junior","salary":25},"2":{"name":"Officer","salary":50},"3":{"name":"Senior","salary":75},"4":{"name":"Manager","salary":150},"5":{"name":"CEO","salary":0}}', 5),
--- 	('BCSO', '{"1":{"name":"Grunt","salary":25},"2":{"name":"Deputy","salary":50},"3":{"name":"Lieutenant","salary":75},"4":{"name":"Under-Sheriff","salary":150},"5":{"name":"Sheriff","salary":0}}', 1),
--- 	('LSPD', '{"1":{"name":"Grunt","salary":25},"2":{"name":"Officer","salary":50},"3":{"name":"Lieutenant","salary":75},"4":{"name":"Capitan","salary":150},"5":{"name":"Chief","salary":0}}', 29),
--- 	('SASP', '{"1":{"name":"Grunt","salary":25},"2":{"name":"Officer","salary":50},"3":{"name":"Lieutenant","salary":75},"4":{"name":"Capitan","salary":150},"5":{"name":"Chief","salary":0}}', 7),
--- 	('PBPD', '{"1":{"name":"Grunt","salary":25},"2":{"name":"Officer","salary":50},"3":{"name":"Lieutenant","salary":75},"4":{"name":"Capitan","salary":150},"5":{"name":"Chief","salary":0}}', 3),
--- 	('BCHD', '{"1":{"name":"Grunt","salary":25},"2":{"name":"Officer","salary":50},"3":{"name":"Lieutenant","salary":75},"4":{"name":"Under-Boss","salary":150},"5":{"name":"Boss","salary":0}}', 25),
--- 	('Peregrine Security', '{"1":{"name":"Grunt","salary":25},"2":{"name":"Officer","salary":50},"3":{"name":"Lieutenant","salary":75},"4":{"name":"Under-Boss","salary":150},"5":{"name":"Boss","salary":0}}', 2),
--- 	('Fort Zancudo', '{"1":{"name":"Grunt","salary":25},"2":{"name":"Officer","salary":50},"3":{"name":"Lieutenant","salary":75},"4":{"name":"Under-Boss","salary":150},"5":{"name":"Boss","salary":0}}', 17),
--- 	('Simeon''s Vehicles', '{"1":{"name":"Grunt","salary":25},"2":{"name":"Officer","salary":50},"3":{"name":"Lieutenant","salary":75},"4":{"name":"Under-Boss","salary":150},"5":{"name":"Boss","salary":0}}', 76)
--- ;
-
--- DROP TABLE IF EXISTS `dd_bills`;
--- CREATE TABLE `dd_bills` (
--- 	`id` INT NOT NULL AUTO_INCREMENT,
--- 	`player` VARCHAR(100) NOT NULL,
--- 	`target` VARCHAR(100) NOT NULL,
--- 	`amount` INT NOT NULL,
--- 	`details` TEXT NOT NULL,
--- 	`timestamp` INT NOT NULL,
-
--- 	PRIMARY KEY (`id`)
--- );
+	PRIMARY KEY (`id`)
+);
 
 DROP TABLE IF EXISTS `dd_properties`;
 CREATE TABLE `dd_properties` (
