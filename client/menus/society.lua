@@ -108,21 +108,6 @@ function sOpen()
             end, ESX.PlayerData.job.label)
         elseif data.current.value == 'keymaster' then
             kmOpen()
-		elseif data.current.value == 'vehicles' then
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'vehicle_actions_' .. PropertyOwner.id, {
-				title    = 'Manage Vehicles',
-				align    = 'top-left',
-				elements = {
-					{label = 'Company vehicles', value = 'company'},
-					{label = 'Personal vehicles', value = 'personal'},
-					{label = 'Vehicles stored at this property', value = 'local'},
-				}
-			}, 
-			function(data2, menu2)
-				gBossManage(zone, data2.current.value)
-			end, function(data2, menu2)
-				menu2.close()
-			end)
 		end
 	end,
 	function(data, menu)

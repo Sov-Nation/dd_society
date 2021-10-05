@@ -1,5 +1,3 @@
-local authDone = false
-
 Data = {
 	Societies = {},
 	Properties = {},
@@ -194,31 +192,6 @@ function updateSociety(Society, save)
 	end
 end
 
--- RegisterNetEvent('dd_society:updatePlayer')
--- AddEventHandler('dd_society:updatePlayer', function(Player, save)
--- 	Data.Players[Player.identifier] = Player
--- 	TriggerClientEvent('dd_society:updatePlayer', -1, Player)
--- 	if save then
--- 		local Keys = json.encode(Player.dd_keys)
--- 		MySQL.Async.execute('UPDATE users SET dd_keys = @dd_keys WHERE identifier = @identifier', {
---             ['@identifier'] = Player.identifier,
---             ['@dd_keys'] 	= Keys
---         })
--- 	end
--- end)
-
--- RegisterNetEvent('dd_society:updateProperty')
--- AddEventHandler('dd_society:updateProperty', function(Property, save)
--- 	Data.Properties[Property.id] = Property
--- 	TriggerClientEvent('dd_society:updateProperty', source, Property)
--- 	if save then
--- 		MySQL.Async.execute('UPDATE dd_properties SET owner = @owner WHERE id = @id', {
---             ['@id'] 	= Property.id,
---             ['@owner'] 	= Property.owner
---         })
--- 	end
--- end)
-
 RegisterNetEvent('dd_society:updateDoor')
 AddEventHandler('dd_society:updateDoor', function(Door, save)
 	Data.Doors[Door.id] = Door
@@ -232,87 +205,3 @@ AddEventHandler('dd_society:updateDoor', function(Door, save)
         })
 	end
 end)
-
--- RegisterServerEvent('dd_society:washMoney') --TODO
--- AddEventHandler('dd_society:washMoney', function(society, amount)
--- 	local xPlayer = ESX.GetPlayerFromId(source)
--- 	local account = xPlayer.getAccount('black_money')
--- 	amount = ESX.Math.Round(tonumber(amount))
-
--- 	if xPlayer.job.name == society then
--- 		if amount and amount > 0 and account.money >= amount then
--- 			xPlayer.removeAccountMoney('black_money', amount)
-
--- 			MySQL.Async.execute('INSERT INTO society_moneywash (identifier, society, amount) VALUES (@identifier, @society, @amount)', {
--- 				['@identifier'] = xPlayer.identifier,
--- 				['@society'] = society,
--- 				['@amount'] = amount
--- 			}, function(rowsChanged)
--- 				xPlayer.showNotification(_U('you_have', ESX.Math.GroupDigits(amount)))
--- 			end)
--- 		else
--- 			xPlayer.showNotification(_U('invalid_amount'))
--- 		end
--- 	else
--- 		print(('dd_society: %s attempted to call washMoney!'):format(xPlayer.identifier))
--- 	end
--- end)
-
--- ESX.RegisterServerCallback('dd_society:setJob', function(source, cb, identifier, job, grade, type)
--- 	local xPlayer = ESX.GetPlayerFromId(source)
--- 	local isBoss = xPlayer.job.grade_name == 'boss'
-
--- 	if isBoss then
--- 		local xTarget = ESX.GetPlayerFromIdentifier(identifier)
-
--- 		if xTarget then
--- 			xTarget.setJob(job, grade)
-
--- 			if type == 'hire' then
--- 				xTarget.showNotification(_U('you_have_been_hired', job))
--- 			elseif type == 'promote' then
--- 				xTarget.showNotification(_U('you_have_been_promoted'))
--- 			elseif type == 'fire' then
--- 				xTarget.showNotification(_U('you_have_been_fired', xTarget.getJob().label))
--- 			end
-
--- 			cb()
--- 		else
--- 			MySQL.Async.execute('UPDATE users SET job = @job, job_grade = @job_grade WHERE identifier = @identifier', {
--- 				['@job']        = job,
--- 				['@job_grade']  = grade,
--- 				['@identifier'] = identifier
--- 			}, function(rowsChanged)
--- 				cb()
--- 			end)
--- 		end
--- 	else
--- 		print(('dd_society: %s attempted to setJob'):format(xPlayer.identifier))
--- 		cb()
--- 	end
--- end)
-
--- function WashMoneyCRON(d, h, m)
--- 	MySQL.Async.fetchAll('SELECT * FROM society_moneywash', {}, function(result)
--- 		for i=1, #result, 1 do
--- 			local society = GetSociety(result[i].society)
--- 			local xPlayer = ESX.GetPlayerFromIdentifier(result[i].identifier)
-
--- 			-- add society money
--- 			TriggerEvent('esx_addonaccount:getSharedAccount', society.account, function(account)
--- 				account.addMoney(result[i].amount)
--- 			end)
-
--- 			-- send notification if player is online
--- 			if xPlayer then
--- 				xPlayer.showNotification(_U('you_have_laundered', ESX.Math.GroupDigits(result[i].amount)))
--- 			end
-
--- 			MySQL.Async.execute('DELETE FROM society_moneywash WHERE id = @id', {
--- 				['@id'] = result[i].id
--- 			})
--- 		end
--- 	end)
--- end
-
--- TriggerEvent('cron:runAt', 3, 0, WashMoneyCRON)

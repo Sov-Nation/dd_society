@@ -102,8 +102,8 @@ function applyDoorState(Door, distance)
 	end
 end
 
-RegisterNetEvent('dd_properties:updateDoor')
-AddEventHandler('dd_properties:updateDoor', function(Door)
+RegisterNetEvent('dd_society:updateDoor')
+AddEventHandler('dd_society:updateDoor', function(Door)
     local OldDoor = Data.Societies[Door.name]
     
 	Data.Doors[Door.id] = Door

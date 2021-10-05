@@ -169,7 +169,7 @@ function showBlips(target)
             SetBlipAsShortRange(blip, false) --add notification 
 
             Blips.target = target
-            -- CreateThread(function()
+            -- CreateThread(function() --NFG loops never stop
             --     T = true
             --     while T do
             --         Wait(1000)
