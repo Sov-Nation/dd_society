@@ -23,7 +23,7 @@ function gOpen(zone)
 end
 
 function gManage(zone)
-	ESX.TriggerServerCallback('dd_society:gList', function(vehicles)
+	ESX.TriggerServerCallback('dd_society:vList', function(vehicles)
         local elements = {}
 		if next(vehicles) then
 			for k, v in pairs(vehicles) do
@@ -84,7 +84,7 @@ function gManage(zone)
                         local change = {
                             garage = 0
                         }
-                        ESX.TriggerServerCallback('dd_society:gModify', function()
+                        ESX.TriggerServerCallback('dd_society:vModify', function()
                             SpawnVehicle(data.current.value, zone)
                             if next(CurrentZone) then
                                 gManage(zone)
@@ -98,7 +98,7 @@ function gManage(zone)
                                 local change = {
                                     name = data3.value
                                 }
-                                ESX.TriggerServerCallback('dd_society:gModify', function()
+                                ESX.TriggerServerCallback('dd_society:vModify', function()
                                     if next(CurrentZone) then
                                         gManage(zone)
                                     end
@@ -138,7 +138,7 @@ function gManage(zone)
                                 local change = {
                                     garage = garage
                                 }
-                                ESX.TriggerServerCallback('dd_society:gModify', function()
+                                ESX.TriggerServerCallback('dd_society:vModify', function()
                                     if next(CurrentZone) then
                                         gManage(zone)
                                     end

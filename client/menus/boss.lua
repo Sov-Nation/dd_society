@@ -55,7 +55,7 @@ end
 
 function bManageGarage(zone, view)
 	local elements = {}
-	ESX.TriggerServerCallback('dd_society:gList', function(vehicles)
+	ESX.TriggerServerCallback('dd_society:vList', function(vehicles)
 		if next(vehicles) then
 			for k, v in pairs(vehicles) do
 				local props = json.decode(v.vehicle)
