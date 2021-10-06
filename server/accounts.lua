@@ -78,8 +78,8 @@ AddEventHandler('dd_society:aCreateBill', function(player, amount, target, detai
 	end
 
 	if xPlayer then
-		exports.oxmysql:execute('INSERT INTO dd_bills (player, target, amount, details, timestamp) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, target, amount, details, os.time() + 75600}, 
-		function(result)
+		exports.oxmysql:insert('INSERT INTO dd_bills (player, target, amount, details, timestamp) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, target, amount, details, os.time() + 75600}, 
+		function(insertId)
 			xPlayer.showNotification('You have received an invoice')
 		end)
 	end

@@ -7,8 +7,6 @@ description "DokaDoka's Society"
 version "0.2.0"
 
 dependencies {
-    'mysql-async',
-    -- 'oxmysql',
     'es_extended',
     'dd_menus',
     'PolyZone',
@@ -20,7 +18,6 @@ shared_scripts {
 }
 
 server_scripts {
-	'@mysql-async/lib/MySQL.lua',
 	'server/*.lua',
 }
 
