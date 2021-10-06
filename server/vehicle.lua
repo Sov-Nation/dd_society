@@ -70,8 +70,6 @@ AddEventHandler('dd_society:vCreateVehicle', function(props, owner, name)
 	exports.oxmysql:insert('INSERT INTO owned_vehicles (vehicle, owner, name, plate, type) VALUES (?, ?, ?, ?, ?)', {props, owner, name, plate, type}, 
 	function(insertId)
 	end)
-
-	cb(Vehicles)
 end)
 
 ESX.RegisterServerCallback('dd_society:vList', function(source, cb, garage)
