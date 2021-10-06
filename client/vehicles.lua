@@ -1,10 +1,25 @@
+RegisterNetEvent('dd_society:createVehicle')
+AddEventHandler('dd_society:createVehicle', function(model, plate)
+	local heading = GetEntityHeading(ped)
+
+	ESX.Game.SpawnVehicle(model, pedPos, heading, function(veh)
+        local name = GetLabelText(GetDisplayNameFromVehicleModel(model))
+        SetVehicleNumberPlateText(veh, plate)
+        local props = getVehicleProperties(veh)
+		TaskWarpPedIntoVehicle(ped, veh, -1)
+        
+        TriggerServerEvent('dd_society:vCreateVehicle', props, GetPlayerServerId(PlayerId()), name)
+		
+        carInstance[props.plate] = veh
+	end)
+end)
+
 function storeVehicle(zone)
-	local playerPed = PlayerPedId()
-	if IsPedInAnyVehicle(playerPed, false) then
-		local vehicleId = GetVehiclePedIsIn(playerPed, false)
-		if GetPedInVehicleSeat(vehicleId, -1) == playerPed then
+	if IsPedInAnyVehicle(ped, false) then
+		local vehicleId = GetVehiclePedIsIn(ped, false)
+		if GetPedInVehicleSeat(vehicleId, -1) == ped then
 			local vehicle = {}
-			vehicle.props = GetVehicleProperties(vehicleId)
+			vehicle.props = getVehicleProperties(vehicleId)
 			if vehicle.props ~= nil then
 				local change = {
 					garage = zone.id,
@@ -47,7 +62,7 @@ function SpawnVehicle(vehicle, zone)
 		Picks[math.floor(#(v.coords - pedPos))] = v
 	end
 
-	local pick = nil
+	local pick
 
 	for k, v in sipairs(Picks) do
 		if ESX.Game.IsSpawnPointClear(v.coords, 3.0) then
@@ -69,9 +84,9 @@ function SpawnVehicle(vehicle, zone)
 		return
 	end
 
-	ESX.Game.SpawnVehicle(vehicle.props.model, pick.coords, pick.heading, function(callback_vehicle)
-		SetVehicleProperties(callback_vehicle, vehicle.props)
-		carInstance[vehicle.props.plate] = callback_vehicle
+	ESX.Game.SpawnVehicle(vehicle.props.model, pick.coords, pick.heading, function(veh)
+		setVehicleProperties(veh, vehicle.props)
+		carInstance[vehicle.props.plate] = veh
 	end)
 
 	ESX.ShowNotification('Your ~y~vehicle ~w~is ~g~ready')
@@ -89,7 +104,7 @@ function vehicleInUse(plate)
 	for k, v in pairs(players) do
 		local vehicle = GetVehiclePedIsIn(GetPlayerPed(v), false)
 		if vehicle ~= 0 then
-			local props = GetVehicleProperties(vehicle)
+			local props = getVehicleProperties(vehicle)
 			if plate == props.plate then
 				vehicleInUse = true
 				break
@@ -99,7 +114,7 @@ function vehicleInUse(plate)
 	return vehicleInUse
 end
 
-function SetVehicleProperties(vehicle, props)
+function setVehicleProperties(vehicle, props)
     ESX.Game.SetVehicleProperties(vehicle, props)
 	if props.fuel then
 		DecorSetFloat(vehicle, '_FUEL_LEVEL', props.fuel)
@@ -131,7 +146,7 @@ function SetVehicleProperties(vehicle, props)
 	if props.vehicleHeadLight then SetVehicleHeadlightsColour(vehicle, props.vehicleHeadLight) end
 end
 
-function GetVehicleProperties(vehicle)
+function getVehicleProperties(vehicle)
     if DoesEntityExist(vehicle) then
         local props = ESX.Game.GetVehicleProperties(vehicle)
 

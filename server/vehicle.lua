@@ -5,20 +5,71 @@ ESX.RegisterCommand({'givecar', 'giveveh'}, 'admin', function(xPlayer, args, sho
 	else 
 		args.playerId = ESX.GetPlayerFromId(args.playerId) 
 	end
-	TriggerClientEvent('dd_society:createVehicle', args.playerId.playerId, args.vehicle)
+	local plate = genPlate()
+	TriggerClientEvent('dd_society:createVehicle', args.playerId.playerId, args.vehicle, plate)
 end, true, {help = 'Spawn a vehicle and give it to a player', validate = false, arguments = {
 	{name = 'vehicle', help = 'Vehicle', type = 'string'},
 	{name = 'playerId', help = 'The player id', type = 'any'}
 }})
 
+local Chars = {}
+for i = 48, 57 do
+    table.insert(Chars, utf8.char(i))
+	table.insert(Chars, utf8.char(i))
+	table.insert(Chars, utf8.char(i))
+	table.insert(Chars, utf8.char(i))
+	table.insert(Chars, utf8.char(i))
+end
+for i = 65, 90 do
+    table.insert(Chars, utf8.char(i))
+    table.insert(Chars, utf8.char(i))
+end
 
-RegisterServerEvent('dd_society:vCreate', function(vehicle, owner)
+function genPlate()
+	local Vehicles = exports.oxmysql:executeSync('SELECT plate FROM owned_vehicles', {})
+	for k, v in pairs(Vehicles) do 
+		v = v.plate
+	end
+
+	math.randomseed(os.time())
+	for i = 1, 10 do
+		local plate
+
+		for i = 1, 7 do
+			local c = Chars[math.random(#Chars)]
+			if not plate then
+				plate = c
+			elseif i == 4 then
+				plate = plate .. ' '
+			else
+				plate = plate .. c
+			end
+		end
+
+		if not has_value(Vehicles, plate) then
+			return plate
+		end
+
+		return false
+	end
+end
+
+RegisterServerEvent('dd_society:vCreateVehicle')
+AddEventHandler('dd_society:vCreateVehicle', function(props, owner, name)
 	local Society = Data.Societies[owner]
+	local plate = props.plate
+	props = json.encode(props)
+	local type = 'car'
+	-- local type = Data.Vehicles[vehicle.model].type -- need to finish vehicles table first
 
 	if not Society then
 		xOwner = ESX.GetPlayerFromId(owner)
 		owner = xOwner.identifier
 	end
+
+	exports.oxmysql:insert('INSERT INTO owned_vehicles (vehicle, owner, name, plate, type) VALUES (?, ?, ?, ?, ?)', {props, owner, name, plate, type}, 
+	function(insertId)
+	end)
 
 	cb(Vehicles)
 end)
