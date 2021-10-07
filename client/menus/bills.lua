@@ -35,11 +35,13 @@ function billsOpen()
 		}, 
 		function(data, menu)
 			menu.close()
-			ESX.TriggerServerCallback('dd_society:aPayBill', function(cb)
-				if cb then
-					billsOpen()
-				end
-			end, data.current.value)
+			if data.current.value then
+				ESX.TriggerServerCallback('dd_society:aPayBill', function(cb)
+					if cb then
+						billsOpen()
+					end
+				end, data.current.value)
+			end
 		end, function(data, menu)
 			menu.close()
 		end)
