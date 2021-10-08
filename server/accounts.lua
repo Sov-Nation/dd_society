@@ -1,15 +1,15 @@
 function CreateAccounts()
-    while not next(Data.Societies) do
-        wait(10)
-    end
-    for k, v in pairs(Data.Societies) do
-        v.acc = createAccount(v)
-    end
+	while not next(Data.Societies) do
+		wait(10)
+	end
+	for k, v in pairs(Data.Societies) do
+		v.acc = createAccount(v)
+	end
 end
 
 function createAccount(society)
 	local self = {}
-    
+	
 	self.label  = society.label
 	self.account = society.account
 
@@ -29,9 +29,9 @@ function createAccount(society)
 	end
 
 	self.save = function()
-        Data.Societies[self.label].account = self.account
-        updateSociety(Data.Societies[self.label], true)
-    end
+		Data.Societies[self.label].account = self.account
+		updateSociety(Data.Societies[self.label], true)
+	end
 
 	return self
 end
@@ -66,6 +66,32 @@ ESX.RegisterServerCallback('dd_society:aPayMoney', function(source, cb, amount, 
 	end
 end)
 
+ESX.RegisterServerCallback('dd_society:aPaySocietyMoney', function(source, cb, amount, account, target, society)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	local Soc = Data.Societies[society]
+
+	if Soc.account >= amount then
+		if target then
+			local tSoc = Data.Societies[target]
+			if tSoc then
+				tSoc.acc.addMoney(amount)
+				xPlayer.showNotification('~y~' .. target .. ' ~w~received ~g~$' .. amount .. ' ~w~from ~y~' .. society)
+			else
+				local xTarget = ESX.GetPlayerFromId(target)
+				xTarget.addAccountMoney(account, amount)
+				xPlayer.showNotification('~y~' .. target .. ' ~w~received ~g~$' .. amount .. ' ~w~from ~y~' .. society)
+			end
+		else
+			xPlayer.addAccountMoney(account, amount)
+			xPlayer.showNotification('You ~w~received ~g~$' .. amount .. ' ~w~from ~y~' .. society)
+		end
+		Soc.acc.removeMoney(amount)
+		cb(true)
+	else
+		xPlayer.showNotification("~r~You don't have enough money")
+		cb(false)
+	end
+end)
 
 RegisterServerEvent('dd_society:aCreateBill')
 AddEventHandler('dd_society:aCreateBill', function(player, amount, target, details)
@@ -118,23 +144,26 @@ ESX.RegisterServerCallback('dd_society:aGetTargetBills', function(source, cb, ta
 	end)
 end)
 
-ESX.RegisterServerCallback('dd_society:aPayBill', function(source, cb, id)
+ESX.RegisterServerCallback('dd_society:aPayBill', function(source, cb, id, cancel)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local account = xPlayer.getAccount('bank')
 
 	local Bill = exports.oxmysql:singleSync('SELECT id, target, amount, details, timestamp FROM dd_bills WHERE player = ? AND id = ?', {xPlayer.identifier, id})
 
-	if account.money >= Bill.amount then
-		local Society = Data.Societies[Bill.target]
-		if Society then
-			Society.acc.addMoney(Bill.amount)
-			xPlayer.showNotification('Paid bill of ~g~$' .. Bill.amount .. ' ~w~from bank account to ~y~' .. Bill.target)
-		else
-			local xTarget = ESX.GetPlayerFromIdentifier(Bill.target)
-			xTarget.addAccountMoney('bank', Bill.amount)
-			xPlayer.showNotification('Paid bill of ~g~$' .. Bill.amount .. ' ~w~from bank account to ~y~' .. Bill.target) --handle for player name
+	if account.money >= Bill.amount or cancel then
+		if not cancel then
+			local Society = Data.Societies[Bill.target]
+			if Society then
+				Society.acc.addMoney(Bill.amount)
+				xPlayer.showNotification('Paid bill of ~g~$' .. Bill.amount .. ' ~w~from bank account to ~y~' .. Bill.target)
+			else
+				local xTarget = ESX.GetPlayerFromIdentifier(Bill.target)
+				xTarget.addAccountMoney('bank', Bill.amount)
+				xPlayer.showNotification('Paid bill of ~g~$' .. Bill.amount .. ' ~w~from bank account to ~y~' .. Bill.target) --handle for player name
+			end
+			xPlayer.removeAccountMoney(account, Bill.amount)
 		end
-		xPlayer.removeAccountMoney(account, Bill.amount)
+
 		exports.oxmysql:execute('DELETE FROM dd_bills WHERE player = ? AND id = ?', {xPlayer.identifier, id},
 		function(result)
 			cb(true)
@@ -143,4 +172,3 @@ ESX.RegisterServerCallback('dd_society:aPayBill', function(source, cb, id)
 		cb(false)
 	end
 end)
- 
