@@ -1,6 +1,4 @@
-ALTER TABLE `users`
-	ADD COLUMN `dd_keys` TEXT DEFAULT '[]'
-;
+ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `dd_keys` TEXT DEFAULT '[]';
 
 DROP TABLE IF EXISTS `jobs`;
 CREATE TABLE `jobs` (
