@@ -198,7 +198,6 @@ end
 
 RegisterNetEvent('dd_society:updateSociety')
 AddEventHandler('dd_society:updateSociety', function(Society)
-    local colour, account
     local OldSociety = Data.Societies[Society.label]
 
     Data.Societies[Society.label] = Society
