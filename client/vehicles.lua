@@ -1,6 +1,6 @@
 RegisterNetEvent('dd_society:createVehicle')
 AddEventHandler('dd_society:createVehicle', function(model, plate)
-	local heading = GetEntityHeading(ped)
+	local heading = GetEntityHeading(pedPos)
 
 	ESX.Game.SpawnVehicle(model, pedPos, heading, function(veh)
 		local name = GetLabelText(GetDisplayNameFromVehicleModel(model))
@@ -15,9 +15,9 @@ AddEventHandler('dd_society:createVehicle', function(model, plate)
 end)
 
 function storeVehicle(zone)
-	if IsPedInAnyVehicle(ped, false) then
-		local vehicleId = GetVehiclePedIsIn(ped, false)
-		if GetPedInVehicleSeat(vehicleId, -1) == ped then
+	if IsPedInAnyVehicle(ESX.PlayerData.ped, false) then
+		local vehicleId = GetVehiclePedIsIn(ESX.PlayerData.ped, false)
+		if GetPedInVehicleSeat(vehicleId, -1) == ESX.PlayerData.ped then
 			local vehicle = {}
 			vehicle.props = getVehicleProperties(vehicleId)
 			if vehicle.props ~= nil then
@@ -59,7 +59,8 @@ function SpawnVehicle(vehicle, zone)
 	local Picks = {}
 
 	for k, v in pairs(zone.spawn) do
-		Picks[math.floor(#(v.coords - pedPos))] = v
+		local x, y, z in ESX.PlayerData.coords
+		Picks[math.floor(#(vec(x, y, z) - v.coords))] = v
 	end
 
 	local pick

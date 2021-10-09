@@ -1,27 +1,25 @@
 CreateThread(function()
-	while not DataReady do
-		Wait(100)
-	end
 	while true do
 		Wait(100)
-		ped = PlayerPedId()
-		pedPos = GetEntityCoords(ped)
-		for k, v in pairs(Data.Doors) do
-			local distance = #(pedPos -  v.object)
-			applyDoorState(v, distance)
-			if distance < v.distance then
-				local auth = has_value(Data.Player.Auth.Doors, k)
-				v.displayText = '~g~Unlocked'
+		pedPos = GetEntityCoords(ESX.PlayerData.ped)
+		if Data.Player.Auth then
+			for k, v in pairs(Data.Doors) do
+				local distance = #(pedPos - v.object)
+				applyDoorState(v, distance)
+				if distance < v.distance then
+					local auth = has_value(Data.Player.Auth.Doors, k)
+					v.displayText = '~g~Unlocked'
 
-				if v.state then
-					v.displayText = '~r~Locked'
-				end
+					if v.state then
+						v.displayText = '~r~Locked'
+					end
 
-				if auth then
-					v.displayText = '[X] ' .. v.displayText
+					if auth then
+						v.displayText = '[X] ' .. v.displayText
+					end
+				else
+					v.displayText = nil
 				end
-			else
-				v.displayText = nil
 			end
 		end
 	end
@@ -31,7 +29,7 @@ RegisterCommand('lock/unlock', function()
 	local closeDist = 25
 	local closeDoor = {}
 	for k, v in pairs(Data.Doors) do
-		local distance = #(pedPos -  v.object)
+		local distance = #(pedPos - v.object)
 		if distance < v.distance then
 			if closeDist then
 				if closeDist > distance then
@@ -49,16 +47,11 @@ RegisterCommand('lock/unlock', function()
 end)
 
 CreateThread(function()
-	while not DataReady do
-		Wait(100)
-	end
 	while true do
 		Wait(10)
-		if Data.Doors then
-			for k, v in pairs(Data.Doors) do
-				if v.displayText then
-					ESX.Game.Utils.DrawText3D(v.text, v.displayText, (0.75 + v.distance/10))
-				end
+		for k, v in pairs(Data.Doors) do
+			if v.displayText then
+				ESX.Game.Utils.DrawText3D(v.text, v.displayText, (0.75 + v.distance/10))
 			end
 		end
 	end
