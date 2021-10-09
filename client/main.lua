@@ -92,22 +92,6 @@ AddEventHandler('dd_society:getZones', function()
     end)
 end)
 
-RegisterNetEvent('esx:setJob')
-AddEventHandler('esx:setJob', function(job)
-	ESX.PlayerData.job = job
-    showBlips()
-	refreshBussHUD()
-end)
-
-AddEventHandler('playerSpawned', function()
-	isDead = false
-end)
-
-AddEventHandler('esx:onPlayerDeath', function()
-	isDead = true
-	ESX.UI.Menu.CloseAll()
-end)
-
 RegisterKeyMapping('interact', 'Interact~', 'keyboard', 'e')
 TriggerEvent('chat:removeSuggestion', '/interact')
 
