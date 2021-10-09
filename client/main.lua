@@ -1,95 +1,90 @@
 Data = {}
 DataReady = false
 
-Controls = {
-    e = false,
-    x = false,
-    f6 = false
-}
 ---[[ for dev work
 CreateThread(function()
-    start()
+	start()
 end)
 --]]
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
 	ESX.PlayerData = xPlayer
 	ESX.PlayerLoaded = true
-    start()
+	start()
 end)
 
 function start()
-    TriggerEvent('dd_society:getSocieties')
-    TriggerEvent('dd_society:getPlayer', 'self')
-    TriggerEvent('dd_society:getProperties')
-    TriggerEvent('dd_society:getKeys')
-    TriggerEvent('dd_society:getDoors')
-    TriggerEvent('dd_society:getZones')
+	TriggerEvent('dd_society:getSocieties')
+	TriggerEvent('dd_society:getPlayer', 'self')
+	TriggerEvent('dd_society:getProperties')
+	TriggerEvent('dd_society:getKeys')
+	TriggerEvent('dd_society:getDoors')
+	TriggerEvent('dd_society:getZones')
 
-    while true do
-        Wait(100)
-        local ready = true
-        for k, v in pairs(Data) do
-            if not next(v) then
-                ready = false
-            end
-        end
-        if ready then
-            DataReady = true
-            break
-        end
-    end
+	while true do
+		Wait(100)
+		local ready = true
+		for k, v in pairs(Data) do
+			if not next(v) then
+				ready = false
+			end
+		end
+		if ready then
+			DataReady = true
+			break
+		end
+	end
 
-    showBlips()
-    refreshBussHUD()
+	showBlips()
+	refreshBussHUD()
 end
 
 RegisterNetEvent('dd_society:getSocieties')
 AddEventHandler('dd_society:getSocieties', function()
-    Data.Societies = {}
-    ESX.TriggerServerCallback('dd_society:getSocieties', function(Societies)
-        Data.Societies = Societies
-    end)
+	Data.Societies = {}
+	ESX.TriggerServerCallback('dd_society:getSocieties', function(Societies)
+		Data.Societies = Societies
+	end)
 end)
 
 RegisterNetEvent('dd_society:getPlayer')
 AddEventHandler('dd_society:getPlayer', function(ident)
-    Data.Player = {}
-    ESX.TriggerServerCallback('dd_society:getPlayer', function(Player)
-        Data.Player = Player
-    end, ident)
+	Data.Player = {}
+	ESX.TriggerServerCallback('dd_society:getPlayer', function(Player)
+		Data.Player = Player
+	end, ident)
 end)
 
 RegisterNetEvent('dd_society:getProperties')
 AddEventHandler('dd_society:getProperties', function()
-    Data.Properties = {}
-    ESX.TriggerServerCallback('dd_society:getProperties', function(Properties)
-        Data.Properties = Properties
-    end)
+	Data.Properties = {}
+	ESX.TriggerServerCallback('dd_society:getProperties', function(Properties)
+		Data.Properties = Properties
+	end)
 end)
 
 RegisterNetEvent('dd_society:getKeys')
 AddEventHandler('dd_society:getKeys', function()
-    Data.Keys = {}
-    ESX.TriggerServerCallback('dd_society:getKeys', function(Keys)
-        Data.Keys = Keys
-    end)
+	Data.Keys = {}
+	ESX.TriggerServerCallback('dd_society:getKeys', function(Keys)
+		Data.Keys = Keys
+	end)
 end)
 
 RegisterNetEvent('dd_society:getDoors')
 AddEventHandler('dd_society:getDoors', function()
-    Data.Doors = {}
-    ESX.TriggerServerCallback('dd_society:getDoors', function(Doors)
-        Data.Doors = Doors
-    end)
+	Data.Doors = {}
+	ESX.TriggerServerCallback('dd_society:getDoors', function(Doors)
+		Data.Doors = Doors
+	end)
 end)
 
 RegisterNetEvent('dd_society:getZones')
 AddEventHandler('dd_society:getZones', function()
-    Data.Zones = {}
-    ESX.TriggerServerCallback('dd_society:getZones', function(Zones)
-        Data.Zones = Zones
-    end)
+	Data.Zones = {}
+	ESX.TriggerServerCallback('dd_society:getZones', function(Zones)
+		Data.Zones = Zones
+	end)
 end)
 
 RegisterKeyMapping('interact', 'Interact~', 'keyboard', 'e')
@@ -105,71 +100,71 @@ RegisterKeyMapping('billsmenu', 'Bills Menu', 'keyboard', 'f7')
 TriggerEvent('chat:removeSuggestion', '/billsmenu')
 
 function showBlips(target)
-    if Blips then
-        if target == Blips.target then
-            target = nil
-        end
-        Blips.target = nil
-        for k, v in pairs(Blips) do
-            RemoveBlip(v)
-        end
-    end
-    Blips = {}
-    for k, v in pairs(Data.Properties) do
-        local blip = AddBlipForCoord(v.blip)
-        SetBlipSprite(blip, Config.PropertyTypes[v.type].sprite)
-        if Data.Societies[v.owner] then        
-            SetBlipDisplay(blip, 2)
-            SetBlipCategory(blip, 10)
-            SetBlipColour(blip, Data.Societies[v.owner].colour)
-            SetBlipShrink(blip, true)
+	if Blips then
+		if target == Blips.target then
+			target = nil
+		end
+		Blips.target = nil
+		for k, v in pairs(Blips) do
+			RemoveBlip(v)
+		end
+	end
+	Blips = {}
+	for k, v in pairs(Data.Properties) do
+		local blip = AddBlipForCoord(v.blip)
+		SetBlipSprite(blip, Config.PropertyTypes[v.type].sprite)
+		if Data.Societies[v.owner] then
+			SetBlipDisplay(blip, 2)
+			SetBlipCategory(blip, 10)
+			SetBlipColour(blip, Data.Societies[v.owner].colour)
+			SetBlipShrink(blip, true)
 
-            if v.owner ~= ESX.PlayerData.job.label then
-                SetBlipAsShortRange(blip, true)
-            end
-                
-            BeginTextCommandSetBlipName('STRING')
-            AddTextComponentString(k .. ' - ' .. Data.Societies[v.owner].label)
-            EndTextCommandSetBlipName(blip)
-        elseif v.owner == ESX.PlayerData.identifier then
-            SetBlipDisplay(blip, 2)
-            SetBlipCategory(blip, 11)
-            SetBlipShrink(blip, true)
+			if v.owner ~= ESX.PlayerData.job.label then
+				SetBlipAsShortRange(blip, true)
+			end
 
-            BeginTextCommandSetBlipName('STRING')
-            AddTextComponentString(k)
-            EndTextCommandSetBlipName(blip)
-        else
-            SetBlipDisplay(blip, 0)
+			BeginTextCommandSetBlipName('STRING')
+			AddTextComponentString(k .. ' - ' .. Data.Societies[v.owner].label)
+			EndTextCommandSetBlipName(blip)
+		elseif v.owner == ESX.PlayerData.identifier then
+			SetBlipDisplay(blip, 2)
+			SetBlipCategory(blip, 11)
+			SetBlipShrink(blip, true)
 
-            BeginTextCommandSetBlipName('STRING')
-            AddTextComponentString(k)
-            EndTextCommandSetBlipName(blip)
-        end
+			BeginTextCommandSetBlipName('STRING')
+			AddTextComponentString(k)
+			EndTextCommandSetBlipName(blip)
+		else
+			SetBlipDisplay(blip, 0)
 
-        if v.id == target then
-            SetBlipDisplay(blip, 2)
-            SetBlipRoute(blip, true)
-            SetBlipAsShortRange(blip, false) --add notification 
+			BeginTextCommandSetBlipName('STRING')
+			AddTextComponentString(k)
+			EndTextCommandSetBlipName(blip)
+		end
 
-            Blips.target = target
-            -- CreateThread(function() --NFG loops never stop
-            --     T = true
-            --     while T do
-            --         Wait(1000)
-            --         print(target)
-            --         if #(pedPos.xy - Data.Properties[target].blip.xy) < 50 then
-            --             showBlips()
-            --             break
-            --         elseif not T then
-            --             break
-            --         end
-            --     end
-            -- end)
-        end
+		if v.id == target then
+			SetBlipDisplay(blip, 2)
+			SetBlipRoute(blip, true)
+			SetBlipAsShortRange(blip, false) --add notification
 
-        Blips[v.id] = blip
-    end
+			Blips.target = target
+			-- CreateThread(function() --NFG loops never stop
+			--     T = true
+			--     while T do
+			--         Wait(1000)
+			--         print(target)
+			--         if #(pedPos.xy - Data.Properties[target].blip.xy) < 50 then
+			--             showBlips()
+			--             break
+			--         elseif not T then
+			--             break
+			--         end
+			--     end
+			-- end)
+		end
+
+		Blips[v.id] = blip
+	end
 end
 
 function refreshBussHUD()
@@ -182,17 +177,17 @@ end
 
 RegisterNetEvent('dd_society:updateSociety')
 AddEventHandler('dd_society:updateSociety', function(Society)
-    local OldSociety = Data.Societies[Society.label]
+	local OldSociety = Data.Societies[Society.label]
 
-    Data.Societies[Society.label] = Society
+	Data.Societies[Society.label] = Society
 
-    if Society.colour ~= OldSociety.colour then
-        showBlips()
-    end
+	if Society.colour ~= OldSociety.colour then
+		showBlips()
+	end
 
-    if Society.account ~= OldSociety.account and ESX.PlayerData.job.grade >= 3 and ESX.PlayerData.job.label == Society.label then
-        UpdateSocietyMoneyHUDElement(Society.account)
-    end
+	if Society.account ~= OldSociety.account and ESX.PlayerData.job.grade >= 3 and ESX.PlayerData.job.label == Society.label then
+		UpdateSocietyMoneyHUDElement(Society.account)
+	end
 end)
 
 function EnableSocietyMoneyHUDElement()

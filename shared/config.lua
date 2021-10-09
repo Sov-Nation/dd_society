@@ -10,11 +10,6 @@ Config.Garage = {
 	}
 }
 
--- bank(partial)
--- law
--- hospital
--- scrap
-
 Config.PropertyTypes = {
 	house = {
 		sprite = 40,

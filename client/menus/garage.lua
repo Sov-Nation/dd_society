@@ -24,7 +24,7 @@ end
 
 function gManage(zone)
 	ESX.TriggerServerCallback('dd_society:vList', function(vehicles)
-        local elements = {}
+		local elements = {}
 		if next(vehicles) then
 			for k, v in pairs(vehicles) do
 				local label
@@ -53,110 +53,110 @@ function gManage(zone)
 					value = v
 				})
 			end
-            ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'manage_garage',{
-                title    = zone.property .. ' - ' .. zone.name,
-                align    = 'top-left',
-                elements = elements,
-            },
-            function(data, menu)
-                local elements = {}
-                if data.current.value.garage == zone.id then
-                    elements[1] = {label = 'Retrieve vehicle from this garage', value = 'retrieve'}
-                elseif data.current.value.garage == 0 then
-                    elements[1] = {label = 'Recover vehicle $' .. Config.Garage.Prices.Insurance, value = 'recover'}
-                elseif data.current.value.garage > 0 then
-                	elements[1] = {label = 'Move vehicle to this garage $' .. Config.Garage.Prices.Move, value = 'move'}
-                elseif data.current.value.garage < 0 then
-                    elements[1] = {label = 'Pay impound fee $' .. Config.Garage.Prices.Impound, value = 'impound'}
-                end
-                elements[2] = {label = 'Rename vehicle' , value = 'rename'}
-                ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'vehicle_menu', {
-                    title    =  data.current.value.name,
-                    align    = 'top-left',
-                    elements = elements,
-                }, function(data2, menu2)
-                    if data2.current.value == 'retrieve' then
-                        if vehicleInUse(data.current.value.props.plate) then
-                            ESX.ShowNotification("~r~Someone has your vehicle")
-                            return
-                        end
-                        ESX.UI.Menu.CloseAll()
-                        local change = {
-                            garage = 0
-                        }
-                        ESX.TriggerServerCallback('dd_society:vModify', function()
-                            SpawnVehicle(data.current.value, zone)
-                            if next(CurrentZone) then
-                                gManage(zone)
-                            end
-                        end, data.current.value, change)
-                    elseif data2.current.value == 'rename' then
-                        ESX.UI.Menu.Open('dialog', GetCurrentResourceName(), 'rename_vehicle', {
-                            title = 'New vehicle name'
-                        }, function(data3, menu3)
-                            if data3.value and string.len(data3.value) > 0 then
-                                local change = {
-                                    name = data3.value
-                                }
-                                ESX.TriggerServerCallback('dd_society:vModify', function()
-                                    if next(CurrentZone) then
-                                        gManage(zone)
-                                    end
-                                end, data.current.value, change)
-                                menu3.close()
-                            else
-                                ESX.ShowNotification('~r~Name cannot be empty')
-                            end
-                        end, function(data3, menu3)
-                            menu3.close()
-                        end)
-                    else
-                        if vehicleInUse(data.current.value.props.plate) then
-                            ESX.ShowNotification("~r~Someone has your vehicle")
-                            return
-                        end
+			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'manage_garage',{
+				title    = zone.property .. ' - ' .. zone.name,
+				align    = 'top-left',
+				elements = elements,
+			},
+			function(data, menu)
+				local elements = {}
+				if data.current.value.garage == zone.id then
+					elements[1] = {label = 'Retrieve vehicle from this garage', value = 'retrieve'}
+				elseif data.current.value.garage == 0 then
+					elements[1] = {label = 'Recover vehicle $' .. Config.Garage.Prices.Insurance, value = 'recover'}
+				elseif data.current.value.garage > 0 then
+					elements[1] = {label = 'Move vehicle to this garage $' .. Config.Garage.Prices.Move, value = 'move'}
+				elseif data.current.value.garage < 0 then
+					elements[1] = {label = 'Pay impound fee $' .. Config.Garage.Prices.Impound, value = 'impound'}
+				end
+				elements[2] = {label = 'Rename vehicle' , value = 'rename'}
+				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'vehicle_menu', {
+					title    =  data.current.value.name,
+					align    = 'top-left',
+					elements = elements,
+				}, function(data2, menu2)
+					if data2.current.value == 'retrieve' then
+						if vehicleInUse(data.current.value.props.plate) then
+							ESX.ShowNotification("~r~Someone has your vehicle")
+							return
+						end
+						ESX.UI.Menu.CloseAll()
+						local change = {
+							garage = 0
+						}
+						ESX.TriggerServerCallback('dd_society:vModify', function()
+							SpawnVehicle(data.current.value, zone)
+							if next(CurrentZone) then
+								gManage(zone)
+							end
+						end, data.current.value, change)
+					elseif data2.current.value == 'rename' then
+						ESX.UI.Menu.Open('dialog', GetCurrentResourceName(), 'rename_vehicle', {
+							title = 'New vehicle name'
+						}, function(data3, menu3)
+							if data3.value and string.len(data3.value) > 0 then
+								local change = {
+									name = data3.value
+								}
+								ESX.TriggerServerCallback('dd_society:vModify', function()
+									if next(CurrentZone) then
+										gManage(zone)
+									end
+								end, data.current.value, change)
+								menu3.close()
+							else
+								ESX.ShowNotification('~r~Name cannot be empty')
+							end
+						end, function(data3, menu3)
+							menu3.close()
+						end)
+					else
+						if vehicleInUse(data.current.value.props.plate) then
+							ESX.ShowNotification("~r~Someone has your vehicle")
+							return
+						end
 
-                        if data2.current.value == 'recover' then
-                            price = Config.Garage.Prices.Insurance --change to excess based on vehicle
-                            garage = zone.id
-                            owner = Data.Properties[zone.property].owner --insurance company?
-                            details = 'Vehicle Recovery'
-                        elseif data2.current.value == 'move' then
-                            price = Config.Garage.Prices.Move
-                            garage = zone.id
-                            owner = Data.Properties[zone.property].owner
-                            details = 'Vehicle Move'
-                        elseif data2.current.value == 'impound' then
-                            price = Config.Garage.Prices.Impound
-                            garage = zone.id * -1
-                            owner = Data.Properties[Data.Zones[data.current.value.garage].property].owner
-                            details = 'Vehicle Impound Fee'
-                        end
-                        ESX.TriggerServerCallback('dd_society:aPayMoney', function(valid)
-                            if valid then
-                                menu2.close()
-                                local change = {
-                                    garage = garage
-                                }
-                                ESX.TriggerServerCallback('dd_society:vModify', function()
-                                    if next(CurrentZone) then
-                                        gManage(zone)
-                                    end
-                                end, data.current.value, change)
-                            end
-                        end, price, 'bank', owner, details) --pay owner
+						if data2.current.value == 'recover' then
+							price = Config.Garage.Prices.Insurance --change to excess based on vehicle
+							garage = zone.id
+							owner = Data.Properties[zone.property].owner --insurance company?
+							details = 'Vehicle Recovery'
+						elseif data2.current.value == 'move' then
+							price = Config.Garage.Prices.Move
+							garage = zone.id
+							owner = Data.Properties[zone.property].owner
+							details = 'Vehicle Move'
+						elseif data2.current.value == 'impound' then
+							price = Config.Garage.Prices.Impound
+							garage = zone.id * -1
+							owner = Data.Properties[Data.Zones[data.current.value.garage].property].owner
+							details = 'Vehicle Impound Fee'
+						end
+						ESX.TriggerServerCallback('dd_society:aPayMoney', function(valid)
+							if valid then
+								menu2.close()
+								local change = {
+									garage = garage
+								}
+								ESX.TriggerServerCallback('dd_society:vModify', function()
+									if next(CurrentZone) then
+										gManage(zone)
+									end
+								end, data.current.value, change)
+							end
+						end, price, 'bank', owner, details) --pay owner
 					end
-                end,
-                function(data2, menu2)
-                    menu2.close()
-                end)
-            end,
-            function(data, menu)
-                menu.close()
+				end,
+				function(data2, menu2)
+					menu2.close()
+				end)
+			end,
+			function(data, menu)
+				menu.close()
 				if next(CurrentZone) then
 					gOpen(zone)
 				end
-            end)
+			end)
 		else
 			ESX.ShowNotification("~r~You don't have access to any vehicles")
 		end

@@ -9,7 +9,7 @@ end
 
 function createAccount(society)
 	local self = {}
-	
+
 	self.label  = society.label
 	self.account = society.account
 
@@ -104,7 +104,7 @@ AddEventHandler('dd_society:aCreateBill', function(player, amount, target, detai
 	end
 
 	if xPlayer then
-		exports.oxmysql:insert('INSERT INTO dd_bills (player, target, amount, details, timestamp) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, target, amount, details, os.time() + 75600}, 
+		exports.oxmysql:insert('INSERT INTO dd_bills (player, target, amount, details, timestamp) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, target, amount, details, os.time() + 75600},
 		function(insertId)
 			xPlayer.showNotification('You have received an invoice')
 		end)
@@ -118,7 +118,7 @@ ESX.RegisterServerCallback('dd_society:aGetPlayerBills', function(source, cb, ta
 		xPlayer = ESX.GetPlayerFromId(target)
 	end
 
-	exports.oxmysql:execute('SELECT id, target, amount, details, timestamp FROM dd_bills WHERE player = ? ORDER BY timestamp', {xPlayer.identifier}, 
+	exports.oxmysql:execute('SELECT id, target, amount, details, timestamp FROM dd_bills WHERE player = ? ORDER BY timestamp', {xPlayer.identifier},
 	function(result)
 		for k, v in pairs(result) do
 			v.time = math.ceil((v.timestamp - os.time())/10800)
@@ -135,7 +135,7 @@ ESX.RegisterServerCallback('dd_society:aGetTargetBills', function(source, cb, ta
 		target = xTarget.identifier
 	end
 
-	exports.oxmysql:execute('SELECT dd_bills.id, dd_bills.player, dd_bills.amount, dd_bills.details, dd_bills.timestamp, users.firstname, users.lastname FROM dd_bills INNER JOIN users ON dd_bills.player = users.identifier WHERE target = ? ORDER BY timestamp', {target}, 
+	exports.oxmysql:execute('SELECT dd_bills.id, dd_bills.player, dd_bills.amount, dd_bills.details, dd_bills.timestamp, users.firstname, users.lastname FROM dd_bills INNER JOIN users ON dd_bills.player = users.identifier WHERE target = ? ORDER BY timestamp', {target},
 	function(result)
 		for k, v in pairs(result) do
 			v.time = math.ceil((v.timestamp - os.time())/10800)

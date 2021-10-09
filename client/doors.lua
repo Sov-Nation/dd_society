@@ -65,7 +65,7 @@ CreateThread(function()
 end)
 
 function applyDoorState(Door, distance)
-    if distance > 25 then
+	if distance > 25 then
 		return
 	end
 
@@ -80,7 +80,7 @@ function applyDoorState(Door, distance)
 	if not Door.closeDoor or Door.closeDoor == 0 then
 		return
 	end
-	
+
 	if Door.state then
 		if Door.axis ~= nil then
 			local pos = GetEntityCoords(Door.closeDoor)
@@ -96,15 +96,15 @@ function applyDoorState(Door, distance)
 				FreezeEntityPosition(Door.closeDoor, true)
 			end
 		end
-    else
-        NetworkRequestControlOfEntity(Door.closeDoor)
-        FreezeEntityPosition(Door.closeDoor, false)
+	else
+		NetworkRequestControlOfEntity(Door.closeDoor)
+		FreezeEntityPosition(Door.closeDoor, false)
 	end
 end
 
 RegisterNetEvent('dd_society:updateDoor')
 AddEventHandler('dd_society:updateDoor', function(Door)
-    local OldDoor = Data.Societies[Door.name]
-    
+	local OldDoor = Data.Societies[Door.name]
+
 	Data.Doors[Door.id] = Door
 end)

@@ -7,14 +7,14 @@ description "DokaDoka's Society"
 version "0.2.0"
 
 dependencies {
-    'es_extended',
-    'dd_menus',
-    'PolyZone',
+	'es_extended',
+	'dd_menus',
+	'PolyZone',
 }
 
-shared_scripts { 
-    '@es_extended/imports.lua',
-    'shared/*.lua',
+shared_scripts {
+	'@es_extended/imports.lua',
+	'shared/*.lua',
 }
 
 server_scripts {
@@ -22,10 +22,10 @@ server_scripts {
 }
 
 client_scripts {
-    '@PolyZone/client.lua',
-    '@PolyZone/BoxZone.lua',
-    '@PolyZone/EntityZone.lua',
-    '@PolyZone/CircleZone.lua',
-    '@PolyZone/ComboZone.lua',
-    'client/**/*.lua',
+	'@PolyZone/client.lua',
+	'@PolyZone/BoxZone.lua',
+	'@PolyZone/EntityZone.lua',
+	'@PolyZone/CircleZone.lua',
+	'@PolyZone/ComboZone.lua',
+	'client/**/*.lua',
 }

@@ -3,9 +3,9 @@ ActionMsg = nil
 carInstance = {}
 
 CreateThread(function() --ESX.UI.Menu.GetOpened(type, namespace, name)
-    while not DataReady do
-        Wait(100)
-    end
+	while not DataReady do
+		Wait(100)
+	end
 	for k, v in pairs(Data.Zones) do
 		local zone
 		if v.zone.type == 'poly' then
@@ -37,7 +37,7 @@ CreateThread(function() --ESX.UI.Menu.GetOpened(type, namespace, name)
 		end)
 	end
 end)
- 
+
 CreateThread(function()
 	while true do
 		Wait(0)

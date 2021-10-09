@@ -3,14 +3,14 @@ AddEventHandler('dd_society:createVehicle', function(model, plate)
 	local heading = GetEntityHeading(ped)
 
 	ESX.Game.SpawnVehicle(model, pedPos, heading, function(veh)
-        local name = GetLabelText(GetDisplayNameFromVehicleModel(model))
-        SetVehicleNumberPlateText(veh, plate)
-        local props = getVehicleProperties(veh)
+		local name = GetLabelText(GetDisplayNameFromVehicleModel(model))
+		SetVehicleNumberPlateText(veh, plate)
+		local props = getVehicleProperties(veh)
 		TaskWarpPedIntoVehicle(ped, veh, -1)
-        
-        TriggerServerEvent('dd_society:vCreateVehicle', props, GetPlayerServerId(PlayerId()), name)
-		
-        carInstance[props.plate] = veh
+
+		TriggerServerEvent('dd_society:vCreateVehicle', props, GetPlayerServerId(PlayerId()), name)
+
+		carInstance[props.plate] = veh
 	end)
 end)
 
@@ -115,84 +115,84 @@ function vehicleInUse(plate)
 end
 
 function setVehicleProperties(vehicle, props)
-    ESX.Game.SetVehicleProperties(vehicle, props)
+	ESX.Game.SetVehicleProperties(vehicle, props)
 	if props.fuel then
 		DecorSetFloat(vehicle, '_FUEL_LEVEL', props.fuel)
 	end
-	
-    if props.windows then
-        for windowId = 1, 9, 1 do
-            if props.windows[windowId] == false then
-                SmashVehicleWindow(vehicle, windowId)
-            end
-        end
-    end
 
-    if props.tyres then
-        for tyreId = 1, 7, 1 do
-            if props.tyres[tyreId] ~= false then
-                SetVehicleTyreBurst(vehicle, tyreId, true, 1000)
-            end
-        end
-    end
+	if props.windows then
+		for windowId = 1, 9, 1 do
+			if props.windows[windowId] == false then
+				SmashVehicleWindow(vehicle, windowId)
+			end
+		end
+	end
 
-    if props.doors then
-        for doorId = 0, 5, 1 do
-            if props.doors[doorId] ~= false then
-                SetVehicleDoorBroken(vehicle, doorId - 1, true)
-            end
-        end
-    end
+	if props.tyres then
+		for tyreId = 1, 7, 1 do
+			if props.tyres[tyreId] ~= false then
+				SetVehicleTyreBurst(vehicle, tyreId, true, 1000)
+			end
+		end
+	end
+
+	if props.doors then
+		for doorId = 0, 5, 1 do
+			if props.doors[doorId] ~= false then
+				SetVehicleDoorBroken(vehicle, doorId - 1, true)
+			end
+		end
+	end
 	if props.vehicleHeadLight then SetVehicleHeadlightsColour(vehicle, props.vehicleHeadLight) end
 end
 
 function getVehicleProperties(vehicle)
-    if DoesEntityExist(vehicle) then
-        local props = ESX.Game.GetVehicleProperties(vehicle)
+	if DoesEntityExist(vehicle) then
+		local props = ESX.Game.GetVehicleProperties(vehicle)
 
-        props.tyres = {}
-        props.windows = {}
-        props.doors = {}
+		props.tyres = {}
+		props.windows = {}
+		props.doors = {}
 		props.fuel = DecorGetFloat(vehicle, '_FUEL_LEVEL')
-		
-        for id = 1, 7 do
-            local tyreId = IsVehicleTyreBurst(vehicle, id, false)
-        
-            if tyreId then
-                props.tyres[#props.tyres + 1] = tyreId
-        
-                if tyreId == false then
-                    tyreId = IsVehicleTyreBurst(vehicle, id, true)
-                    props.tyres[ #props.tyres] = tyreId
-                end
-            else
-                props.tyres[#props.tyres + 1] = false
-            end
-        end
 
-        for id = 1, 9 do
-            local windowId = IsVehicleWindowIntact(vehicle, id)
+		for id = 1, 7 do
+			local tyreId = IsVehicleTyreBurst(vehicle, id, false)
 
-            if windowId ~= nil then
-                props.windows[#props.windows + 1] = windowId
-            else
-                props.windows[#props.windows + 1] = true
-            end
-        end
-        
-        for id = 0, 5 do
-            local doorId = IsVehicleDoorDamaged(vehicle, id)
-        
-            if doorId then
-                props.doors[#props.doors + 1] = doorId
-            else
-                props.doors[#props.doors + 1] = false
-            end
-        end
+			if tyreId then
+				props.tyres[#props.tyres + 1] = tyreId
+
+				if tyreId == false then
+					tyreId = IsVehicleTyreBurst(vehicle, id, true)
+					props.tyres[ #props.tyres] = tyreId
+				end
+			else
+				props.tyres[#props.tyres + 1] = false
+			end
+		end
+
+		for id = 1, 9 do
+			local windowId = IsVehicleWindowIntact(vehicle, id)
+
+			if windowId ~= nil then
+				props.windows[#props.windows + 1] = windowId
+			else
+				props.windows[#props.windows + 1] = true
+			end
+		end
+
+		for id = 0, 5 do
+			local doorId = IsVehicleDoorDamaged(vehicle, id)
+
+			if doorId then
+				props.doors[#props.doors + 1] = doorId
+			else
+				props.doors[#props.doors + 1] = false
+			end
+		end
 		props.vehicleHeadLight  = GetVehicleHeadlightsColour(vehicle)
 
-        return props
+		return props
 	else
 		return nil
-    end
+	end
 end

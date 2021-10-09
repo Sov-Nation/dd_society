@@ -110,9 +110,9 @@ CreateThread(function()
 				local seatPed = GetPedInVehicleSeat(vehicle, -1)
 				if seatPed == myPed then
 					TaskLeaveVehicle(myPed, vehicle, 4160)
-				end			
+				end
 			end
-			
+
 			SetPlayerHealthRechargeMultiplier((myPed), 1.0)
 			SetPedToRagdoll(myPed, 2000, 2000, 0, 0, 0, 0)
 			ResetPedRagdollTimer(myPed)

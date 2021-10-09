@@ -1,7 +1,7 @@
 RegisterCommand('billsmenu', function()
 	ESX.UI.Menu.CloseAll()
 	ActionMsg = nil
-    billsOpen()
+	billsOpen()
 end)
 
 function billsOpen()
@@ -32,7 +32,7 @@ function billsOpen()
 			title    = 'Outstanding bills',
 			align    = 'bottom-right',
 			elements = elements
-		}, 
+		},
 		function(data, menu)
 			menu.close()
 			if data.current.value then

@@ -35,7 +35,7 @@ function SQLFetchData()
 	for k, v in pairs(Data.Properties) do
 		table.insert(Data.Keys, {
 			name = 'Master',
-			designation = 0,	
+			designation = 0,
 			property = v.name,
 			exempt_doors = {},
 			exempt_zones = {}
@@ -52,7 +52,7 @@ function SQLFetchData()
 
 	local Zones = exports.oxmysql:executeSync('SELECT * FROM dd_zones', {})
 	for k, v in pairs(Zones) do
-							
+
 		v.zone = json.decode(v.zone)
 		if v.zone.vec then
 			v.zone.vec = vectorize(v.zone.vec)
@@ -198,10 +198,10 @@ AddEventHandler('dd_society:updateDoor', function(Door, save)
 	TriggerClientEvent('dd_society:updateDoor', -1, Door)
 	if save then
 		MySQL.Async.execute('UPDATE dd_doors SET name = @name, locked = @locked, distance = @distance WHERE id = @id', {
-            ['@name'] 		= Door.name,
-            ['@locked'] 	= Door.locked,
-            ['@distance'] 	= Door.distance,
-            ['@id'] 		= Door.id
-        })
+			['@name'] 		= Door.name,
+			['@locked'] 	= Door.locked,
+			['@distance'] 	= Door.distance,
+			['@id'] 		= Door.id
+		})
 	end
 end)

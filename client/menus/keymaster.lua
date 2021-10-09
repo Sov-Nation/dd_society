@@ -19,7 +19,7 @@ function kmOpen()
 					end
 				end
 				table.insert(elements, {
-					label = v.id .. ' - (' .. #v.props .. ')', 
+					label = v.id .. ' - (' .. #v.props .. ')',
 					value = v
 				})
 			end
@@ -32,7 +32,7 @@ function kmOpen()
 				elements = {}
 				for k, v in pairs(data2.current.value.props) do
 					table.insert(elements, {
-						label = v.id, 
+						label = v.id,
 						value = v
 					})
 				end
@@ -59,7 +59,7 @@ function kmOpen()
 			local elements = {}
 			for k, v in pairs(Data.Properties) do
 				table.insert(elements, {
-					label = v.id .. ' - (' .. v.owner .. ')', 
+					label = v.id .. ' - (' .. v.owner .. ')',
 					value = v
 				})
 			end

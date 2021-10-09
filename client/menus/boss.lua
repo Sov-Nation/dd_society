@@ -17,16 +17,16 @@ function bOpen(zone)
 			--transfer ownership of vehicles
 			--change society vehicle state
 			{label = 'Manage employees', value = 'employees'},
-			--recruit, 
+			--recruit,
 			--fire,
-			--change grade label and salary, 
+			--change grade label and salary,
 			--see and add or remove keys
 		}
 	},
 	function(data, menu)
 		if data.current.value == 'stash' then
 			menu.close()
-			
+
 			TriggerEvent('ox_inventory:openInventory', 'stash', {name = zone.property .. zone.type .. zone.designation, label = 'Boss Stash', owner = false, slots = 100, weight = 100000})
 		elseif data.current.value == 'finance' then
 			local elements = {
@@ -41,12 +41,12 @@ function bOpen(zone)
 				title    = 'Finance Manager' .. ' - ' .. Data.Properties[zone.property].owner,
 				align    = 'top-left',
 				elements = elements
-			}, 
+			},
 			function(data2, menu2)
 				if data2.current.value == 'withdraw' then
 					exports.dd_menus:amount({
-						title = 'Withdraw money from the ' .. Data.Properties[zone.property].owner .. ' account, enter value (' .. Data.Societies[Data.Properties[zone.property].owner].account .. ')', 
-						min = 1, 
+						title = 'Withdraw money from the ' .. Data.Properties[zone.property].owner .. ' account, enter value (' .. Data.Societies[Data.Properties[zone.property].owner].account .. ')',
+						min = 1,
 						max = Data.Societies[Data.Properties[zone.property].owner].account
 					},
 					function(datad, menud)
@@ -57,8 +57,8 @@ function bOpen(zone)
 					end, false)
 				elseif data2.current.value == 'deposit' then
 					exports.dd_menus:amount({
-						title = 'Deposit money into the ' .. Data.Properties[zone.property].owner .. ' account, enter value (' .. ESX.PlayerData.accounts[2].money .. ')', 
-						min = 1, 
+						title = 'Deposit money into the ' .. Data.Properties[zone.property].owner .. ' account, enter value (' .. ESX.PlayerData.accounts[2].money .. ')',
+						min = 1,
 						max = ESX.PlayerData.accounts[2].money --might not be consistently cash
 					},
 					function(datad, menud)
@@ -95,7 +95,7 @@ function bOpen(zone)
 							title    = 'Cancel ' .. Data.Properties[zone.property].owner .. ' bills',
 							align    = 'top-left',
 							elements = elements
-						}, 
+						},
 						function(data3, menu3)
 							menu3.close()
 							if data3.current.value then
@@ -122,7 +122,7 @@ function bOpen(zone)
 					{label = 'Personal vehicles', value = 'personal'},
 					{label = 'Vehicles stored at this property', value = 'local'},
 				}
-			}, 
+			},
 			function(data2, menu2)
 				bManageGarage(zone, data2.current.value)
 			end, function(data2, menu2)

@@ -1,9 +1,9 @@
 ESX.RegisterCommand({'givecar', 'giveveh'}, 'admin', function(xPlayer, args, showError)
 	if not args.vehicle then return end
-	if not args.playerId then 
-		args.playerId = xPlayer 
-	else 
-		args.playerId = ESX.GetPlayerFromId(args.playerId) 
+	if not args.playerId then
+		args.playerId = xPlayer
+	else
+		args.playerId = ESX.GetPlayerFromId(args.playerId)
 	end
 	local plate = genPlate()
 	TriggerClientEvent('dd_society:createVehicle', args.playerId.playerId, args.vehicle, plate)
@@ -14,20 +14,20 @@ end, true, {help = 'Spawn a vehicle and give it to a player', validate = false, 
 
 local Chars = {}
 for i = 48, 57 do
-    table.insert(Chars, utf8.char(i))
+	table.insert(Chars, utf8.char(i))
 	table.insert(Chars, utf8.char(i))
 	table.insert(Chars, utf8.char(i))
 	table.insert(Chars, utf8.char(i))
 	table.insert(Chars, utf8.char(i))
 end
 for i = 65, 90 do
-    table.insert(Chars, utf8.char(i))
-    table.insert(Chars, utf8.char(i))
+	table.insert(Chars, utf8.char(i))
+	table.insert(Chars, utf8.char(i))
 end
 
 function genPlate()
 	local Vehicles = exports.oxmysql:executeSync('SELECT plate FROM owned_vehicles', {})
-	for k, v in pairs(Vehicles) do 
+	for k, v in pairs(Vehicles) do
 		v = v.plate
 	end
 
@@ -67,14 +67,14 @@ AddEventHandler('dd_society:vCreateVehicle', function(props, owner, name)
 		owner = xOwner.identifier
 	end
 
-	exports.oxmysql:insert('INSERT INTO owned_vehicles (vehicle, owner, name, plate, type) VALUES (?, ?, ?, ?, ?)', {props, owner, name, plate, type}, 
+	exports.oxmysql:insert('INSERT INTO owned_vehicles (vehicle, owner, name, plate, type) VALUES (?, ?, ?, ?, ?)', {props, owner, name, plate, type},
 	function(insertId)
 	end)
 end)
 
 ESX.RegisterServerCallback('dd_society:vList', function(source, cb, garage)
 	local xPlayer = ESX.GetPlayerFromId(source)
-	local Vehicles 
+	local Vehicles
 
 	if garage.type == 'boss' then
 		local garages = {}
