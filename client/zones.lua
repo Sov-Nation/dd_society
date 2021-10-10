@@ -24,7 +24,7 @@ CreateThread(function() --ESX.UI.Menu.GetOpened(type, namespace, name)
 			})
 		end
 		zone:onPlayerInOut(function(isPointInside, point)
-			if has_value(Data.Player.Auth.Zones, zone.data.id)then
+			if has_value(Data.Player.Auth.Zones, zone.data.id) or zone.data.public then
 				local insideZone = isPointInside
 				if insideZone then
 					CurrentZone = zone.data
