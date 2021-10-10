@@ -104,6 +104,16 @@ CREATE TABLE `dd_bills` (
 	PRIMARY KEY (`id`)
 );
 
+DROP TABLE IF EXISTS `dd_moneywash`;
+CREATE TABLE `dd_moneywash` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`property` VARCHAR(100) NOT NULL,
+	`amount` INT NOT NULL,
+	`timestamp` INT NOT NULL,
+
+	PRIMARY KEY (`id`)
+);
+
 DROP TABLE IF EXISTS `dd_properties`;
 CREATE TABLE `dd_properties` (
 	`id` VARCHAR(100) NOT NULL,
