@@ -172,3 +172,59 @@ ESX.RegisterServerCallback('dd_society:aPayBill', function(source, cb, id, cance
 		cb(false)
 	end
 end)
+
+ESX.RegisterServerCallback('dd_society:aWashMoney', function(source, cb, amount, property)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	local acc = xPlayer.getAccount('black_money')
+
+	if acc.money >= amount then
+		xPlayer.removeAccountMoney('black_money', amount)
+		exports.oxmysql:insert('INSERT INTO dd_moneywash (property, amount, timestamp) VALUES (?, ?, ?)', {property, amount, os.time() + 10800},
+		function(insertId)
+			cb(true)
+			xPlayer.showNotification('Your ~g~$' .. amount .. ' ~w~will be washed in 24 hours')
+		end)
+	else
+		cb(false)
+	end
+end)
+
+ESX.RegisterServerCallback('dd_society:aGetWashedMoney', function(source, cb, property)
+	exports.oxmysql:execute('SELECT id, property, amount, timestamp FROM dd_moneywash WHERE property = ?', {property},
+	function(result)
+		local Ready = {
+			amount = 0,
+		}
+
+		for k, v in pairs(result) do
+			if v.timestamp < os.time() then
+				Ready.amount += v.amount
+				v.time = 0
+			else
+				v.time = math.ceil((v.timestamp - os.time())/450)
+			end
+		end
+
+		cb(result, Ready)
+	end)
+end)
+
+ESX.RegisterServerCallback('dd_society:aCollectWashedMoney', function(source, cb, property, Money)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	local amount = 0
+	local ids = {}
+
+	for k, v in pairs(Money) do
+		if v.time == 0 then
+			table.insert(ids, v.id)
+			amount += v.amount
+		end
+	end
+
+	xPlayer.addAccountMoney('money', amount)
+
+	exports.oxmysql:execute('DELETE FROM dd_moneywash WHERE property = ? AND id IN (?)', {property, ids},
+	function(result)
+		cb(true)
+	end)
+end)

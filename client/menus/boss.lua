@@ -4,7 +4,7 @@ function bOpen(zone)
 		align    = 'top-left',
 		elements = {
 			{label = 'Open stash', value = 'stash'},
-			{label = 'Finance manager', value = 'finance'},
+			{label = 'Manage finances', value = 'finance'},
 			--add/take money -- done
 			--view and cancel bills -- done
 			--wash money, based on config, money will take time too wash and then be collected all at once
@@ -38,7 +38,7 @@ function bOpen(zone)
 				table.insert(elements, v)
 			end
 			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'finance', {
-				title    = 'Finance Manager' .. ' - ' .. Data.Properties[zone.property].owner,
+				title    = 'Manage Finances - ' .. Data.Properties[zone.property].owner,
 				align    = 'top-left',
 				elements = elements
 			},
@@ -107,8 +107,58 @@ function bOpen(zone)
 						end)
 					end, ESX.PlayerData.job.label)
 				elseif data2.current.value == 'washedmoney' then
+					ESX.TriggerServerCallback('dd_society:aGetWashedMoney', function(WashedMoney, Ready)
+						local elements = {}
+						if Ready.amount == 0 then
+							elements[1] = {label = 'No money ready to collect'}
+						else
+							elements[1] = {
+								label = ('<span style="color: green;">%s</span>'):format('There is $' .. ESX.Math.GroupDigits(Ready.amount) .. ' ready to collect'),
+								value = 'collect'
+							}
+						end
+						for k, v in pairs(WashedMoney) do
+							if v.time ~= 0 then
+								local colour = 'red'
+								if v.time < 6 then
+									colour = 'yellow'
+								elseif v.time < 12 then
+									colour = 'orange'
+								end
+								table.insert(elements, {
+									label = ('<span style="color: ' .. colour .. ';">%s</span>'):format('$' .. ESX.Math.GroupDigits(v.amount) .. ' will be ready in ' .. v.time .. ' hours')
+								})
+							end
+						end
+						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'collectmoneywash', {
+							title    = 'Collect washed money from ' .. zone.property,
+							align    = 'top-left',
+							elements = elements
+						},
+						function(data3, menu3)
+							if data3.current.value then
+								menu3.close()
+								if data3.current.value == 'collect' then
+									ESX.TriggerServerCallback('dd_society:aCollectWashedMoney', function(valid)
+									end, zone.property, WashedMoney)
+								end
+							end
+						end, function(data3, menu3)
+							menu3.close()
+						end)
+					end, zone.property)
 				elseif data2.current.value == 'washmoney' then
-					--make in property menu maybe
+					exports.dd_menus:amount({
+						title = 'Wash money here, at ' .. zone.property .. ', enter value',
+						min = 1,
+						max = nil
+					},
+					function(datad, menud)
+						ESX.TriggerServerCallback('dd_society:aWashMoney', function(valid)
+							if valid then
+							end
+						end, datad.value, zone.property)
+					end, false)
 				end
 			end, function(data2, menu2)
 				menu2.close()

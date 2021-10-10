@@ -24,15 +24,17 @@ CreateThread(function() --ESX.UI.Menu.GetOpened(type, namespace, name)
 			})
 		end
 		zone:onPlayerInOut(function(isPointInside, point)
-			local insideZone = isPointInside
-			if insideZone then
-				CurrentZone = zone.data
-				zone.data.message = Config.Zones[zone.data.type].message
-				ActionMsg = zone.data.message
-			else
-				CurrentZone = {}
-				ActionMsg = nil
-				ESX.UI.Menu.CloseAll()
+			if has_value(Data.Player.Auth.Zones, zone.data.id)then
+				local insideZone = isPointInside
+				if insideZone then
+					CurrentZone = zone.data
+					zone.data.message = Config.Zones[zone.data.type].message
+					ActionMsg = zone.data.message
+				else
+					CurrentZone = {}
+					ActionMsg = nil
+					ESX.UI.Menu.CloseAll()
+				end
 			end
 		end)
 	end
