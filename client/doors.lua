@@ -31,11 +31,9 @@ RegisterCommand('lock/unlock', function()
 	for k, v in pairs(Data.Doors) do
 		local distance = #(pedPos - v.object)
 		if distance < v.distance then
-			if closeDist then
-				if closeDist > distance then
-					closeDist = distance
-					closeDoor = v
-				end
+			if closeDist > distance then
+				closeDist = distance
+				closeDoor = v
 			end
 		end
 	end
