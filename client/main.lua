@@ -87,10 +87,10 @@ AddEventHandler('dd_society:getZones', function()
 	end)
 end)
 
-RegisterKeyMapping('interact', 'Interact~', 'keyboard', 'e')
+RegisterKeyMapping('interact', 'Interact', 'keyboard', 'e')
 TriggerEvent('chat:removeSuggestion', '/interact')
 
-RegisterKeyMapping('lock/unlock', 'Lock/Unlock~', 'keyboard', 'x')
+RegisterKeyMapping('lock/unlock', 'Lock/Unlock Door', 'keyboard', 'x')
 TriggerEvent('chat:removeSuggestion', '/lock/unlock')
 
 RegisterKeyMapping('societymenu', 'Society Menu', 'keyboard', 'f6')
