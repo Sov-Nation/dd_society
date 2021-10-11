@@ -7,20 +7,21 @@ function bOpen(zone)
 			{label = 'Manage finances', value = 'finance'},
 			--add/take money -- done
 			--view and cancel bills -- done
-			--wash money, based on config, money will take time too wash and then be collected all at once
+			--wash money, based on config, money will take time to wash and then be collected all at once -- done
 			{label = 'Manage properties', value = 'properties'},
 			--keys, create, delete, add and remove all in society, tweak exemptions
 			--doors, name, locked, distance
 			--zones, public, name
 			{label = 'Manage vehicles', value = 'vehicles'},
-			----see society, personal and local vehicles
-			--transfer ownership of vehicles
-			--change society vehicle state
+			--see society, personal and local vehicles -- done
+			--transfer ownership of vehicles -- done
 			{label = 'Manage employees', value = 'employees'},
 			--recruit,
-			--fire,
-			--change grade label and salary,
-			--see and add or remove keys
+			--manage grades
+				--change grade label and salary
+			--manage individuals
+				--fire
+				--see and add or remove keys
 		}
 	},
 	function(data, menu)
@@ -168,7 +169,7 @@ function bOpen(zone)
 				title    = 'Manage Vehicles',
 				align    = 'top-left',
 				elements = {
-					{label = 'Company vehicles', value = 'company'},
+					{label = 'Society vehicles', value = 'society'},
 					{label = 'Personal vehicles', value = 'personal'},
 					{label = 'Vehicles stored at this property', value = 'local'},
 				}
@@ -189,65 +190,92 @@ function bManageGarage(zone, view)
 	local elements = {}
 	ESX.TriggerServerCallback('dd_society:vList', function(vehicles)
 		if next(vehicles) then
+			local title
+			if view == 'society' then
+				title = 'Society vehicles - transfer to personal'
+			elseif view == 'personal' then
+				title = 'Personal vehicles - transfer to society'
+			elseif view == 'local' then
+				title =  zone.property .. ' Local vehicles'
+			end
 			for k, v in pairs(vehicles) do
-				local props = json.decode(v.vehicle)
-				local name, label
-
+				local label
 				if v.garage == 0 then
 					label = ('<span style="color: orange;">%s</span>'):format(v.name .. ' is not stored')
 				elseif v.garage > 0 then
-					label = ('<span style="color: yellow;">%s</span>'):format(v.name .. ' is stored in ' .. Data.Zones[v.garage].property .. ' - ' .. Data.Zones[v.garage].name)
-				elseif v.garage < 0 then
-					label = ('<span style="color: red;">%s</span>'):format(v.name .. ' is impounded in ' .. Data.Zones[v.garage].property .. ' - ' .. Data.Zones[v.garage].name)
-				end
-				if view == 'local' then
-					if Data.Societies[v.owner] then
-						label = v.owner .. ': ' .. label
+					if Data.Zones[v.garage].property == zone.property then
+						label = ('<span style="color: green;">%s</span>'):format(v.name .. ' is stored here in ' .. Data.Zones[v.garage].name)
 					else
-						label = v.owner .. ': ' .. label --change owner to owner name
+						label = ('<span style="color: yellow;">%s</span>'):format(v.name .. ' is stored in ' .. Data.Zones[v.garage].property .. ' - ' .. Data.Zones[v.garage].name)
 					end
-					table.insert(elements, {
-						label = label,
-						name = v.name,
-						garage = v.garage,
-						props = props
-					})
-				elseif view == 'company' and Data.Societies[v.owner] then
+				elseif v.garage < 0 then
+					if Data.Zones[math.abs(v.garage)].property == zone.property then
+						label = ('<span style="color: red;">%s</span>'):format(v.name .. ' is impounded here in ' .. Data.Zones[math.abs(v.garage)].name)
+					else
+						label = ('<span style="color: red;">%s</span>'):format(v.name .. ' is impounded in ' .. Data.Zones[math.abs(v.garage)].property .. ' - ' .. Data.Zones[math.abs(v.garage)].name)
+					end
+				end
+
+				local props = json.decode(v.vehicle)
+				if view == 'local' then
+					if v.garage ~= 0 and Data.Zones[math.abs(v.garage)].property == c then
+						if Data.Societies[v.owner] then
+							label = v.owner .. ': ' .. label
+						else
+							label = v.firstname .. ' ' .. v.lastname .. ': ' .. label
+						end
+						table.insert(elements, {
+							label = label,
+							name = v.name,
+							garage = v.garage,
+							props = props
+						})
+					end
+				elseif view == 'society' and Data.Societies[v.owner] then
 					label = v.owner .. ': ' .. label
 					table.insert(elements, {
-						label = label,
+						label = label .. ' [transfer]',
+						owner = v.owner,
 						name = v.name,
 						garage = v.garage,
 						props = props
 					})
 				elseif view == 'personal' and not Data.Societies[v.owner] then
 					table.insert(elements, {
-						label = label,
+						label = label .. ' [transfer]',
+						owner = v.owner,
 						name = v.name,
 						garage = v.garage,
 						props = props
 					})
 				end
 			end
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'manage_garage',{
-				title    = zone.property .. ' - ' .. zone.name,
+			if not next(elements) then
+				elements[1] = {label = 'None'}
+			end
+			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'bossmanagegarage',{
+				title    = title,
 				align    = 'top-left',
 				elements = elements,
 			},
 			function(data, menu)
-				-- if data.current.garage == 0 then -- haven't decided what to do here yet
-				--     table.insert(elements, {label = 'Recover vehicle'})
-				-- elseif data.current.garage > 0 then
-				-- 	table.insert(elements, {label = 'Get vehicle from garage'})
-				-- elseif data.current.garage < 0 then
-				--     table.insert(elements, {label = 'Retrieve from impound'})
-				-- end
+				menu.close()
+				if view == 'society' then
+					local change = {
+						owner = ESX.PlayerData.identifier
+					}
+					ESX.TriggerServerCallback('dd_society:vModify', function()
+					end, data.current, change)
+				elseif view == 'personal' then
+					local change = {
+						owner = Data.Properties[zone.property].owner
+					}
+					ESX.TriggerServerCallback('dd_society:vModify', function()
+					end, data.current, change)
+				end
 			end,
 			function(data, menu)
 				menu.close()
-				if next(CurrentZone) then
-					bOpen(zone)
-				end
 			end)
 		else
 			ESX.ShowNotification("~r~You don't have access to any vehicles")

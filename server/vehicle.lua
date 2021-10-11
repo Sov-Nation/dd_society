@@ -83,7 +83,7 @@ ESX.RegisterServerCallback('dd_society:vList', function(source, cb, garage)
 				table.insert(garages, v.id)
 			end
 		end
-		Vehicles = exports.oxmysql:executeSync('SELECT * FROM owned_vehicles WHERE (owner = ? OR owner = ? OR garage IN (?))', {xPlayer.identifier, xPlayer.job.label, garages})
+		Vehicles = exports.oxmysql:executeSync('SELECT owned_vehicles.*, users.firstname, users.lastname FROM owned_vehicles LEFT JOIN users ON owned_vehicles.owner = users.identifier WHERE (owner = ? OR owner = ? OR garage IN (?))', {xPlayer.identifier, xPlayer.job.label, garages})
 	else
 		Vehicles = exports.oxmysql:executeSync('SELECT * FROM owned_vehicles WHERE (owner = ? OR owner = ?)', {xPlayer.identifier, xPlayer.job.label})
 	end
@@ -107,6 +107,12 @@ ESX.RegisterServerCallback('dd_society:vModify',function(source, cb, vehicle, ch
 			local props = json.encode(change.props)
 			if props ~= Vehicle.vehicle then
 				exports.oxmysql:update('UPDATE owned_vehicles SET vehicle = ? WHERE plate = ?', {props, vehicle.props.plate})
+			end
+		end
+
+		if change.owner then
+			if change.owner ~= Vehicle.owner then
+				exports.oxmysql:update('UPDATE owned_vehicles SET owner = ? WHERE plate = ?', {change.owner, vehicle.props.plate})
 			end
 		end
 
