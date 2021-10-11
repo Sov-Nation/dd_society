@@ -20,7 +20,7 @@ function sOpen()
 		for k, v in pairs(SocietyPropertyTypes) do
 			for k2, v2 in pairs(Config.PropertyTypes[v].sMenu) do
 				if not has_value(elements, v2) then
-					table.insert(elements, v2)
+					table.insert(elements, Config.Menus[v2])
 				end
 			end
 		end
