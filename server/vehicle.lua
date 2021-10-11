@@ -111,8 +111,13 @@ ESX.RegisterServerCallback('dd_society:vModify',function(source, cb, vehicle, ch
 		end
 
 		if change.owner then
-			if change.owner ~= Vehicle.owner then
-				exports.oxmysql:update('UPDATE owned_vehicles SET owner = ? WHERE plate = ?', {change.owner, vehicle.props.plate})
+			if Vehicle.owner == xPlayer.identifier or Vehicle.owner == xPlayer.job.label then
+				if change.owner ~= Vehicle.owner then
+					exports.oxmysql:update('UPDATE owned_vehicles SET owner = ? WHERE plate = ?', {change.owner, vehicle.props.plate})
+				end
+			else
+				cb(false)
+				return
 			end
 		end
 
