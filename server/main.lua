@@ -197,11 +197,6 @@ AddEventHandler('dd_society:updateDoor', function(Door, save)
 	Data.Doors[Door.id] = Door
 	TriggerClientEvent('dd_society:updateDoor', -1, Door)
 	if save then
-		MySQL.Async.execute('UPDATE dd_doors SET name = @name, locked = @locked, distance = @distance WHERE id = @id', {
-			['@name'] 		= Door.name,
-			['@locked'] 	= Door.locked,
-			['@distance'] 	= Door.distance,
-			['@id'] 		= Door.id
-		})
+		exports.oxmysql:execute('UPDATE dd_doors SET name = ?, locked = ?, distance = ? WHERE id = ?', {Door.name, Door.locked, Door.distance, Door.id})
 	end
 end)
