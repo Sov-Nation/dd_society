@@ -83,9 +83,9 @@ ESX.RegisterServerCallback('dd_society:vList', function(source, cb, garage)
 				table.insert(garages, v.id)
 			end
 		end
-		Vehicles = exports.oxmysql:executeSync("SELECT * FROM owned_vehicles WHERE (owner = ? OR owner = ? OR garage IN (?))", {xPlayer.identifier, xPlayer.job.label, garages})
+		Vehicles = exports.oxmysql:executeSync('SELECT * FROM owned_vehicles WHERE (owner = ? OR owner = ? OR garage IN (?))', {xPlayer.identifier, xPlayer.job.label, garages})
 	else
-		Vehicles = exports.oxmysql:executeSync("SELECT * FROM owned_vehicles WHERE (owner = ? OR owner = ?)", {xPlayer.identifier, xPlayer.job.label})
+		Vehicles = exports.oxmysql:executeSync('SELECT * FROM owned_vehicles WHERE (owner = ? OR owner = ?)', {xPlayer.identifier, xPlayer.job.label})
 	end
 
 	cb(Vehicles)
@@ -94,32 +94,32 @@ end)
 ESX.RegisterServerCallback('dd_society:vModify',function(source, cb, vehicle, change)
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	local Vehicle = exports.oxmysql:singleSync("SELECT * FROM owned_vehicles WHERE plate = ?", {vehicle.props.plate})
+	local Vehicle = exports.oxmysql:singleSync('SELECT * FROM owned_vehicles WHERE plate = ?', {vehicle.props.plate})
 
 	if Vehicle then
 		if change.garage then
 			if change.garage ~= Vehicle.garage then
-				exports.oxmysql:update("UPDATE owned_vehicles SET garage = ? WHERE plate = ?", {change.garage, vehicle.props.plate})
+				exports.oxmysql:update('UPDATE owned_vehicles SET garage = ? WHERE plate = ?', {change.garage, vehicle.props.plate})
 			end
 		end
 
 		if change.props then
 			local props = json.encode(change.props)
 			if props ~= Vehicle.vehicle then
-				exports.oxmysql:update("UPDATE owned_vehicles SET vehicle = ? WHERE plate = ?", {props, vehicle.props.plate})
+				exports.oxmysql:update('UPDATE owned_vehicles SET vehicle = ? WHERE plate = ?', {props, vehicle.props.plate})
 			end
 		end
 
 		if Vehicle.owner == xPlayer.identifier or Vehicle.owner == xPlayer.job.label then
 			if change.name then
 				if Vehicle.name ~= change.name then
-					exports.oxmysql:update("UPDATE owned_vehicles SET name = ? WHERE plate = ?", {change.name, vehicle.props.plate})
+					exports.oxmysql:update('UPDATE owned_vehicles SET name = ? WHERE plate = ?', {change.name, vehicle.props.plate})
 				end
 			end
 
 			if change.plate then
 				if Vehicle.plate ~= change.plate then
-					exports.oxmysql:update("UPDATE owned_vehicles SET plate = ? WHERE plate = ?", {vehicle.props.plate, vehicle.props.plate})
+					exports.oxmysql:update('UPDATE owned_vehicles SET plate = ? WHERE plate = ?', {vehicle.props.plate, vehicle.props.plate})
 				end
 			end
 		elseif change.name or change.plate then
