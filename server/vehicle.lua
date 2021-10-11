@@ -96,7 +96,7 @@ ESX.RegisterServerCallback('dd_society:vModify',function(source, cb, vehicle, ch
 
 	local Vehicle = exports.oxmysql:singleSync("SELECT * FROM owned_vehicles WHERE plate = ?", {vehicle.props.plate})
 
-	if next(Vehicle) then
+	if Vehicle then
 		if change.garage then
 			if change.garage ~= Vehicle.garage then
 				exports.oxmysql:update("UPDATE owned_vehicles SET garage = ? WHERE plate = ?", {change.garage, vehicle.props.plate})
