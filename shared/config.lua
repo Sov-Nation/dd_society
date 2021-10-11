@@ -10,6 +10,12 @@ Config.Garage = {
 	}
 }
 
+Config.Menus = {
+	washedmoney = {label = 'Washed money (this property)', value = 'washedmoney'},
+	washmoney = {label = 'Wash money', value = 'washmoney'},
+	keymaster = {label = 'Keymaster', value = 'keymaster'},
+}
+
 Config.PropertyTypes = {
 	house = {
 		sprite = 40,
@@ -43,8 +49,8 @@ Config.PropertyTypes = {
 	},
 	shop = {
 		sprite = 59,
-		pMenu = {{label = 'Wash money', value = 'washmoney'}},
-		bMenu = {{label = 'Washed money (this property)', value = 'washedmoney'},{label = 'Wash money (this property)', value = 'washmoney'}},
+		pMenu = {'washmoney'},
+		bMenu = {'washedmoney','washmoney'},
 		sMenu = {},
 	},
 	law = {
@@ -55,8 +61,8 @@ Config.PropertyTypes = {
 	},
 	prison = {
 		sprite = 188,
-		pMenu = {{label = 'Wash money', value = 'washmoney'}},
-		bMenu = {{label = 'Washed money (this property)', value = 'washedmoney'},{label = 'Wash money (this property)', value = 'washmoney'}},
+		pMenu = {'washmoney'},
+		bMenu = {'washedmoney','washmoney'},
 		sMenu = {},
 	},
 	hospital = {
@@ -73,32 +79,32 @@ Config.PropertyTypes = {
 	},
 	mechanic = {
 		sprite = 446,
-		pMenu = {{label = 'Wash money', value = 'washmoney'}},
-		bMenu = {{label = 'Washed money (this property)', value = 'washedmoney'},{label = 'Wash money (this property)', value = 'washmoney'}},
+		pMenu = {'washmoney'},
+		bMenu = {'washedmoney','washmoney'},
 		sMenu = {},
 	},
 	bank = {
 		sprite = 207,
 		pMenu = {},
 		bMenu = {},
-		sMenu = {{label = 'Keymaster', value = 'keymaster'}},
+		sMenu = {'keymaster'},
 	},
 	club = {
 		sprite = 121,
-		pMenu = {{label = 'Wash money', value = 'washmoney'}},
-		bMenu = {{label = 'Washed money (this property)', value = 'washedmoney'},{label = 'Wash money (this property)', value = 'washmoney'}},
+		pMenu = {'washmoney'},
+		bMenu = {'washedmoney','washmoney'},
 		sMenu = {},
 	},
 	industrial = {
 		sprite = 473,
-		pMenu = {{label = 'Wash money', value = 'washmoney'}},
-		bMenu = {{label = 'Washed money (this property)', value = 'washedmoney'},{label = 'Wash money (this property)', value = 'washmoney'}},
+		pMenu = {'washmoney'},
+		bMenu = {'washedmoney','washmoney'},
 		sMenu = {},
 	},
 	scrap = {
 		sprite = 527,
-		pMenu = {{label = 'Wash money', value = 'washmoney'}},
-		bMenu = {{label = 'Washed money (this property)', value = 'washedmoney'},{label = 'Wash money (this property)', value = 'washmoney'}},
+		pMenu = {'washmoney'},
+		bMenu = {'washedmoney','washmoney'},
 		sMenu = {},
 	},
 	courier = {
@@ -109,26 +115,26 @@ Config.PropertyTypes = {
 	},
 	pier = {
 		sprite = 266,
-		pMenu = {{label = 'Wash money', value = 'washmoney'}},
-		bMenu = {{label = 'Washed money (this property)', value = 'washedmoney'},{label = 'Wash money (this property)', value = 'washmoney'}},
+		pMenu = {'washmoney'},
+		bMenu = {'washedmoney','washmoney'},
 		sMenu = {},
 	},
 	outlaw = {
 		sprite = 492,
-		pMenu = {{label = 'Wash money', value = 'washmoney'}},
-		bMenu = {{label = 'Washed money (this property)', value = 'washedmoney'},{label = 'Wash money (this property)', value = 'washmoney'}},
+		pMenu = {'washmoney'},
+		bMenu = {'washedmoney','washmoney'},
 		sMenu = {},
 	},
 	altruist = {
 		sprite = 269,
-		pMenu = {{label = 'Wash money', value = 'washmoney'}},
-		bMenu = {{label = 'Washed money (this property)', value = 'washedmoney'},{label = 'Wash money (this property)', value = 'washmoney'}},
+		pMenu = {'washmoney'},
+		bMenu = {'washedmoney','washmoney'},
 		sMenu = {},
 	},
 	taxi = {
 		sprite = 198,
-		pMenu = {{label = 'Wash money', value = 'washmoney'}},
-		bMenu = {{label = 'Washed money (this property)', value = 'washedmoney'},{label = 'Wash money (this property)', value = 'washmoney'}},
+		pMenu = {'washmoney'},
+		bMenu = {'washedmoney','washmoney'},
 		sMenu = {},
 	},
 	security = {
