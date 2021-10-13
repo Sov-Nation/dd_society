@@ -56,7 +56,7 @@ ESX.RegisterServerCallback('dd_society:aPayMoney', function(source, cb, amount, 
 		end
 		xPlayer.removeAccountMoney(account, amount)
 		cb(true)
-	elseif account == 'bank' and amount <= 10000 and target then
+	elseif account == 'bank' and amount <= Config.MaxCredit and target then
 		TriggerEvent('dd_society:aCreateBill', source, amount, target, details)
 		xPlayer.showNotification('~r~There is not enough money in your bank account, bill added instead')
 		cb(true)
@@ -104,7 +104,7 @@ AddEventHandler('dd_society:aCreateBill', function(player, amount, target, detai
 	end
 
 	if xPlayer then
-		exports.oxmysql:insert('INSERT INTO dd_bills (player, target, amount, details, timestamp) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, target, amount, details, os.time() + 604800},
+		exports.oxmysql:insert('INSERT INTO dd_bills (player, target, amount, details, timestamp) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, target, amount, details, os.time() + Config.Time.bill},
 		function(insertId)
 			xPlayer.showNotification('You have received an invoice')
 		end)
@@ -121,7 +121,7 @@ ESX.RegisterServerCallback('dd_society:aGetPlayerBills', function(source, cb, ta
 	exports.oxmysql:execute('SELECT id, target, amount, details, timestamp FROM dd_bills WHERE player = ? ORDER BY timestamp', {xPlayer.identifier},
 	function(result)
 		for k, v in pairs(result) do
-			v.time = math.ceil((v.timestamp - os.time())/86400)
+			v.time = math.ceil((v.timestamp - os.time())/Config.Time.day)
 		end
 		cb(result)
 	end)
@@ -138,7 +138,7 @@ ESX.RegisterServerCallback('dd_society:aGetTargetBills', function(source, cb, ta
 	exports.oxmysql:execute('SELECT dd_bills.id, dd_bills.player, dd_bills.amount, dd_bills.details, dd_bills.timestamp, users.firstname, users.lastname FROM dd_bills INNER JOIN users ON dd_bills.player = users.identifier WHERE target = ? ORDER BY timestamp', {target},
 	function(result)
 		for k, v in pairs(result) do
-			v.time = math.ceil((v.timestamp - os.time())/86400)
+			v.time = math.ceil((v.timestamp - os.time())/Config.Time.day)
 		end
 		cb(result)
 	end)
@@ -179,7 +179,7 @@ ESX.RegisterServerCallback('dd_society:aWashMoney', function(source, cb, amount,
 
 	if acc.money >= amount then
 		xPlayer.removeAccountMoney('black_money', amount)
-		exports.oxmysql:insert('INSERT INTO dd_moneywash (property, amount, timestamp) VALUES (?, ?, ?)', {property, amount, os.time() + 86400},
+		exports.oxmysql:insert('INSERT INTO dd_moneywash (property, amount, timestamp) VALUES (?, ?, ?)', {property, amount, os.time() + Config.Time.moneywash},
 		function(insertId)
 			cb(true)
 			xPlayer.showNotification('Your ~g~$' .. amount .. ' ~w~will be washed in 24 hours')
@@ -201,7 +201,7 @@ ESX.RegisterServerCallback('dd_society:aGetWashedMoney', function(source, cb, pr
 				Ready.amount += v.amount
 				v.time = 0
 			else
-				v.time = math.ceil((v.timestamp - os.time())/3600)
+				v.time = math.ceil((v.timestamp - os.time())/Config.Time.hour)
 			end
 		end
 

@@ -10,6 +10,18 @@ Config.Garage = {
 	}
 }
 
+Config.MaxCredit = 10000
+
+local hour = 3600
+local day = hour * 24
+
+Config.time = {
+	hour = hour,
+	day = day,
+	moneywash = day,
+	bill = day * 7,
+}
+
 Config.Menus = {
 	washedmoney = {label = 'Washed money (this property)', value = 'washedmoney'},
 	washmoney = {label = 'Wash money', value = 'washmoney'},
