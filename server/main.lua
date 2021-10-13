@@ -53,6 +53,12 @@ function SQLFetchData()
 	local Zones = exports.oxmysql:executeSync('SELECT * FROM dd_zones', {})
 	for k, v in pairs(Zones) do
 
+		if v.public == 1 then
+			v.public = true
+		else
+			v.public = false
+		end
+
 		v.zone = json.decode(v.zone)
 		if v.zone.vec then
 			v.zone.vec = vectorize(v.zone.vec)
