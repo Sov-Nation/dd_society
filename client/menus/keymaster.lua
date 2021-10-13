@@ -99,13 +99,18 @@ function kmProperty(property, km)
 	local elements = {
 		{label = 'Toggle blip', value = 'blip'},
 		{label = 'Owner: ' .. property.owner, value = 'owner'},
+		{label = 'Doors', value = 'doors'},
+		{label = 'Zones', value = 'zones'},
 		{label = 'New key', value = 'newkey'},
 		{label = 'Master', value = {name = 'Master', designation = 0}},
 	}
+	while not next(Data.Keys) do
+		Wait(100)
+	end
 	for k, v in pairs(Data.Keys) do
 		if v.property == property.id and v.name ~= 'Master' then
 			table.insert(elements, {
-				label = v.name .. ' (' .. v.designation .. ')',
+				label = v.name .. ' - (' .. v.designation .. ')',
 				value = v
 			})
 		end
@@ -121,6 +126,8 @@ function kmProperty(property, km)
 		elseif data.current.value == 'owner' and km then
 			-- transfer ownership
 			-- revoke all keys
+		elseif data.current.value == 'doors' then
+		elseif data.current.value == 'zones' then
 		elseif data.current.value == 'newkey' then
 			exports.dd_menus:text({
 				title = 'Choose a name for the new key, enter text'
@@ -130,7 +137,6 @@ function kmProperty(property, km)
 					ESX.ShowNotification('~r~Pick a name other than "' .. datad.value .. '"')
 				else
 					ESX.TriggerServerCallback('dd_society:pNewKey', function(NewKey)
-						menu2.close()
 						menu.close()
 						kmProperty(property, km)
 						ESX.ShowNotification('New key - ~g~' .. NewKey.name .. ' ~w~(~y~' .. NewKey.designation .. '~w~) - created for ~y~' .. property.id)
@@ -152,8 +158,9 @@ function kmProperty(property, km)
 					{label = 'Doors', value = 'doors'},
 					{label = 'Zones', value = 'zones'},
 				}
-				if data.current.value ~= 'master' then
-					elements[4] = {label = 'Delete Key', value = 'delete'}
+				if data.current.value.name ~= 'Master' then
+					elements[4] = {label = 'Rename', value = 'rename'}
+					elements[5] = {label = 'Delete Key', value = 'delete'}
 				end
 				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterkey',{
 					title    = property.id .. ' - ' .. data.current.label,
@@ -176,7 +183,7 @@ function kmProperty(property, km)
 						function(data3, menu3)
 							if data3.current.value == 'add' then
 								exports.dd_menus:nearbyPlayers({
-									title = nil, 
+									title = nil,
 									self = true,
 									distance = nil
 								},
@@ -218,8 +225,131 @@ function kmProperty(property, km)
 							menu3.close()
 						end)
 					elseif data2.current.value == 'doors' then
+						local elements = {}
+						for k, v in pairs(Data.Doors) do
+							if v.property == property.id then
+								if data.current.value.name == 'Master' then
+									table.insert(elements, {
+										label = v.name .. ' (' .. v.id .. ')',
+										value = v
+									})
+								elseif has_value(data.current.value.exempt_doors, v.id) then
+									table.insert(elements, {
+										label = v.name .. ' - (' .. v.id .. ') [add]',
+										value = v,
+										action = 'add'
+									})
+								else
+									table.insert(elements, {
+										label = v.name .. ' - (' .. v.id .. ') [remove]',
+										value = v,
+										action = 'remove'
+									})
+								end
+							end
+						end
+						if not next(elements) then
+							elements[1] = {label = 'None'}
+						end
+						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterkeydoors',{
+							title    = property.id .. ' - ' .. data.current.label .. ' - Doors',
+							align    = 'top-left',
+							elements = elements
+						},
+						function(data3, menu3)
+							if data3.current.action then
+								ESX.TriggerServerCallback('dd_society:pToggleKeyExemption', function(valid)
+									menu3.close()
+									menu2.close()
+									menu.close()
+									kmProperty(property, km)
+									if valid then
+										if data3.current.action == 'add' then
+											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~g~added ~w~to ~y~' .. data.current.value.name .. ' ~w~- (' .. data.current.value.id .. ')')
+										elseif data3.current.action == 'remove' then
+											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~r~removed ~w~from ~y~' .. data.current.value.name .. ' ~w~- (' .. data.current.value.id .. ')')
+										end
+									else
+										ESX.ShowNotification('~r~You cannot edit the Master key')
+									end
+								end, data.current.value, data3.current.value.id, Holders, 'exempt_doors')
+							end
+						end,
+						function(data3, menu3)
+							menu3.close()
+						end)
 					elseif data2.current.value == 'zones' then
+						local elements = {}
+						for k, v in pairs(Data.Zones) do
+							if v.property == property.id then
+								if data.current.value.name == 'Master' then
+									table.insert(elements, {
+										label = v.name .. ' (' .. v.id .. ') [edit]',
+										value = v
+									})
+								elseif has_value(data.current.value.exempt_zones, v.id) then
+									table.insert(elements, {
+										label = v.name .. ' - (' .. v.id .. ') [add]',
+										value = v,
+										action = 'add'
+									})
+								else
+									table.insert(elements, {
+										label = v.name .. ' - (' .. v.id .. ') [remove]',
+										value = v,
+										action = 'remove'
+									})
+								end
+							end
+						end
+						if not next(elements) then
+							elements[1] = {label = 'None'}
+						end
+						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterkeyzones',{
+							title    = property.id .. ' - ' .. data.current.label .. ' - Zones',
+							align    = 'top-left',
+							elements = elements
+						},
+						function(data3, menu3)
+							if data3.current.action == 'edit' then
+							else
+								ESX.TriggerServerCallback('dd_society:pToggleKeyExemption', function(valid)
+									menu3.close()
+									menu2.close()
+									menu.close()
+									kmProperty(property, km)
+									if valid then
+										if data3.current.action == 'add' then
+											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~g~added ~w~to ~y~' .. data.current.value.name .. ' ~w~- (' .. data.current.value.id .. ')')
+										elseif data3.current.action == 'remove' then
+											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~r~removed ~w~from ~y~' .. data.current.value.name .. ' ~w~- (' .. data.current.value.id .. ')')
+										end
+									else
+										ESX.ShowNotification('~r~You cannot edit the Master key')
+									end
+								end, data.current.value, data3.current.value.id, Holders, 'exempt_zones')
+							end
+						end,
+						function(data3, menu3)
+							menu3.close()
+						end)
+					elseif data2.current.value == 'rename' then
 					elseif data2.current.value == 'delete' then
+						exports.dd_menus:areYouSure({
+							title = 'Are you sure that you want to delete ' .. data.current.label .. ' for ' .. property.id .. '?'
+						},
+						function(datad, menud)
+							ESX.TriggerServerCallback('dd_society:pDeleteKey', function(valid)
+								if valid then
+									menu2.close()
+									menu.close()
+									kmProperty(property, km)
+									ESX.ShowNotification('~g~' .. data.current.label .. ' ~w~for ~y~' .. property.id .. ' ~r~deleted')
+								else
+									ESX.ShowNotification('~r~You cannot delete the Master key')
+								end
+							end, data.current.value, Holders)
+						end, false)
 					end
 				end,
 				function(data2, menu2)
