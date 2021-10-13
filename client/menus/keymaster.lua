@@ -334,6 +334,21 @@ function kmProperty(property, km)
 							menu3.close()
 						end)
 					elseif data2.current.value == 'rename' then
+						exports.dd_menus:text({
+							title = 'New key name, enter text'
+						},
+						function(datad, menud)
+							if datad.value and string.len(datad.value) > 1 then
+								ESX.TriggerServerCallback('dd_society:pRenameKey', function()
+									menu2.close()
+									menu.close()
+									kmProperty(property, km)
+									ESX.ShowNotification('Key renamed to ~g~' .. datad.value )
+								end, data.current.value.id, datad.value)
+							else
+								ESX.ShowNotification('~r~Key name cannot be empty')
+							end
+						end, false)
 					elseif data2.current.value == 'delete' then
 						exports.dd_menus:areYouSure({
 							title = 'Are you sure that you want to delete ' .. data.current.label .. ' for ' .. property.id .. '?'

@@ -12,6 +12,16 @@ ESX.RegisterServerCallback('dd_society:pNewKey', function(source, cb, property, 
 	cb(NewKey)
 end)
 
+ESX.RegisterServerCallback('dd_society:pRenameKey', function(source, cb, id, name)
+	exports.oxmysql:updateSync('UPDATE dd_keys name = ? WHERE id = ?', {name, id})
+
+	Data.Keys[id].name = name
+
+	TriggerClientEvent('dd_society:getKeys', -1)
+
+	cb()
+end)
+
 ESX.RegisterServerCallback('dd_society:pDeleteKey', function(source, cb, key, holders)
 	if key.designation == 0 then
 		cb(false)
@@ -25,6 +35,8 @@ ESX.RegisterServerCallback('dd_society:pDeleteKey', function(source, cb, key, ho
 	for k, v in pairs(holders) do
 		removeKey(key.property, key.designation, v)
 	end
+
+	TriggerClientEvent('dd_society:getKeys', -1)
 
 	cb(true)
 end)
