@@ -148,20 +148,27 @@ ESX.RegisterServerCallback('dd_society:getPlayer', function(source, cb, ident)
 		end
 	end
 
-	local result = exports.oxmysql:executeSync('SELECT identifier, dd_keys, firstname, lastname, job, job_grade FROM users WHERE identifier = ?', {ident})
-
-	Player = result[1]
+	local Player = exports.oxmysql:singleSync('SELECT identifier, dd_keys, firstname, lastname FROM users WHERE identifier = ?', {ident})
 
 	Player.dd_keys = json.decode(Player.dd_keys)
-	if Player.firstname ~= '' and Player.lastname ~= '' then
-		Player.fullname = Player.firstname .. ' ' .. Player.lastname
-	else
-		Player.fullname = '(No name)'
-	end
+	Player.fullname = Player.firstname .. ' ' .. Player.lastname
 
 	setAuth(true, Player, nil)
 
 	cb(Player)
+end)
+
+ESX.RegisterServerCallback('dd_society:getPlayers', function(source, cb)
+	local Players = exports.oxmysql:executeSync('SELECT identifier, dd_keys, firstname, lastname FROM users', {})
+
+	for k, v in pairs(Players) do
+		v.dd_keys = json.decode(v.dd_keys)
+		v.fullname = v.firstname .. ' ' .. v.lastname
+	end
+
+	setAuth(false, false, Players)
+
+	cb(Players)
 end)
 
 ESX.RegisterServerCallback('dd_society:getSocieties', function(source, cb)
