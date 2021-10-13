@@ -37,7 +37,7 @@ function kmOpen()
 					})
 				end
 				if not next(elements) then
-					table.insert(elements, {label = 'None'})
+					elements[1] = {label = 'None'}
 				end
 				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymastersocietyproperties',{
 					title    = 'Keymaster - ' .. data2.current.value.label .. ' - Properties',
@@ -45,7 +45,7 @@ function kmOpen()
 					elements = elements
 				},
 				function(data3, menu3)
-					if data2.current.value then
+					if data3.current.value then
 						kmProperty(data3.current.value, true)
 					end
 				end,
@@ -57,6 +57,16 @@ function kmOpen()
 				menu2.close()
 			end)
 		elseif data.current.value == 'players' then
+			local Players = {}
+			for k, v in pairs(Data.Properties) do
+				if not Data.Societies[v.owner] then
+					if not Players[v.owner] then
+						Players[v.owner] = 1
+					else
+						Players[v.owner] += 1
+					end
+				end
+			end
 		elseif data.current.value == 'properties' then
 			local elements = {}
 			for k, v in pairs(Data.Properties) do
@@ -146,37 +156,63 @@ function kmProperty(property, km)
 					elements[4] = {label = 'Delete Key', value = 'delete'}
 				end
 				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterkey',{
-					title = property.id .. ' - ' .. data.current.label,
+					title    = property.id .. ' - ' .. data.current.label,
 					align    = 'top-left',
 					elements = elements
 				},
 				function(data2, menu2)
 					if data2.current.value == 'holders' then
-						local elements = {} --possibly have the option to add a holder here
+						local elements = {
+							{label = 'Add holder', value = 'add'}
+						}
 						for k, v in pairs(Holders) do
 							table.insert(elements, {label = v.fullname .. ' [remove]', value = v})
 						end
-						if not next(elements) then
-							elements[1] = {label = 'None'}
-						end
 						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterkeyholders',{
-							title    = data.current.label .. ' - Holders',
+							title    = property.id .. ' - ' .. data.current.label .. ' - Holders',
 							align    = 'top-left',
 							elements = elements
 						},
 						function(data3, menu3)
-							exports.dd_menus:areYouSure({
-								title = 'Are you sure that you want to remove ' .. data.current.label .. ' for ' .. property.id .. ' from ' .. data3.current.value.fullname
-							},
-							function(datad, menud)
-								ESX.TriggerServerCallback('dd_society:pRemoveKey', function()
-									menu3.close()
-									menu2.close()
-									menu.close()
-									kmProperty(property, km)
-									ESX.ShowNotification('~g~' .. data.current.label .. ' ~w~for ~y~' .. property.id .. ' ~r~removed ~w~from ~y~' .. data3.current.value.fullname)
-								end, property.id, data.current.value.designation, data3.current.value)
-							end, false)
+							if data3.current.value == 'add' then
+								exports.dd_menus:nearbyPlayers({
+									title = nil, 
+									self = true,
+									distance = nil
+								},
+								function(datad, menud)
+									local Player
+									for k, v in pairs(Players) do
+										if datad.current.identifier == v.identifier then
+											Player = v
+										end
+									end
+									ESX.TriggerServerCallback('dd_society:pAddKey', function(valid)
+										menu3.close()
+										menu2.close()
+										menu.close()
+										kmProperty(property, km)
+										if valid then
+											ESX.ShowNotification('~g~' .. data.current.label .. ' ~w~for ~y~' .. property.id .. ' ~g~added ~w~to ~y~' .. datad.current.value.fullname)
+										else
+											ESX.ShowNotification('~y~' .. datad.current.name .. ' ~w~already has this key')
+										end
+									end, property.id, data.current.value.designation, Player)
+								end, false)
+							else
+								exports.dd_menus:areYouSure({
+									title = 'Are you sure that you want to remove ' .. data.current.label .. ' for ' .. property.id .. ' from ' .. data3.current.value.fullname
+								},
+								function(datad, menud)
+									ESX.TriggerServerCallback('dd_society:pRemoveKey', function()
+										menu3.close()
+										menu2.close()
+										menu.close()
+										kmProperty(property, km)
+										ESX.ShowNotification('~g~' .. data.current.label .. ' ~w~for ~y~' .. property.id .. ' ~r~removed ~w~from ~y~' .. data3.current.value.fullname)
+									end, property.id, data.current.value.designation, data3.current.value)
+								end, false)
+							end
 						end,
 						function(data3, menu3)
 							menu3.close()

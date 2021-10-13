@@ -12,6 +12,21 @@ ESX.RegisterServerCallback('dd_society:pNewKey', function(source, cb, property, 
 	cb(NewKey)
 end)
 
+ESX.RegisterServerCallback('dd_society:pAddKey', function(source, cb, property, designation, player)
+	local xPlayer = ESX.GetPlayerFromIdentifier(player.identifier)
+
+	table.insert(player.dd_keys[property], designation)
+
+	local dd_keys = json.encode(player.dd_keys)
+	exports.oxmysql:updateSync('UPDATE users SET dd_keys = ? WHERE identifier = ?', {dd_keys, player.identifier})
+
+	if xPlayer then
+		TriggerClientEvent('dd_society:getPlayer', xPlayer.source, 'self')
+	end
+
+	cb()
+end)
+
 ESX.RegisterServerCallback('dd_society:pRemoveKey', function(source, cb, property, designation, player)
 	local xPlayer = ESX.GetPlayerFromIdentifier(player.identifier)
 
