@@ -20,7 +20,7 @@ end)
 AddEventHandler('esx:onPlayerDeath', function()
 	ESX.PlayerData.dead = true
 	ESX.UI.Menu.CloseAll()
-	TriggerServerEvent('dd_society:pSetDeathStatus', true)
+	TriggerServerEvent('dd_society:updateDeath', true)
 
 	StartScreenEffect('DeathFailOut', 0, false)
 end)
@@ -47,7 +47,7 @@ end)
 
 RegisterNetEvent('dd_society:revive')
 AddEventHandler('dd_society:revive', function(unko)
-	TriggerServerEvent('dd_society:pSetDeathStatus', false)
+	TriggerServerEvent('dd_society:updateDeath', false)
 
 	DoScreenFadeOut(800)
 
