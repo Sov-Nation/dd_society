@@ -13,7 +13,7 @@ ESX.RegisterServerCallback('dd_society:pNewKey', function(source, cb, property, 
 end)
 
 ESX.RegisterServerCallback('dd_society:pRenameKey', function(source, cb, id, name)
-	exports.oxmysql:updateSync('UPDATE dd_keys name = ? WHERE id = ?', {name, id})
+	exports.oxmysql:updateSync('UPDATE dd_keys SET name = ? WHERE id = ?', {name, id})
 
 	Data.Keys[id].name = name
 
