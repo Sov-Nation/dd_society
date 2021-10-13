@@ -44,6 +44,12 @@ function SQLFetchData()
 
 	local Doors = exports.oxmysql:executeSync('SELECT * FROM dd_doors', {})
 	for k, v in pairs(Doors) do
+		if v.locked == 1 then
+			v.locked = true
+		else
+			v.locked = false
+		end
+
 		v.object = vectorize(json.decode(v.object))
 		v.text = vectorize(json.decode(v.text))
 		v.state = v.locked
