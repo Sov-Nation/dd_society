@@ -1,4 +1,5 @@
 function kmOpen()
+	dataReady()
 	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymaster',{
 		title    = 'Keymaster',
 		align    = 'top-left',
@@ -96,6 +97,7 @@ function kmOpen()
 end
 
 function kmProperty(property, km)
+	dataReady()
 	local elements = {
 		{label = 'Toggle blip', value = 'blip'},
 		{label = 'Owner: ' .. property.owner, value = 'owner'},
@@ -104,9 +106,6 @@ function kmProperty(property, km)
 		{label = 'New key', value = 'newkey'},
 		{label = 'Master', value = {name = 'Master', designation = 0}},
 	}
-	while not next(Data.Keys) do
-		Wait(100)
-	end
 	for k, v in pairs(Data.Keys) do
 		if v.property == property.id and v.name ~= 'Master' then
 			table.insert(elements, {

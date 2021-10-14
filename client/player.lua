@@ -1,14 +1,8 @@
-RegisterNetEvent('esx:setJob')
-AddEventHandler('esx:setJob', function(job)
-	ESX.PlayerData.job = job
-	showBlips()
-	refreshBussHUD()
-end)
-
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
 	ESX.PlayerData = xPlayer
- 	ESX.PlayerLoaded = true
+	ESX.PlayerLoaded = true
+	TriggerEvent('dd_society:getPlayer', 'self')
 end)
 
 RegisterNetEvent('esx:onPlayerLogout')
@@ -17,6 +11,7 @@ AddEventHandler('esx:onPlayerLogout', function()
 	ESX.PlayerData = {}
 end)
 
+RegisterNetEvent('esx:onPlayerDeath')
 AddEventHandler('esx:onPlayerDeath', function()
 	ESX.PlayerData.dead = true
 	ESX.UI.Menu.CloseAll()
@@ -25,10 +20,16 @@ AddEventHandler('esx:onPlayerDeath', function()
 	StartScreenEffect('DeathFailOut', 0, false)
 end)
 
+RegisterNetEvent('esx:setJob')
+AddEventHandler('esx:setJob', function(job)
+	ESX.PlayerData.job = job
+	showBlips()
+	refreshBussHUD()
+end)
+
 CreateThread(function()
 	while true do
 		Wait(0)
-
 		if ESX.PlayerLoaded and (ESX.PlayerData.dead or ESX.PlayerData.ko) then
 			ESX.UI.Menu.CloseAll()
 			DisableAllControlActions(0)
@@ -45,8 +46,7 @@ CreateThread(function()
 	end
 end)
 
-RegisterNetEvent('dd_society:revive')
-AddEventHandler('dd_society:revive', function(unko)
+RegisterNetEvent('dd_society:revive', function(unko)
 	TriggerServerEvent('dd_society:updateDeath', false)
 
 	DoScreenFadeOut(800)
@@ -133,8 +133,7 @@ CreateThread(function()
 	end
 end)
 
-RegisterNetEvent('dd_society:unko')
-AddEventHandler('dd_society:unko', function(t)
+RegisterNetEvent('dd_society:unko', function(t)
 	if t == nil then
 		ESX.PlayerData.ko = false
 	elseif ESX.PlayerData.ko then
@@ -143,8 +142,7 @@ AddEventHandler('dd_society:unko', function(t)
 	end
 end)
 
-RegisterNetEvent('dd_society:ko')
-AddEventHandler('dd_society:ko', function()
+RegisterNetEvent('dd_society:ko', function()
 	ESX.PlayerData.ko = true
 	timer = 30
 end)

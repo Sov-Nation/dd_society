@@ -54,8 +54,7 @@ function genPlate()
 	end
 end
 
-RegisterServerEvent('dd_society:vCreateVehicle')
-AddEventHandler('dd_society:vCreateVehicle', function(props, owner, name)
+RegisterNetEvent('dd_society:vCreateVehicle', function(props, owner, name)
 	local Society = Data.Societies[owner]
 	local plate = props.plate
 	props = json.encode(props)

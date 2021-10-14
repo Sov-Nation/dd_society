@@ -1,11 +1,8 @@
 CurrentZone = {}
 ActionMsg = nil
-carInstance = {}
 
 CreateThread(function() --ESX.UI.Menu.GetOpened(type, namespace, name)
-	while not DataReady do
-		Wait(100)
-	end
+	dataReady()
 	for k, v in pairs(Data.Zones) do
 		local zone
 		if v.zone.type == 'poly' then
@@ -24,7 +21,7 @@ CreateThread(function() --ESX.UI.Menu.GetOpened(type, namespace, name)
 			})
 		end
 		zone:onPlayerInOut(function(isPointInside, point)
-			if has_value(Data.Player.Auth.Zones, zone.data.id) or zone.data.public then
+			if Data.Player.Auth and has_value(Data.Player.Auth.Zones, zone.data.id) or zone.data.public then
 				local insideZone = isPointInside
 				if insideZone then
 					CurrentZone = zone.data

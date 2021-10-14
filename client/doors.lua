@@ -1,4 +1,5 @@
 CreateThread(function()
+	dataReady()
 	while true do
 		Wait(100)
 		pedPos = GetEntityCoords(ESX.PlayerData.ped)
@@ -47,9 +48,11 @@ end)
 CreateThread(function()
 	while true do
 		Wait(10)
-		for k, v in pairs(Data.Doors) do
-			if v.displayText then
-				ESX.Game.Utils.DrawText3D(v.text, v.displayText, (0.75 + v.distance/10))
+		if Data.Doors then
+			for k, v in pairs(Data.Doors) do
+				if v.displayText then
+					ESX.Game.Utils.DrawText3D(v.text, v.displayText, (0.75 + v.distance/10))
+				end
 			end
 		end
 	end
@@ -93,9 +96,6 @@ function applyDoorState(Door, distance)
 	end
 end
 
-RegisterNetEvent('dd_society:updateDoor')
-AddEventHandler('dd_society:updateDoor', function(Door)
-	local OldDoor = Data.Societies[Door.name]
-
+RegisterNetEvent('dd_society:updateDoor', function(Door)
 	Data.Doors[Door.id] = Door
 end)

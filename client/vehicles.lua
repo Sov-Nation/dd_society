@@ -1,5 +1,6 @@
-RegisterNetEvent('dd_society:createVehicle')
-AddEventHandler('dd_society:createVehicle', function(model, plate)
+carInstance = {}
+
+RegisterNetEvent('dd_society:createVehicle', function(model, plate)
 	local heading = GetEntityHeading(pedPos)
 
 	ESX.Game.SpawnVehicle(model, pedPos, heading, function(veh)
@@ -56,23 +57,23 @@ function SpawnVehicle(vehicle, zone)
 		end
 	end
 
-	local Picks = {}
+	local Spots = {}
 
 	for k, v in pairs(zone.spawn) do
 		local x, y, z in ESX.PlayerData.coords
-		Picks[math.floor(#(vec(x, y, z) - v.coords))] = v
+		Spots[math.floor(#(vec(x, y, z) - v.coords))] = v
 	end
 
-	local pick
+	local spot
 
-	for k, v in sipairs(Picks) do
+	for k, v in sipairs(Spots) do
 		if ESX.Game.IsSpawnPointClear(v.coords, 3.0) then
-			pick = v
+			spot = v
 			break
 		end
 	end
 
-	if not pick then
+	if not spot then
 		ESX.ShowNotification('~r~There is no space for your vehicle')
 		local change = {
 			garage = zone.id
@@ -85,7 +86,7 @@ function SpawnVehicle(vehicle, zone)
 		return
 	end
 
-	ESX.Game.SpawnVehicle(vehicle.props.model, pick.coords, pick.heading, function(veh)
+	ESX.Game.SpawnVehicle(vehicle.props.model, spot.coords, spot.heading, function(veh)
 		setVehicleProperties(veh, vehicle.props)
 		carInstance[vehicle.props.plate] = veh
 	end)
@@ -93,7 +94,7 @@ function SpawnVehicle(vehicle, zone)
 	ESX.ShowNotification('Your ~y~vehicle ~w~is ~g~ready')
 
 	CreateThread(function()
-		local vehicleBlip = AddBlipForCoord(pick.coords)
+		local vehicleBlip = AddBlipForCoord(spot.coords)
 		Wait(10000)
 		RemoveBlip(vehicleBlip)
 	end)

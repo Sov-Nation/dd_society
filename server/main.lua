@@ -6,19 +6,14 @@ Data = {
 	Zones = {}
 }
 
-AddEventHandler('onResourceStart', function(resourceName)
-	if resourceName == GetCurrentResourceName() then
-		SQLFetchData()
-	end
-end)
-
-function SQLFetchData()
+CreateThread(function()
 	local Societies = exports.oxmysql:executeSync('SELECT * FROM jobs', {})
 	for k, v in pairs(Societies) do
 		v.grades = json.decode(v.grades)
 		Data.Societies[v.label] = v
-		CreateAccounts()
 	end
+
+	CreateAccounts()
 
 	local Properties = exports.oxmysql:executeSync('SELECT * FROM dd_properties', {})
 	for k, v in pairs(Properties) do
@@ -83,66 +78,57 @@ function SQLFetchData()
 
 		Data.Zones[v.id] = v
 	end
-end
+end)
 
-function setAuth(single, player, players)
-	local Tab = players
-
-	if single then
-		Tab ={}
-		Tab[1] = player
-	end
-
-	for k, v in pairs(Tab) do
-		v.Auth = {
-			Doors = {},
-			Zones = {}
-		}
-		for k2, v2 in pairs(v.dd_keys) do
-			for k3, v3 in pairs(Data.Doors) do
-				if k2 == v3.property then
-					for k4, v4 in pairs(v2) do
-						local insert = false
-						if v4 == 0 then
-							insert = true
-						else
-							for k5, v5 in pairs(Data.Keys) do
-								if k2 == v5.property and v4 == v5.designation then
-									if not has_value(v5.exempt_doors, k3) then
-										insert = true
-									end
-									break
+function setAuth(Player)
+	Player.Auth = {
+		Doors = {},
+		Zones = {}
+	}
+	for k, v in pairs(Player.dd_keys) do
+		for k2, v2 in pairs(Data.Doors) do
+			if k == v2.property then
+				for k3, v3 in pairs(v) do
+					local insert = false
+					if v3 == 0 then
+						insert = true
+					else
+						for k4, v4 in pairs(Data.Keys) do
+							if k == v4.property and v3 == v4.designation then
+								if not has_value(v4.exempt_doors, k2) then
+									insert = true
 								end
+								break
 							end
 						end
-						if insert then
-							if not has_value(v.Auth.Doors, k3) then
-								table.insert(v.Auth.Doors, k3)
-							end
+					end
+					if insert then
+						if not has_value(Player.Auth.Doors, k2) then
+							table.insert(Player.Auth.Doors, k2)
 						end
 					end
 				end
 			end
-			for k3, v3 in pairs(Data.Zones) do
-				if k2 == v3.property then
-					for k4, v4 in pairs(v2) do
-						local insert = false
-						if v4 == 0 then
-							insert = true
-						else
-							for k5, v5 in pairs(Data.Keys) do
-								if k2 == v5.property and v4 == v5.designation then
-									if not has_value(v5.exempt_zones, k3) then
-										insert = true
-									end
-									break
+		end
+		for k2, v2 in pairs(Data.Zones) do
+			if k == v2.property then
+				for k3, v3 in pairs(v) do
+					local insert = false
+					if v3 == 0 then
+						insert = true
+					else
+						for k4, v4 in pairs(Data.Keys) do
+							if k == v4.property and v3 == v4.designation then
+								if not has_value(v4.exempt_zones, k2) then
+									insert = true
 								end
+								break
 							end
 						end
-						if insert then
-							if not has_value(v.Auth.Zones, k3) then
-								table.insert(v.Auth.Zones, k3)
-							end
+					end
+					if insert then
+						if not has_value(Player.Auth.Zones, k2) then
+							table.insert(Player.Auth.Zones, k2)
 						end
 					end
 				end
@@ -165,7 +151,7 @@ ESX.RegisterServerCallback('dd_society:getPlayer', function(source, cb, ident)
 	Player.dd_keys = json.decode(Player.dd_keys)
 	Player.fullname = Player.firstname .. ' ' .. Player.lastname
 
-	setAuth(true, Player, nil)
+	setAuth(Player)
 
 	cb(Player)
 end)
@@ -178,7 +164,9 @@ ESX.RegisterServerCallback('dd_society:getPlayers', function(source, cb)
 		v.fullname = v.firstname .. ' ' .. v.lastname
 	end
 
-	setAuth(false, false, Players)
+	for k, v in pairs(Players) do
+		setAuth(v)
+	end
 
 	cb(Players)
 end)
@@ -211,8 +199,7 @@ function updateSociety(Society, save)
 	end
 end
 
-RegisterNetEvent('dd_society:updateDoor')
-AddEventHandler('dd_society:updateDoor', function(Door, save)
+RegisterNetEvent('dd_society:updateDoor', function(Door, save)
 	Data.Doors[Door.id] = Door
 	TriggerClientEvent('dd_society:updateDoor', -1, Door)
 	if save then

@@ -26,8 +26,7 @@ end, true, {help = 'Fully revive a player', validate = false, arguments = {
 	{name = 'playerId', help = 'The player id', type = 'any'}
 }})
 
-RegisterNetEvent('dd_society:updateDeath')
-AddEventHandler('dd_society:updateDeath', function(isDead)
+RegisterNetEvent('dd_society:updateDeath', function(isDead)
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if type(isDead) == 'boolean' then
