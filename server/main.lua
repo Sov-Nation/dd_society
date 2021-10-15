@@ -15,8 +15,14 @@ CreateThread(function()
 
 	CreateAccounts()
 
-	local Properties = exports.oxmysql:executeSync('SELECT * FROM dd_properties', {})
+	local Properties = exports.oxmysql:executeSync('SELECT dd_properties.*, users.firstname, users.lastname FROM dd_properties LEFT JOIN users ON dd_properties.owner = users.identifier', {})
 	for k, v in pairs(Properties) do
+		if v.firstname and v.lastname then
+			v.ownername = v.firstname .. ' ' .. v.lastname
+			v.fistname = nil
+			v.lastname = nil
+		end
+
 		v.blip = vectorize(json.decode(v.blip))
 		Data.Properties[v.id] = v
 	end

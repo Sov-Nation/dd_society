@@ -1,3 +1,34 @@
+ESX.RegisterServerCallback('dd_society:pTransferProperty', function(source, cb, id, target, name)
+	if target == 'bank' then
+		target = 'Doka & Doka'
+	end
+
+	exports.oxmysql:updateSync('UPDATE dd_properties SET owner = ? WHERE id = ?', {target, id})
+
+	Data.Properties[id].owner = target
+	Data.Properties[id].ownername = name
+
+	TriggerClientEvent('dd_society:getProperties', -1, true)
+
+	cb()
+end)
+
+ESX.RegisterServerCallback('dd_society:pRevokeAllKeys', function(source, cb, property, holders)
+	for k, v in pairs(holders) do
+		v.dd_keys[property] = nil
+
+		local dd_keys = json.encode(v.dd_keys)
+		exports.oxmysql:updateSync('UPDATE users SET dd_keys = ? WHERE identifier = ?', {dd_keys, v.identifier})
+
+		local xPlayer = ESX.GetPlayerFromIdentifier(v.identifier)
+		if xPlayer then
+			TriggerClientEvent('dd_society:getPlayer', xPlayer.source, 'self')
+		end
+	end
+
+	cb()
+end)
+
 ESX.RegisterServerCallback('dd_society:pNewKey', function(source, cb, property, name)
 	local insertId = exports.oxmysql:insertSync('INSERT INTO dd_keys (property, name) VALUES (?, ?)', {property, name})
 
@@ -42,18 +73,22 @@ ESX.RegisterServerCallback('dd_society:pDeleteKey', function(source, cb, key, ho
 end)
 
 ESX.RegisterServerCallback('dd_society:pAddKey', function(source, cb, property, designation, player)
-	local xPlayer = ESX.GetPlayerFromIdentifier(player.identifier)
+	if has_value(player.dd_keys[property], designation) then
+		cb(false)
+		return
+	end
 
 	table.insert(player.dd_keys[property], designation)
 
 	local dd_keys = json.encode(player.dd_keys)
 	exports.oxmysql:updateSync('UPDATE users SET dd_keys = ? WHERE identifier = ?', {dd_keys, player.identifier})
 
+	local xPlayer = ESX.GetPlayerFromIdentifier(player.identifier)
 	if xPlayer then
 		TriggerClientEvent('dd_society:getPlayer', xPlayer.source, 'self')
 	end
 
-	cb()
+	cb(true)
 end)
 
 ESX.RegisterServerCallback('dd_society:pRemoveKey', function(source, cb, property, designation, player)
@@ -101,8 +136,6 @@ ESX.RegisterServerCallback('dd_society:pToggleKeyExemption', function(source, cb
 end)
 
 function removeKey(property, designation, player)
-	local xPlayer = ESX.GetPlayerFromIdentifier(player.identifier)
-
 	for k, v in pairs(player.dd_keys[property]) do
 		if v == designation then
 			player.dd_keys[property][k] = nil
@@ -110,9 +143,14 @@ function removeKey(property, designation, player)
 		end
 	end
 
+	if #player.dd_keys[property] == 0 then
+		player.dd_keys[property] = nil
+	end
+
 	local dd_keys = json.encode(player.dd_keys)
 	exports.oxmysql:updateSync('UPDATE users SET dd_keys = ? WHERE identifier = ?', {dd_keys, player.identifier})
 
+	local xPlayer = ESX.GetPlayerFromIdentifier(player.identifier)
 	if xPlayer then
 		TriggerClientEvent('dd_society:getPlayer', xPlayer.source, 'self')
 	end

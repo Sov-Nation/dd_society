@@ -30,7 +30,7 @@ function kmOpen()
 				elements = elements
 			},
 			function(data2, menu2)
-				elements = {}
+				local elements = {}
 				for k, v in pairs(data2.current.value.props) do
 					table.insert(elements, {
 						label = v.id,
@@ -58,21 +58,67 @@ function kmOpen()
 				menu2.close()
 			end)
 		elseif data.current.value == 'players' then
+			local elements = {}
 			local Players = {}
 			for k, v in pairs(Data.Properties) do
 				if not Data.Societies[v.owner] then
 					if not Players[v.owner] then
-						Players[v.owner] = 1
+						Players[v.owner] = {
+							owner = v.owner,
+							ownername = v.ownername,
+							props = {v}
+						}
 					else
-						Players[v.owner] += 1
+						table.insert(Players[v.owner].props, v)
 					end
 				end
 			end
+			for k, v in pairs(Players) do
+				table.insert(elements, {
+					label = v.ownername .. ' - (' .. #v.props .. ')',
+					value = v
+				})
+			end
+			if not next(elements) then
+				elements[1] = {label = 'None'}
+			end
+			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterplayers',{
+				title    = 'Keymaster - Players',
+				align    = 'top-left',
+				elements = elements
+			},
+			function(data2, menu2)
+				if data2.current.value then
+					local elements = {}
+					for k, v in pairs(data2.current.value.props) do
+						table.insert(elements, {
+							label = v.id,
+							value = v
+						})
+					end
+					ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterplayerproperties',{
+						title    = 'Keymaster - ' .. data2.current.value.ownername .. ' - Properties',
+						align    = 'top-left',
+						elements = elements
+					},
+					function(data3, menu3)
+						if data3.current.value then
+							kmProperty(data3.current.value)
+						end
+					end,
+					function(data3, menu3)
+						menu3.close()
+					end)
+				end
+			end,
+			function(data2, menu2)
+				menu2.close()
+			end)
 		elseif data.current.value == 'properties' then
 			local elements = {}
 			for k, v in pairs(Data.Properties) do
 				table.insert(elements, {
-					label = v.id .. ' - (' .. v.owner .. ')',
+					label = v.id .. ' - (' .. (v.ownername or v.owner) .. ')',
 					value = v
 				})
 			end
@@ -100,7 +146,7 @@ function kmProperty(property)
 	dataReady()
 	local elements = {
 		{label = 'Toggle blip', value = 'blip'},
-		{label = 'Owner: ' .. property.owner, value = 'owner'},
+		{label = 'Owner: ' .. (property.ownername or property.owner), value = 'owner'},
 		{label = 'Doors', value = 'doors'},
 		{label = 'Zones', value = 'zones'},
 		{label = 'New key', value = 'newkey'},
@@ -123,8 +169,153 @@ function kmProperty(property)
 		if data.current.value == 'blip' then
 			showBlips(property.id)
 		elseif data.current.value == 'owner' then
-			-- transfer ownership
-			-- revoke all keys
+			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpropertyowner',{
+				title    = property.id .. ' - ' .. (property.ownername or property.owner),
+				align    = 'top-left',
+				elements = {
+					{label = 'Transfer ownership', value = 'transfer'},
+					{label = 'Revoke all keys', value = 'revoke'},
+				}
+			},
+			function(data2, menu2)
+				if data2.current.value == 'transfer' then
+					ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpropertytransfer',{
+						title    = 'Transfer ' .. property.id .. ' - ' .. (property.ownername or property.owner),
+						align    = 'top-left',
+						elements = {
+							{label = 'Doka & Doka', value = 'bank'},
+							{label = 'Societies', value = 'societies'},
+							{label = 'Players', value = 'players'},
+						}
+					},
+					function(data3, menu3)
+						if data3.current.value == 'bank' then
+							exports.dd_menus:areYouSure({
+								title = 'Are you sure that you want to transfer ' .. property.id .. ' from ' .. (property.ownername or property.owner) .. ' to ' .. data3.current.label .. '?'
+							},
+							function(datad, menud)
+								ESX.TriggerServerCallback('dd_society:pTransferProperty', function()
+									ESX.UI.Menu.CloseAll()
+									ESX.ShowNotification('~y~' .. property.id .. ' ~w~transferred from ~g~' .. (property.ownername or property.owner) .. ' ~w~to ~y~' .. data3.current.label)
+								end, property.id, 'bank')
+							end, false)
+						elseif data3.current.value == 'societies' then
+							local elements = {}
+							for k, v in pairs(Data.Societies) do
+								v.props = {}
+								for k2, v2 in pairs(Data.Properties) do
+									if v.label == v2.owner then
+										table.insert(v.props, v2)
+									end
+								end
+								table.insert(elements, {
+									label = v.label .. ' - (' .. #v.props .. ')',
+									value = v
+								})
+							end
+							ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpicksociety',{
+								title    = 'Transfer ' .. property.id .. ' - ' .. (property.ownername or property.owner),
+								align    = 'top-left',
+								elements = elements
+							},
+							function(data4, menu4)
+								exports.dd_menus:areYouSure({
+									title = 'Are you sure that you want to transfer ' .. property.id .. ' from ' .. (property.ownername or property.owner) .. ' to ' .. data4.current.value.label .. '?'
+								},
+								function(datad, menud)
+									ESX.TriggerServerCallback('dd_society:pTransferProperty', function()
+										ESX.UI.Menu.CloseAll()
+										ESX.ShowNotification('~y~' .. property.id .. ' ~w~transferred from ~g~' .. (property.ownername or property.owner) .. ' ~w~to ~y~' .. data4.current.value.label)
+									end, property.id, data4.current.value.label)
+								end, false)
+							end,
+							function(data4, menu4)
+								menu4.close()
+							end)
+						elseif data3.current.value == 'players' then
+							local elements = {{label = 'Nearby Players', value = 'nearbyplayers'}}
+							local Players = {}
+							for k, v in pairs(Data.Properties) do
+								if not Data.Societies[v.owner] then
+									if not Players[v.owner] then
+										Players[v.owner] = {owner = v.owner, ownername = v.ownername, props = 1}
+									else
+										Players[v.owner].props += 1
+									end
+								end
+							end
+							for k, v in pairs(Players) do
+								table.insert(elements, {
+									label = v.ownername .. ' - (' .. v.props .. ')',
+									value = v
+								})
+							end
+							ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpickplayer',{
+								title    = 'Transfer ' .. property.id .. ' - ' .. (property.ownername or property.owner),
+								align    = 'top-left',
+								elements = elements
+							},
+							function(data4, menu4)
+								if data4.current.value == 'nearbyplayers' then
+									exports.dd_menus:nearbyPlayers({
+										title = nil, 
+										self = true,
+										distance = nil
+									},
+									function(datad, menud)
+										exports.dd_menus:areYouSure({
+											title = 'Are you sure that you want to transfer ' .. property.id .. ' from ' .. (property.ownername or property.owner) .. ' to ' .. datad.current.name .. '?'
+										},
+										function(datadd, menudd)
+											ESX.TriggerServerCallback('dd_society:pTransferProperty', function()
+												ESX.UI.Menu.CloseAll()
+												ESX.ShowNotification('~y~' .. property.id .. ' ~w~transferred from ~g~' .. (property.ownername or property.owner) .. ' ~w~to ~y~' .. datad.current.name)
+											end, property.id, datad.current.identifier, datad.current.name)
+										end, false)
+									end, false)
+								else
+									exports.dd_menus:areYouSure({
+										title = 'Are you sure that you want to transfer ' .. property.id .. ' from ' .. (property.ownername or property.owner) .. ' to ' .. data4.current.value.ownername .. '?'
+									},
+									function(datad, menud)
+										ESX.TriggerServerCallback('dd_society:pTransferProperty', function()
+											ESX.UI.Menu.CloseAll()
+											ESX.ShowNotification('~y~' .. property.id .. ' ~w~transferred from ~g~' .. (property.ownername or property.owner) .. ' ~w~to ~y~' .. data4.current.value.ownername)
+										end, property.id, data4.current.value.owner, data4.current.value.ownername)
+									end, false)
+								end
+							end,
+							function(data4, menu4)
+								menu4.close()
+							end)
+						end
+					end,
+					function(data3, menu3)
+						menu3.close()
+					end)
+				elseif data2.current.value == 'revoke' then
+					exports.dd_menus:areYouSure({
+						title = 'Are you sure that you want to revoke all keys for ' .. property.id .. '?'
+					},
+					function(datad, menud)
+						ESX.TriggerServerCallback('dd_society:getPlayers', function(Players)
+							local Holders = {}
+							for k, v in pairs(Players) do
+								if v.dd_keys[property.id] then
+									table.insert(Holders, v)
+								end
+							end
+							ESX.TriggerServerCallback('dd_society:pRevokeAllKeys', function()
+								ESX.UI.Menu.CloseAll()
+								ESX.ShowNotification('All keys for ~y~' .. property.id .. ' ~w~have been ~r~revoked')
+							end, property.id, Holders)
+						end)
+					end, false)
+				end
+			end,
+			function(data2, menu2)
+				menu2.close()
+			end)
 		elseif data.current.value == 'doors' then
 			local elements = {}
 			for k, v in pairs(Data.Doors) do

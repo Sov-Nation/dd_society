@@ -45,10 +45,13 @@ RegisterNetEvent('dd_society:getPlayer', function(ident)
 	end, ident)
 end)
 
-RegisterNetEvent('dd_society:getProperties', function()
+RegisterNetEvent('dd_society:getProperties', function(update)
 	Data.Properties = {}
 	ESX.TriggerServerCallback('dd_society:getProperties', function(Properties)
 		Data.Properties = Properties
+		if update then
+			showBlips()
+		end
 	end)
 end)
 
