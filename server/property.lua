@@ -73,7 +73,9 @@ ESX.RegisterServerCallback('dd_society:pDeleteKey', function(source, cb, key, ho
 end)
 
 ESX.RegisterServerCallback('dd_society:pAddKey', function(source, cb, property, designation, player)
-	if has_value(player.dd_keys[property], designation) then
+	if not player.dd_keys[property] then
+		player.dd_keys[property] = {}
+	elseif has_value(player.dd_keys[property], designation) then
 		cb(false)
 		return
 	end
