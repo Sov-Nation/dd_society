@@ -7,7 +7,7 @@ ESX.RegisterServerCallback('dd_society:pNewKey', function(source, cb, property, 
 	NewKey.exempt_zones = {}
 	Data.Keys[NewKey.id] = NewKey
 
-	TriggerClientEvent('dd_society:getKeys', -1)
+	TriggerClientEvent('dd_society:syncKey', -1, NewKey)
 
 	cb(NewKey)
 end)
@@ -17,7 +17,7 @@ ESX.RegisterServerCallback('dd_society:pRenameKey', function(source, cb, id, nam
 
 	Data.Keys[id].name = name
 
-	TriggerClientEvent('dd_society:getKeys', -1)
+	TriggerClientEvent('dd_society:syncKey', -1, Data.Keys[id])
 
 	cb()
 end)
@@ -36,7 +36,7 @@ ESX.RegisterServerCallback('dd_society:pDeleteKey', function(source, cb, key, ho
 		removeKey(key.property, key.designation, v)
 	end
 
-	TriggerClientEvent('dd_society:getKeys', -1)
+	TriggerClientEvent('dd_society:syncKey', -1, key, true)
 
 	cb(true)
 end)
@@ -95,7 +95,7 @@ ESX.RegisterServerCallback('dd_society:pToggleKeyExemption', function(source, cb
 		end
 	end
 
-	TriggerClientEvent('dd_society:getKeys', -1)
+	TriggerClientEvent('dd_society:syncKey', -1, key)
 
 	cb(true)
 end)

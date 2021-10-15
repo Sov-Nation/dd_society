@@ -16,7 +16,6 @@ end)
 
 function dataReady()
 	while true do
-		Wait(100)
 		local ready = true
 		if ESX.PlayerLoaded then
 			for k, v in pairs(Data) do
@@ -28,6 +27,7 @@ function dataReady()
 				break
 			end
 		end
+		Wait(100)
 	end
 end
 
@@ -71,6 +71,22 @@ RegisterNetEvent('dd_society:getZones', function()
 	ESX.TriggerServerCallback('dd_society:getZones', function(Zones)
 		Data.Zones = Zones
 	end)
+end)
+
+RegisterNetEvent('dd_society:syncKey', function(key, delete)
+	if delete then
+		Data.Keys[key.id] = nil
+	else
+		Data.Keys[key.id] = key
+	end
+end)
+
+RegisterNetEvent('dd_society:syncDoor', function(door)
+	Data.Doors[door.id] = door
+end)
+
+RegisterNetEvent('dd_society:syncZone', function(zone)
+	Data.Zones[zone.id] = zone
 end)
 
 RegisterKeyMapping('interact', 'Interact', 'keyboard', 'e')
