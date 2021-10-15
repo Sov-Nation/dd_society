@@ -117,3 +117,45 @@ function removeKey(property, designation, player)
 		TriggerClientEvent('dd_society:getPlayer', xPlayer.source, 'self')
 	end
 end
+
+ESX.RegisterServerCallback('dd_society:pModifyDoor', function(source, cb, id, change)
+	if change.name then
+		exports.oxmysql:updateSync('UPDATE dd_doors SET name = ? WHERE id = ?', {change.name, id})
+	elseif change.distance then
+		exports.oxmysql:updateSync('UPDATE dd_doors SET distance = ? WHERE id = ?', {change.distance, id})
+	elseif change.locked ~= nil then
+		local locked = 0
+		if change.locked then
+			locked = 1
+		end
+		exports.oxmysql:updateSync('UPDATE dd_doors SET locked = ? WHERE id = ?', {locked, id})
+	end
+
+	for k, v in pairs(change) do
+		Data.Doors[id][k] = v
+	end
+
+	TriggerClientEvent('dd_society:syncDoor', -1, Data.Doors[id])
+
+	cb()
+end)
+
+ESX.RegisterServerCallback('dd_society:pModifyZone', function(source, cb, id, change)
+	if change.name then
+		exports.oxmysql:updateSync('UPDATE dd_zones SET name = ? WHERE id = ?', {change.name, id})
+	elseif change.public ~= nil then
+		local public = 0
+		if change.public then
+			public = 1
+		end
+		exports.oxmysql:updateSync('UPDATE dd_zones SET public = ? WHERE id = ?', {public, id})
+	end
+
+	for k, v in pairs(change) do
+		Data.Zones[id][k] = v
+	end
+
+	TriggerClientEvent('dd_society:syncZone', -1, Data.Zones[id])
+
+	cb()
+end)

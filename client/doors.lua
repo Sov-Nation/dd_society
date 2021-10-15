@@ -3,7 +3,7 @@ CreateThread(function()
 	while true do
 		Wait(100)
 		pedPos = GetEntityCoords(ESX.PlayerData.ped)
-		if Data.Player.Auth then
+		if Data.Player.Auth and Data.Doors then
 			for k, v in pairs(Data.Doors) do
 				local distance = #(pedPos - v.object)
 				applyDoorState(v, distance)

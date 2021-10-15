@@ -47,7 +47,7 @@ function kmOpen()
 				},
 				function(data3, menu3)
 					if data3.current.value then
-						kmProperty(data3.current.value, true)
+						kmProperty(data3.current.value)
 					end
 				end,
 				function(data3, menu3)
@@ -83,7 +83,7 @@ function kmOpen()
 			},
 			function(data2, menu2)
 				if data2.current.value then
-					kmProperty(data2.current.value, true)
+					kmProperty(data2.current.value)
 				end
 			end,
 			function(data2, menu2)
@@ -96,7 +96,7 @@ function kmOpen()
 	end)
 end
 
-function kmProperty(property, km)
+function kmProperty(property)
 	dataReady()
 	local elements = {
 		{label = 'Toggle blip', value = 'blip'},
@@ -122,11 +122,169 @@ function kmProperty(property, km)
 	function(data, menu)
 		if data.current.value == 'blip' then
 			showBlips(property.id)
-		elseif data.current.value == 'owner' and km then
+		elseif data.current.value == 'owner' then
 			-- transfer ownership
 			-- revoke all keys
 		elseif data.current.value == 'doors' then
+			local elements = {}
+			for k, v in pairs(Data.Doors) do
+				if v.property == property.id then
+					table.insert(elements, {
+						label = v.name .. ' (' .. v.id .. ') [edit]',
+						value = v
+					})
+				end
+			end
+			if not next(elements) then
+				elements[1] = {label = 'None'}
+			end
+			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpropertydoors',{
+				title    = property.id .. ' - Doors',
+				align    = 'top-left',
+				elements = elements
+			},
+			function(data2, menu2)
+				local door = Data.Doors[data2.current.value.id]
+				local state = door.state and 'locked' or 'unlocked'
+				local locked = door.locked and 'locked' or 'unlocked'
+				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterdoor',{
+					title    = 'Manage Door - ' .. door.name .. ' - ' .. property.id,
+					align    = 'top-left',
+					elements = {
+						{label = 'Current state = ' .. state},
+						{label = 'Rename', value = 'rename'},
+						{label = 'Change distance (' .. door.distance .. ')', value = 'distance'},
+						{label = 'Toggle default state (' .. locked .. ')', value = 'state'},
+					}
+				},
+				function(data3, menu3)
+					if data3.current.value == 'rename' then
+						exports.dd_menus:text({
+							title = 'New door name, enter text'
+						},
+						function(datad, menud)
+							if datad.value and string.len(datad.value) > 1 then
+								ESX.TriggerServerCallback('dd_society:pModifyDoor', function()
+									menu3.close()
+									menu2.close()
+									menu.close()
+									kmProperty(property, door.id)
+									ESX.ShowNotification('Door renamed to ~g~' .. datad.value)
+								end, door.id, {name = datad.value})
+							else
+								ESX.ShowNotification('~r~Door name cannot be empty')
+							end
+						end, false)
+					elseif data3.current.value == 'distance' then
+						exports.dd_menus:amount({
+							title = 'New door distance, enter amount',
+							min = 1, 
+							max = 20
+						},
+						function(datad, menud)
+							if datad.value then
+								ESX.TriggerServerCallback('dd_society:pModifyDoor', function()
+									menu3.close()
+									menu2.close()
+									menu.close()
+									kmProperty(property, door.id)
+									ESX.ShowNotification('Door distance changed to ~y~' .. datad.value)
+								end, door.id, {distance = datad.value})
+							else
+								ESX.ShowNotification('~r~Cannot be empty')
+							end
+						end, false)
+					elseif data3.current.value == 'state' then
+						ESX.TriggerServerCallback('dd_society:pModifyDoor', function()
+							menu3.close()
+							menu2.close()
+							menu.close()
+							kmProperty(property, door.id)
+							if locked == 'locked' then
+								toggle = 'unlocked'
+							else
+								toggle = 'locked'
+							end
+							ESX.ShowNotification('Door default toggled to ~y~' .. toggle)
+						end, door.id, {locked = not door.locked})
+					end
+				end,
+				function(data3, menu3)
+					menu3.close()
+				end)
+			end,
+			function(data2, menu2)
+				menu2.close()
+			end)
 		elseif data.current.value == 'zones' then
+			local elements = {}
+			for k, v in pairs(Data.Zones) do
+				if v.property == property.id then
+					table.insert(elements, {
+						label = v.name .. ' (' .. v.id .. ') [edit]',
+						value = v
+					})
+				end
+			end
+			if not next(elements) then
+				elements[1] = {label = 'None'}
+			end
+			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpropertyzones',{
+				title    = property.id .. ' - Zones',
+				align    = 'top-left',
+				elements = elements
+			},
+			function(data2, menu2)
+				local zone = Data.Zones[data2.current.value.id]
+				local state = zone.public and 'public' or 'private'
+				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterzone',{
+					title    = 'Manage Zone - ' .. zone.name .. ' - ' .. property.id,
+					align    = 'top-left',
+					elements = {
+						{label = 'Rename', value = 'rename'},
+						{label = 'Toggle state (' .. state .. ')', value = 'state'},
+					}
+				},
+				function(data3, menu3)
+					if data3.current.value == 'rename' then
+						exports.dd_menus:text({
+							title = 'New zone name, enter text'
+						},
+						function(datad, menud)
+							if datad.value and string.len(datad.value) > 1 then
+								ESX.TriggerServerCallback('dd_society:pModifyZone', function()
+									menu3.close()
+									menu2.close()
+									menu.close()
+									kmProperty(property, zone.id)
+									ESX.ShowNotification('Zone renamed to ~g~' .. datad.value)
+								end, zone.id, {name = datad.value})
+							else
+								ESX.ShowNotification('~r~Zone name cannot be empty')
+							end
+						end, false)
+					elseif data3.current.value == 'state' then
+						ESX.TriggerServerCallback('dd_society:pModifyZone', function()
+							menu3.close()
+							menu2.close()
+							menu.close()
+							kmProperty(property, zone.id)
+							if state == 'public' then
+								toggle = 'private'
+							else
+								toggle = 'public'
+							end
+							ESX.ShowNotification('Zone state toggled to ~y~' .. toggle)
+						end, zone.id, {public = not zone.public})
+					end
+				end,
+				function(data3, menu3)
+					menu3.close()
+				end)
+			end,
+			function(data2, menu2)
+				menu2.close()
+			end)
 		elseif data.current.value == 'newkey' then
 			exports.dd_menus:text({
 				title = 'Choose a name for the new key, enter text'
@@ -143,11 +301,12 @@ function kmProperty(property, km)
 				end
 			end, false)
 		else
+			local key = data.current.value
 			ESX.TriggerServerCallback('dd_society:getPlayers', function(Players)
 				local Holders = {}
 				for k, v in pairs(Players) do
 					if v.dd_keys[property.id] then
-						if has_value(v.dd_keys[property.id], data.current.value.designation) then
+						if has_value(v.dd_keys[property.id], key.designation) then
 							table.insert(Holders, v)
 						end
 					end
@@ -157,7 +316,7 @@ function kmProperty(property, km)
 					{label = 'Doors', value = 'doors'},
 					{label = 'Zones', value = 'zones'},
 				}
-				if data.current.value.name ~= 'Master' then
+				if key.name ~= 'Master' then
 					elements[4] = {label = 'Rename', value = 'rename'}
 					elements[5] = {label = 'Delete Key', value = 'delete'}
 				end
@@ -227,12 +386,13 @@ function kmProperty(property, km)
 						local elements = {}
 						for k, v in pairs(Data.Doors) do
 							if v.property == property.id then
-								if data.current.value.name == 'Master' then
+								if key.name == 'Master' then
 									table.insert(elements, {
-										label = v.name .. ' (' .. v.id .. ')',
-										value = v
+										label = v.name .. ' (' .. v.id .. ') [edit]',
+										value = v,
+										action = 'edit'
 									})
-								elseif has_value(data.current.value.exempt_doors, v.id) then
+								elseif has_value(key.exempt_doors, v.id) then
 									table.insert(elements, {
 										label = v.name .. ' - (' .. v.id .. ') [add]',
 										value = v,
@@ -256,7 +416,9 @@ function kmProperty(property, km)
 							elements = elements
 						},
 						function(data3, menu3)
-							if data3.current.action then
+							if data3.current.action == 'edit' then
+								kmDoor(property, data3.value)
+							else
 								ESX.TriggerServerCallback('dd_society:pToggleKeyExemption', function(valid)
 									menu3.close()
 									menu2.close()
@@ -264,14 +426,14 @@ function kmProperty(property, km)
 									kmProperty(property, km)
 									if valid then
 										if data3.current.action == 'add' then
-											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~g~added ~w~to ~y~' .. data.current.value.name .. ' ~w~- (' .. data.current.value.id .. ')')
+											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~g~added ~w~to ~y~' .. key.name .. ' ~w~- (' .. key.id .. ')')
 										elseif data3.current.action == 'remove' then
-											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~r~removed ~w~from ~y~' .. data.current.value.name .. ' ~w~- (' .. data.current.value.id .. ')')
+											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~r~removed ~w~from ~y~' .. key.name .. ' ~w~- (' .. key.id .. ')')
 										end
 									else
 										ESX.ShowNotification('~r~You cannot edit the Master key')
 									end
-								end, data.current.value, data3.current.value.id, Holders, 'exempt_doors')
+								end, key, data3.current.value.id, Holders, 'exempt_doors')
 							end
 						end,
 						function(data3, menu3)
@@ -281,12 +443,13 @@ function kmProperty(property, km)
 						local elements = {}
 						for k, v in pairs(Data.Zones) do
 							if v.property == property.id then
-								if data.current.value.name == 'Master' then
+								if key.name == 'Master' then
 									table.insert(elements, {
 										label = v.name .. ' (' .. v.id .. ') [edit]',
-										value = v
+										value = v,
+										action = 'edit'
 									})
-								elseif has_value(data.current.value.exempt_zones, v.id) then
+								elseif has_value(key.exempt_zones, v.id) then
 									table.insert(elements, {
 										label = v.name .. ' - (' .. v.id .. ') [add]',
 										value = v,
@@ -311,6 +474,7 @@ function kmProperty(property, km)
 						},
 						function(data3, menu3)
 							if data3.current.action == 'edit' then
+								kmZone(property, data3.value)
 							else
 								ESX.TriggerServerCallback('dd_society:pToggleKeyExemption', function(valid)
 									menu3.close()
@@ -319,14 +483,14 @@ function kmProperty(property, km)
 									kmProperty(property, km)
 									if valid then
 										if data3.current.action == 'add' then
-											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~g~added ~w~to ~y~' .. data.current.value.name .. ' ~w~- (' .. data.current.value.id .. ')')
+											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~g~added ~w~to ~y~' .. key.name .. ' ~w~- (' .. key.id .. ')')
 										elseif data3.current.action == 'remove' then
-											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~r~removed ~w~from ~y~' .. data.current.value.name .. ' ~w~- (' .. data.current.value.id .. ')')
+											ESX.ShowNotification('~y~' .. data3.current.value.name  .. ' ~w~- (' .. data3.current.value.id .. ')' .. ' has been ~r~removed ~w~from ~y~' .. key.name .. ' ~w~- (' .. key.id .. ')')
 										end
 									else
 										ESX.ShowNotification('~r~You cannot edit the Master key')
 									end
-								end, data.current.value, data3.current.value.id, Holders, 'exempt_zones')
+								end, key, data3.current.value.id, Holders, 'exempt_zones')
 							end
 						end,
 						function(data3, menu3)
@@ -342,8 +506,8 @@ function kmProperty(property, km)
 									menu2.close()
 									menu.close()
 									kmProperty(property, km)
-									ESX.ShowNotification('Key renamed to ~g~' .. datad.value )
-								end, data.current.value.id, datad.value)
+									ESX.ShowNotification('Key renamed to ~g~' .. datad.value)
+								end, key.id, datad.value)
 							else
 								ESX.ShowNotification('~r~Key name cannot be empty')
 							end
@@ -362,7 +526,7 @@ function kmProperty(property, km)
 								else
 									ESX.ShowNotification('~r~You cannot delete the Master key')
 								end
-							end, data.current.value, Holders)
+							end, key, Holders)
 						end, false)
 					end
 				end,
