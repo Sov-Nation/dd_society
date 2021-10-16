@@ -41,7 +41,7 @@ RegisterCommand('lock/unlock', function()
 
 	if has_value(Data.Player.Auth.Doors, closeDoor.id) then
 		closeDoor.state = not closeDoor.state
-		TriggerServerEvent('dd_society:updateDoorState', closeDoor)
+		TriggerServerEvent('dd_society:updateDoor', closeDoor)
 	end
 end)
 
