@@ -4,7 +4,7 @@ lua54 'yes'
 
 author "DokaDoka"
 description "DokaDoka's Society"
-version "0.2.0"
+version "0.3.0"
 
 dependencies {
 	'es_extended',
