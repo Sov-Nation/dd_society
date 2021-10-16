@@ -143,6 +143,27 @@ function setAuth(Player)
 	end
 end
 
+ESX.RegisterServerCallback('dd_society:setJob', function(source, cb, society, identifier, grade)
+	local xPlayer = ESX.GetPlayerFromIdentifier(identifier)
+	if xPlayer then
+		xPlayer.setJob(society.name, grade)
+	else
+		exports.oxmysql:updateSync('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {society.name, grade, identifier})
+	end
+
+	cb()
+end)
+
+ESX.RegisterServerCallback('dd_society:modifyGrade', function(source, cb, society, grade, change)
+	if change.label then
+		exports.oxmysql:updateSync('UPDATE job_grades SET label = ? WHERE job_name = ? AND grade = ?', {change.label, society.name, grade})
+	elseif change.salary then
+		exports.oxmysql:updateSync('UPDATE job_grades SET salary = ? WHERE job_name = ? AND grade = ?', {change.salary, society.name, grade})
+	end
+
+	cb()
+end)
+
 ESX.RegisterServerCallback('dd_society:getPlayer', function(source, cb, ident)
 	if ident == 'self' then
 		ident = nil
@@ -170,11 +191,29 @@ ESX.RegisterServerCallback('dd_society:getPlayers', function(source, cb)
 		v.fullname = v.firstname .. ' ' .. v.lastname
 	end
 
-	for k, v in pairs(Players) do
-		setAuth(v)
+	cb(Players)
+end)
+
+ESX.RegisterServerCallback('dd_society:getEmployees', function(source, cb, society)
+	local Employees = exports.oxmysql:executeSync('SELECT identifier, dd_keys, firstname, lastname, job_grade FROM users WHERE job = ?', {society.name})
+
+	local Grades = exports.oxmysql:executeSync('SELECT job_grades.grade, job_grades.name, job_grades.label, job_grades.salary FROM job_grades WHERE job_name = ?', {society.name})
+	
+	for k, v in pairs(Employees) do
+		for k2, v2 in pairs(Grades) do
+			if v.job_grade == v2.grade then
+				v.grade = v2
+				v.job_grade = nil
+				break
+			end
+		end
+		
+		v.dd_keys = json.decode(v.dd_keys)
+		v.fullname = v.firstname .. ' ' .. v.lastname
 	end
 
-	cb(Players)
+
+	cb(Employees, Grades)
 end)
 
 ESX.RegisterServerCallback('dd_society:getSocieties', function(source, cb)
@@ -208,7 +247,4 @@ end
 RegisterNetEvent('dd_society:updateDoor', function(Door, save)
 	Data.Doors[Door.id] = Door
 	TriggerClientEvent('dd_society:updateDoor', -1, Door)
-	if save then
-		exports.oxmysql:execute('UPDATE dd_doors SET name = ?, locked = ?, distance = ? WHERE id = ?', {Door.name, Door.locked, Door.distance, Door.id})
-	end
 end)

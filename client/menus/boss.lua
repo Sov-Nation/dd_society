@@ -5,23 +5,9 @@ function bOpen(zone)
 		elements = {
 			{label = 'Open stash', value = 'stash'},
 			{label = 'Manage finances', value = 'finance'},
-			--add/take money -- done
-			--view and cancel bills -- done
-			--wash money, based on config, money will take time to wash and then be collected all at once -- done
 			{label = 'Manage properties', value = 'properties'},
-			--keys, create, delete, add and remove all in society, tweak exemptions
-			--doors, name, locked, distance
-			--zones, public, name
 			{label = 'Manage vehicles', value = 'vehicles'},
-			--see society, personal and local vehicles -- done
-			--transfer ownership of vehicles -- done
 			{label = 'Manage employees', value = 'employees'},
-			--recruit,
-			--manage grades
-				--change grade label and salary
-			--manage individuals
-				--fire
-				--see and add or remove keys
 		}
 	},
 	function(data, menu)
@@ -103,7 +89,8 @@ function bOpen(zone)
 								ESX.TriggerServerCallback('dd_society:aPayBill', function(valid)
 								end, data3.current.value, true)
 							end
-						end, function(data3, menu3)
+						end,
+						function(data3, menu3)
 							menu3.close()
 						end)
 					end, ESX.PlayerData.job.label)
@@ -144,7 +131,8 @@ function bOpen(zone)
 									end, zone.property, WashedMoney)
 								end
 							end
-						end, function(data3, menu3)
+						end,
+						function(data3, menu3)
 							menu3.close()
 						end)
 					end, zone.property)
@@ -161,7 +149,29 @@ function bOpen(zone)
 						end, datad.value, zone.property)
 					end, false)
 				end
-			end, function(data2, menu2)
+			end,
+			function(data2, menu2)
+				menu2.close()
+			end)
+		elseif data.current.value == 'properties' then
+			local elements = {}
+			for k, v in pairs(Data.Properties) do
+				if v.owner == Data.Properties[zone.property].owner then
+					table.insert(elements, {
+						label = v.id,
+						value = v
+					})
+				end
+			end
+			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'manageproperties', {
+				title    = 'Manage Properties - ' .. Data.Properties[zone.property].owner,
+				align    = 'top-left',
+				elements = elements
+			},
+			function(data2, menu2)
+				kmProperty(data2.current.value)
+			end,
+			function(data2, menu2)
 				menu2.close()
 			end)
 		elseif data.current.value == 'vehicles' then
@@ -176,9 +186,157 @@ function bOpen(zone)
 			},
 			function(data2, menu2)
 				bManageGarage(zone, data2.current.value)
-			end, function(data2, menu2)
+			end,
+			function(data2, menu2)
 				menu2.close()
 			end)
+		elseif data.current.value == 'employees' then
+			ESX.TriggerServerCallback('dd_society:getEmployees', function(Employees, Grades)
+				local elements = {
+					{label = 'Recruit nearby player', value = 'recruit'},
+					{label = 'Manage grades', value = 'grades'},
+				}
+				for k, v in pairs(Employees) do
+					table.insert(elements, {
+						label = v.fullname .. ' - ' .. v.grade.label .. ' (' .. v.grade.grade .. ')',
+						value = v
+					})
+				end
+				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'manageemployees', {
+					title    = 'Manage Employees - ' .. Data.Properties[zone.property].owner,
+					align    = 'top-left',
+					elements = elements
+				},
+				function(data2, menu2)
+					if data2.current.value == 'recruit' then
+						exports.dd_menus:nearbyPlayers({
+							title = nil, 
+							self = nil,
+							distance = nil
+						},
+						function(datad, menud)
+							ESX.TriggerServerCallback('dd_society:setJob', function()
+								menu2.close()
+								ESX.ShowNotification('~y~' .. datad.current.name .. ' ~w~has been ~g~hired')
+							end, Data.Societies[Data.Properties[zone.property].owner], datad.current.identifier, 0)
+						end, false)
+					elseif data2.current.value == 'grades' then
+						local elements = {}
+						for k, v in pairs(Grades) do
+							table.insert(elements, {
+								label = v.label .. ' (' .. v.grade .. ') - $' .. v.salary .. ' [edit]',
+								value = v
+							})
+						end
+						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'managegrades', {
+							title    = 'Manage Grades - ' .. Data.Properties[zone.property].owner,
+							align    = 'top-left',
+							elements = elements
+						},
+						function(data3, menu3)
+							local grade = data3.current.value
+							ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'editgrade', {
+								title    = 'Manage Grade - ' .. grade.label,
+								align    = 'top-left',
+								elements = {
+									{label = 'Change label', value = 'label'},
+									{label = 'Change salary', value = 'salary'},
+								}
+							},
+							function(data4, menu4)
+								if data4.current.value == 'label' then
+									exports.dd_menus:text({
+										title = 'New grade label, enter text'
+									},
+									function(datad, menud)
+										if datad.value and string.len(datad.value) > 1 then
+											ESX.TriggerServerCallback('dd_society:modifyGrade', function()
+												menu4.close()
+												menu3.close()
+												menu2.close()
+												ESX.ShowNotification('Grade ~Y~' .. grade.grade .. ' ~w~now labeled to ~g~' .. datad.value)
+											end, Data.Societies[Data.Properties[zone.property].owner], grade.grade, {label = datad.value})
+										else
+											ESX.ShowNotification('~r~Grade label cannot be empty')
+										end
+									end, false)
+								elseif data4.current.value == 'salary' then
+									exports.dd_menus:text({
+										title = 'New grade salary, enter amount'
+									},
+									function(datad, menud)
+										if datad.value then
+											ESX.TriggerServerCallback('dd_society:modifyGrade', function()
+												menu4.close()
+												menu3.close()
+												menu2.close()
+												ESX.ShowNotification('~Y~' .. grade.label .. ' ~w~salary is now ~g~$' .. datad.value)
+											end, Data.Societies[Data.Properties[zone.property].owner], grade.grade, {salary = datad.value})
+										else
+											ESX.ShowNotification('~r~Grade salary cannot be empty')
+										end
+									end, false)
+								end
+							end,
+							function(data4, menu4)
+								menu4.close()
+							end)
+						end,
+						function(data3, menu3)
+							menu3.close()
+						end)
+					else
+						local employee = data2.current.value
+						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'manageemployee', {
+							title    = 'Manage Employee - ' .. employee.fullname,
+							align    = 'top-left',
+							elements = {
+								{label = 'Change grade', value = 'changegrade'},
+								{label = 'Fire', value = 'fire'},
+							}
+						},
+						function(data3, menu3)
+							if data3.current.value == 'changegrade' then
+								local elements = {}
+								for k, v in pairs(Grades) do
+									table.insert(elements, {
+										label = v.label .. ' (' .. v.grade .. ') - $' .. v.salary .. ' [set]',
+										value = v
+									})
+								end
+								ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'setemployeegrade', {
+									title    = 'Set Grade - ' .. employee.fullname,
+									align    = 'top-left',
+									elements = elements
+								},
+								function(data4, menu4)
+									ESX.TriggerServerCallback('dd_society:setJob', function()
+										menu4.close()
+										menu3.close()
+										menu2.close()
+										ESX.ShowNotification('~y~' .. employee.fullname .. ' ~w~is now ~g~' .. data4.current.value.label)
+									end, Data.Societies[Data.Properties[zone.property].owner], employee.identifier, data4.current.value.grade)
+								end,
+								function(data4, menu4)
+									menu4.close()
+								end)
+							elseif data3.current.value == 'fire' then
+								ESX.TriggerServerCallback('dd_society:setJob', function()
+									menu3.close()
+									menu2.close()
+									ESX.ShowNotification('~y~' .. employee.fullname .. ' ~w~has been ~r~fired')
+								end, {name = 'unemployed'}, employee.identifier, 0)
+							end
+						end,
+						function(data3, menu3)
+							menu3.close()
+						end)
+					end
+				end,
+				function(data2, menu2)
+					menu2.close()
+				end)
+			end, Data.Societies[Data.Properties[zone.property].owner])
 		end
 	end,
 	function(data, menu)
