@@ -18,7 +18,7 @@ dd_societies intends to replace many esx addon scripts including but not limited
 - esx_bankerjob
 - esx_mechanicjob
 - esx_taxijob
-- esx_drugsjob
+- esx_drugs
 
 ## Dependencies
 
@@ -32,9 +32,13 @@ dd_societies intends to replace many esx addon scripts including but not limited
 
 - billing -- polishing
 - garages -- polishing
-- keymanager -- in progress
-- boss/society management menu -- in progress
-- dynamic f6 menu -- in progress
-- configuring polyzones -- in progress
+- keymanager -- polishing
+- boss/society management menu -- polishing
+- dynamic mobile society menu -- in progress
+- configuring polyzones -- help wanted
 - dd_eup integration -- todo
+- vehicleshops -- todo
+- lscustoms -- todo
+- houses -- todo
+- license -- todo
 - optimisation -- always
