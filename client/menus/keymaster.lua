@@ -549,11 +549,11 @@ function kmProperty(property)
 										menu.close()
 										kmProperty(property, km)
 										if valid then
-											ESX.ShowNotification('~g~' .. data.current.label .. ' ~w~for ~y~' .. property.id .. ' ~g~added ~w~to ~y~' .. datad.current.value.fullname)
+											ESX.ShowNotification('~g~' .. data.current.label .. ' ~w~for ~y~' .. property.id .. ' ~g~added ~w~to ~y~' .. datad.current.name)
 										else
 											ESX.ShowNotification('~y~' .. datad.current.name .. ' ~w~already has this key')
 										end
-									end, property.id, data.current.value.designation, Player)
+									end, property.id, data.current.designation, Player)
 								end, false)
 							else
 								exports.dd_menus:areYouSure({
@@ -565,7 +565,7 @@ function kmProperty(property)
 										menu2.close()
 										menu.close()
 										kmProperty(property, km)
-										ESX.ShowNotification('~g~' .. data.current.label .. ' ~w~for ~y~' .. property.id .. ' ~r~removed ~w~from ~y~' .. data3.current.value.fullname)
+										ESX.ShowNotification('~g~' .. data.current.label .. ' ~w~for ~y~' .. property.id .. ' ~r~removed ~w~from ~y~' .. data3.current.value.name)
 									end, property.id, data.current.value.designation, data3.current.value)
 								end, false)
 							end
