@@ -23,6 +23,7 @@ end)
 RegisterNetEvent('esx:setJob')
 AddEventHandler('esx:setJob', function(job)
 	ESX.PlayerData.job = job
+	TriggerServerEvent('dd_society:saveJob', job)
 	showBlips()
 	refreshBussHUD()
 end)

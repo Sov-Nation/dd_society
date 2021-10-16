@@ -33,3 +33,8 @@ RegisterNetEvent('dd_society:updateDeath', function(isDead)
 		exports.oxmysql:update('UPDATE users SET is_dead = ? WHERE identifier = ?', {isDead, xPlayer.identifier})
 	end
 end)
+
+RegisterNetEvent('dd_society:saveJob', function(job)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	exports.oxmysql:update('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {job.name, job.grade, xPlayer.identifier})
+end)
