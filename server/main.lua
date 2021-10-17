@@ -10,10 +10,9 @@ CreateThread(function()
 	local Societies = exports.oxmysql:executeSync('SELECT * FROM jobs', {})
 	for k, v in pairs(Societies) do
 		v.grades = json.decode(v.grades)
+		v.acc = createAccount(v)
 		Data.Societies[v.label] = v
 	end
-
-	CreateAccounts()
 
 	local Properties = exports.oxmysql:executeSync('SELECT dd_properties.*, users.firstname, users.lastname FROM dd_properties LEFT JOIN users ON dd_properties.owner = users.identifier', {})
 	for k, v in pairs(Properties) do
@@ -212,7 +211,6 @@ ESX.RegisterServerCallback('dd_society:getEmployees', function(source, cb, socie
 		v.fullname = v.firstname .. ' ' .. v.lastname
 	end
 
-
 	cb(Employees, Grades)
 end)
 
@@ -244,7 +242,7 @@ function updateSociety(Society, save)
 	end
 end
 
-RegisterNetEvent('dd_society:updateDoor', function(Door, save)
+RegisterNetEvent('dd_society:updateDoor', function(Door)
 	Data.Doors[Door.id] = Door
 	TriggerClientEvent('dd_society:updateDoor', -1, Door)
 end)

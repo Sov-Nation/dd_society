@@ -1,12 +1,3 @@
-function CreateAccounts()
-	while not next(Data.Societies) do
-		wait(10)
-	end
-	for k, v in pairs(Data.Societies) do
-		v.acc = createAccount(v)
-	end
-end
-
 function createAccount(society)
 	local self = {}
 
@@ -93,9 +84,8 @@ ESX.RegisterServerCallback('dd_society:aPaySocietyMoney', function(source, cb, a
 	end
 end)
 
-RegisterServerEvent('dd_society:aCreateBill')
-AddEventHandler('dd_society:aCreateBill', function(player, amount, target, details)
-	local xPlayer = ESX.GetPlayerFromId(player)
+RegisterServerEvent('dd_society:aCreateBill', function(id, amount, target, details)
+	local xPlayer = ESX.GetPlayerFromId(id)
 	local Society = Data.Societies[target]
 
 	if not Society then
@@ -139,6 +129,9 @@ ESX.RegisterServerCallback('dd_society:aGetTargetBills', function(source, cb, ta
 	function(result)
 		for k, v in pairs(result) do
 			v.time = math.ceil((v.timestamp - os.time())/Config.Time.day)
+			v.fullname = v.firstname .. ' ' .. v.lastname
+			v.firstname = nil
+			v.lastname = nil
 		end
 		cb(result)
 	end)
@@ -182,7 +175,6 @@ ESX.RegisterServerCallback('dd_society:aWashMoney', function(source, cb, amount,
 		exports.oxmysql:insert('INSERT INTO dd_moneywash (property, amount, timestamp) VALUES (?, ?, ?)', {property, amount, os.time() + Config.Time.moneywash},
 		function(insertId)
 			cb(true)
-			xPlayer.showNotification('Your ~g~$' .. amount .. ' ~w~will be washed in 24 hours')
 		end)
 	else
 		cb(false)
