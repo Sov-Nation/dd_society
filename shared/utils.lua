@@ -8,15 +8,13 @@ function has_value(tab, val)
 end
 
 function vectorize(data)
-	local n = #data
-
-	if n == 4 then
+	if #data == 4 then
 		heading = data[4]
 	end
 
-	if n == 1 then
+	if #data == 1 then
 		data = vec(data[1])
-	elseif n == 2 then
+	elseif #data == 2 then
 		data = vec(data[1], data[2])
 	else
 		data = vec(data[1], data[2], data[3])
@@ -42,4 +40,18 @@ function sipairs(Tab)
 		   return i, Tab[i]
 		end
 	end
+end
+
+function cSpan(colour, b, a, c)
+	local str = string.strconcat('<span style="color: ', colour, ';">', b, '</span>')
+
+	if a then
+		str = string.strconcat(a, ': ', str)
+	end
+
+	if c then
+		str = string.strconcat(str, ' ', c)
+	end
+
+	return str
 end
