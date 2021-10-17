@@ -1,14 +1,16 @@
 RegisterCommand('societymenu', function()
+	local close = ESX.UI.Menu.IsOpen('default', resName, 'society')
 	ESX.UI.Menu.CloseAll()
-	ActionMsg = nil
-	sOpen()
+	if not close then
+		sOpen()
+	end
 end)
 
 function sOpen()
-	local elements = {{label = 'New bill', value = 'newbill'}}
+	local elements = {{label = 'New bill', value = 'newBill'}}
 	if ESX.PlayerData.job.label ~= 'Unemployed' then
 		local SocietyPropertyTypes = {}
-		elements[2] = {label = 'View society bills', value = 'societybills'}
+		elements[2] = {label = 'View society bills', value = 'societyBills'}
 		for k, v in pairs(Data.Properties) do
 			if ESX.PlayerData.job.label == v.owner then
 				if not has_value(SocietyPropertyTypes, v.type) then
@@ -26,14 +28,14 @@ function sOpen()
 		end
 	end
 
-	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'society',{
+	ESX.UI.Menu.Open('default', resName, 'society', {
 		title    = 'Society menu - ' .. ESX.PlayerData.job.label,
 		align    = 'top-left',
 		elements = elements
 	},
 	function(data, menu)
-		if data.current.value == 'newbill' then
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'payto', {
+		if data.current.value == 'newBill' then
+			ESX.UI.Menu.Open('default', resName, 'payBillTo', {
 				title    = 'What kind of bill?',
 				align    = 'top-left',
 				elements = {
@@ -48,8 +50,6 @@ function sOpen()
 					distance = nil
 				},
 				function(datad, menud)
-					menud.close()
-					menu2.close()
 					exports.dd_menus:amount({
 						title = 'Billing ' .. datad.current.name .. ', enter value',
 						min = 1,
@@ -60,6 +60,7 @@ function sOpen()
 							title = 'Billing note for ' .. datad.current.name .. ', enter text (optional)'
 						},
 						function(dataddd, menuddd)
+							menu2.close() 
 							local details = dataddd.value
 							if not details or string.len(details) < 1 then
 								details = 'Invoice'
@@ -75,7 +76,7 @@ function sOpen()
 			end, function(data2, menu2)
 				menu2.close()
 			end)
-		elseif data.current.value == 'societybills' then
+		elseif data.current.value == 'societyBills' then
 			ESX.TriggerServerCallback('dd_society:aGetTargetBills', function(Bills)
 				local elements = {}
 				for k, v in pairs(Bills) do
@@ -96,7 +97,7 @@ function sOpen()
 				if not next(elements) then
 					elements[1] = {label = 'None'}
 				end
-				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'societybills', {
+				ESX.UI.Menu.Open('default', resName, 'societyBills', {
 					title    = ESX.PlayerData.job.label .. ' bills',
 					align    = 'top-left',
 					elements = elements
@@ -106,7 +107,7 @@ function sOpen()
 					menu2.close()
 				end)
 			end, ESX.PlayerData.job.label)
-		elseif data.current.value == 'keymaster' then
+		elseif data.current.value == 'keyMaster' then
 			kmOpen()
 		end
 	end,

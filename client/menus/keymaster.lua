@@ -1,6 +1,6 @@
 function kmOpen()
 	dataReady()
-	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymaster',{
+	ESX.UI.Menu.Open('default', resName, 'keyMaster',{
 		title    = 'Keymaster',
 		align    = 'top-left',
 		elements = {
@@ -24,7 +24,7 @@ function kmOpen()
 					value = v
 				})
 			end
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymastersocieties',{
+			ESX.UI.Menu.Open('default', resName, 'keymasterSocieties',{
 				title    = 'Keymaster - Societies',
 				align    = 'top-left',
 				elements = elements
@@ -40,8 +40,8 @@ function kmOpen()
 				if not next(elements) then
 					elements[1] = {label = 'None'}
 				end
-				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymastersocietyproperties',{
-					title    = 'Keymaster - ' .. data2.current.value.label .. ' - Properties',
+				ESX.UI.Menu.Open('default', resName, 'keymasterSocietyProperties',{
+					title    = string.strjoin(' - ', 'Keymaster', data2.current.value.label, 'Properties'),
 					align    = 'top-left',
 					elements = elements
 				},
@@ -82,7 +82,7 @@ function kmOpen()
 			if not next(elements) then
 				elements[1] = {label = 'None'}
 			end
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterplayers',{
+			ESX.UI.Menu.Open('default', resName, 'keymasterPlayers',{
 				title    = 'Keymaster - Players',
 				align    = 'top-left',
 				elements = elements
@@ -96,8 +96,8 @@ function kmOpen()
 							value = v
 						})
 					end
-					ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterplayerproperties',{
-						title    = 'Keymaster - ' .. data2.current.value.ownername .. ' - Properties',
+					ESX.UI.Menu.Open('default', resName, 'keymasterPlayerProperties',{
+						title    = string.strjoin(' - ', 'Keymaster', data2.current.value.ownername, 'Properties',
 						align    = 'top-left',
 						elements = elements
 					},
@@ -122,7 +122,7 @@ function kmOpen()
 					value = v
 				})
 			end
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterproperties',{
+			ESX.UI.Menu.Open('default', resName, 'keymasterProperties',{
 				title    = 'Keymaster - Properties',
 				align    = 'top-left',
 				elements = elements
@@ -160,8 +160,8 @@ function kmProperty(property)
 			})
 		end
 	end
-	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterproperty',{
-		title    = 'Manage Property - ' .. property.id,
+	ESX.UI.Menu.Open('default', resName, 'keymasterProperty',{
+		title    = string.strjoin(' - ', 'Manage Property', property.id),
 		align    = 'top-left',
 		elements = elements
 	},
@@ -169,7 +169,7 @@ function kmProperty(property)
 		if data.current.value == 'blip' then
 			showBlips(property.id)
 		elseif data.current.value == 'owner' then
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpropertyowner',{
+			ESX.UI.Menu.Open('default', resName, 'keymasterPropertyOwner',{
 				title    = property.id .. ' - ' .. (property.ownername or property.owner),
 				align    = 'top-left',
 				elements = {
@@ -179,7 +179,7 @@ function kmProperty(property)
 			},
 			function(data2, menu2)
 				if data2.current.value == 'transfer' then
-					ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpropertytransfer',{
+					ESX.UI.Menu.Open('default', resName, 'keymasterPropertyTransfer',{
 						title    = 'Transfer ' .. property.id .. ' - ' .. (property.ownername or property.owner),
 						align    = 'top-left',
 						elements = {
@@ -213,7 +213,7 @@ function kmProperty(property)
 									value = v
 								})
 							end
-							ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpicksociety',{
+							ESX.UI.Menu.Open('default', resName, 'keymasterPickSociety',{
 								title    = 'Transfer ' .. property.id .. ' - ' .. (property.ownername or property.owner),
 								align    = 'top-left',
 								elements = elements
@@ -233,7 +233,7 @@ function kmProperty(property)
 								menu4.close()
 							end)
 						elseif data3.current.value == 'players' then
-							local elements = {{label = 'Nearby Players', value = 'nearbyplayers'}}
+							local elements = {{label = 'Nearby Players', value = 'nearbyPlayers'}}
 							local Players = {}
 							for k, v in pairs(Data.Properties) do
 								if not Data.Societies[v.owner] then
@@ -250,13 +250,13 @@ function kmProperty(property)
 									value = v
 								})
 							end
-							ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpickplayer',{
+							ESX.UI.Menu.Open('default', resName, 'keymasterPickPlayer',{
 								title    = 'Transfer ' .. property.id .. ' - ' .. (property.ownername or property.owner),
 								align    = 'top-left',
 								elements = elements
 							},
 							function(data4, menu4)
-								if data4.current.value == 'nearbyplayers' then
+								if data4.current.value == 'nearbyPlayers' then
 									exports.dd_menus:nearbyPlayers({
 										title = nil, 
 										self = true,
@@ -329,7 +329,7 @@ function kmProperty(property)
 			if not next(elements) then
 				elements[1] = {label = 'None'}
 			end
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpropertydoors',{
+			ESX.UI.Menu.Open('default', resName, 'keymasterPropertyDoors',{
 				title    = property.id .. ' - Doors',
 				align    = 'top-left',
 				elements = elements
@@ -338,7 +338,7 @@ function kmProperty(property)
 				local door = Data.Doors[data2.current.value.id]
 				local state = door.state and 'locked' or 'unlocked'
 				local locked = door.locked and 'locked' or 'unlocked'
-				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterdoor',{
+				ESX.UI.Menu.Open('default', resName, 'keymasterdoor',{
 					title    = 'Manage Door - ' .. door.name .. ' - ' .. property.id,
 					align    = 'top-left',
 					elements = {
@@ -420,7 +420,7 @@ function kmProperty(property)
 			if not next(elements) then
 				elements[1] = {label = 'None'}
 			end
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterpropertyzones',{
+			ESX.UI.Menu.Open('default', resName, 'keymasterPropertyZones',{
 				title    = property.id .. ' - Zones',
 				align    = 'top-left',
 				elements = elements
@@ -428,7 +428,7 @@ function kmProperty(property)
 			function(data2, menu2)
 				local zone = Data.Zones[data2.current.value.id]
 				local state = zone.public and 'public' or 'private'
-				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterzone',{
+				ESX.UI.Menu.Open('default', resName, 'keymasterzone',{
 					title    = 'Manage Zone - ' .. zone.name .. ' - ' .. property.id,
 					align    = 'top-left',
 					elements = {
@@ -511,7 +511,7 @@ function kmProperty(property)
 					elements[4] = {label = 'Rename', value = 'rename'}
 					elements[5] = {label = 'Delete Key', value = 'delete'}
 				end
-				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterkey',{
+				ESX.UI.Menu.Open('default', resName, 'keymasterKey',{
 					title    = property.id .. ' - ' .. data.current.label,
 					align    = 'top-left',
 					elements = elements
@@ -524,7 +524,7 @@ function kmProperty(property)
 						for k, v in pairs(Holders) do
 							table.insert(elements, {label = v.fullname .. ' [remove]', value = v})
 						end
-						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterkeyholders',{
+						ESX.UI.Menu.Open('default', resName, 'keymasterKeyHolders',{
 							title    = property.id .. ' - ' .. data.current.label .. ' - Holders',
 							align    = 'top-left',
 							elements = elements
@@ -601,7 +601,7 @@ function kmProperty(property)
 						if not next(elements) then
 							elements[1] = {label = 'None'}
 						end
-						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterkeydoors',{
+						ESX.UI.Menu.Open('default', resName, 'keymasterKeyDoors',{
 							title    = property.id .. ' - ' .. data.current.label .. ' - Doors',
 							align    = 'top-left',
 							elements = elements
@@ -658,7 +658,7 @@ function kmProperty(property)
 						if not next(elements) then
 							elements[1] = {label = 'None'}
 						end
-						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'keymasterkeyzones',{
+						ESX.UI.Menu.Open('default', resName, 'keymasterKeyZones',{
 							title    = property.id .. ' - ' .. data.current.label .. ' - Zones',
 							align    = 'top-left',
 							elements = elements

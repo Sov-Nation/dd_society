@@ -1,6 +1,7 @@
 function bOpen(zone)
-	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'boss',{
-		title    = zone.property .. ' - ' .. zone.name,
+	local propertyOwner = Data.Properties[zone.property].owner
+	ESX.UI.Menu.Open('default', resName, 'boss', {
+		title    = string.strjoin(' - ', zone.property, zone.name),
 		align    = 'top-left',
 		elements = {
 			{label = 'Open stash', value = 'stash'},
@@ -13,9 +14,14 @@ function bOpen(zone)
 	function(data, menu)
 		if data.current.value == 'stash' then
 			menu.close()
-
-			TriggerEvent('ox_inventory:openInventory', 'stash', {name = zone.property .. zone.type .. zone.designation, label = 'Boss Stash', owner = false, slots = 100, weight = 100000})
-		elseif data.current.value == 'finance' then
+			TriggerEvent('ox_inventory:openInventory', 'stash', {
+				name = string.strconcat(zone.property, ':', zone.type, '-', zone.designation),
+				label = 'Stash',
+				owner = false,
+				slots = 50,
+				weight = 50000
+			})
+	elseif data.current.value == 'finance' then
 			local elements = {
 				{label = 'Withdraw cash', value = 'withdraw'},
 				{label = 'Deposit cash', value = 'deposit'},
@@ -24,7 +30,7 @@ function bOpen(zone)
 			for k, v in pairs(Config.PropertyTypes[Data.Properties[zone.property].type].bMenu) do
 				table.insert(elements, v)
 			end
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'finance', {
+			ESX.UI.Menu.Open('default', resName, 'finance', {
 				title    = 'Manage Finances - ' .. Data.Properties[zone.property].owner,
 				align    = 'top-left',
 				elements = elements
@@ -32,19 +38,19 @@ function bOpen(zone)
 			function(data2, menu2)
 				if data2.current.value == 'withdraw' then
 					exports.dd_menus:amount({
-						title = 'Withdraw money from the ' .. Data.Properties[zone.property].owner .. ' account, enter value (' .. Data.Societies[Data.Properties[zone.property].owner].account .. ')',
+						title = string.strconcat('Withdraw money from the ', propertyOwner, ' account, enter value (', Data.Societies[propertyOwner].account, ')'),
 						min = 1,
-						max = Data.Societies[Data.Properties[zone.property].owner].account
+						max = Data.Societies[propertyOwner].account
 					},
 					function(datad, menud)
 						ESX.TriggerServerCallback('dd_society:aPaySocietyMoney', function(valid)
 							if valid then
 							end
-						end, datad.value, 'money', false, Data.Properties[zone.property].owner, false)
+						end, datad.value, 'money', false, propertyOwner, false)
 					end, false)
 				elseif data2.current.value == 'deposit' then
 					exports.dd_menus:amount({
-						title = 'Deposit money into the ' .. Data.Properties[zone.property].owner .. ' account, enter value (' .. ESX.PlayerData.accounts[2].money .. ')',
+						title = string.strconcat('Deposit money into the ', propertyOwner, ' account, enter value (', ESX.PlayerData.accounts[2].money, ')'),
 						min = 1,
 						max = ESX.PlayerData.accounts[2].money --might not be consistently cash
 					},
@@ -52,7 +58,7 @@ function bOpen(zone)
 						ESX.TriggerServerCallback('dd_society:aPayMoney', function(valid)
 							if valid then
 							end
-						end, datad.value, 'money', Data.Properties[zone.property].owner, false)
+						end, datad.value, 'money', propertyOwner, false)
 					end, false)
 				elseif data2.current.value == 'bills' then
 					ESX.TriggerServerCallback('dd_society:aGetTargetBills', function(Bills)
@@ -60,18 +66,18 @@ function bOpen(zone)
 						for k, v in pairs(Bills) do
 							local label
 							if v.time > 1 then
-								label = ('<span style="color: green;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [due ' .. v.time .. ' days]')
+								label = cSpan('green', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due ', v.time, ' days]'), v.fullname, '[cancel]')
 							elseif v.time == 1 then
-								label = ('<span style="color: yellow;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [due ' .. v.time .. ' day]')
+								label = cSpan('yellow', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due ', v.time, ' day]'), v.fullname, '[cancel]')
 							elseif v.time == 0 then
-								label = ('<span style="color: orange;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [due]')
+								label = cSpan('orange', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due]'), v.fullname, '[cancel]')
 							elseif v.time == -1 then
-								label = ('<span style="color: red;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [overdue ' .. math.abs(v.time) .. ' day]')
+								label = cSpan('red', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [overdue ', math.abs(v.time), ' day]'), v.fullname, '[cancel]')
 							elseif v.time < -1 then
-								label = ('<span style="color: red;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [overdue ' .. math.abs(v.time) .. ' days]')
+								label = cSpan('red', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [overdue ', math.abs(v.time), ' days]'), v.fullname, '[cancel]')
 							end
 							table.insert(elements, {
-								label = v.firstname .. ' ' .. v.lastname .. ': ' .. label .. ' [cancel]',
+								label = label,
 								value = v.id
 							})
 						end
@@ -86,7 +92,7 @@ function bOpen(zone)
 						function(data3, menu3)
 							menu3.close()
 							if data3.current.value then
-								ESX.TriggerServerCallback('dd_society:aPayBill', function(valid)
+								ESX.TriggerServerCallback('dd_society:aPayBill', function()
 								end, data3.current.value, true)
 							end
 						end,
@@ -94,14 +100,14 @@ function bOpen(zone)
 							menu3.close()
 						end)
 					end, ESX.PlayerData.job.label)
-				elseif data2.current.value == 'washedmoney' then
+				elseif data2.current.value == 'washedMoney' then
 					ESX.TriggerServerCallback('dd_society:aGetWashedMoney', function(WashedMoney, Ready)
 						local elements = {}
 						if Ready.amount == 0 then
 							elements[1] = {label = 'No money ready to collect'}
 						else
 							elements[1] = {
-								label = ('<span style="color: green;">%s</span>'):format('There is $' .. ESX.Math.GroupDigits(Ready.amount) .. ' ready to collect'),
+								label = cSpan('green', string.strconcat('There is $', ESX.Math.GroupDigits(Ready.amount), ' ready to collect')),
 								value = 'collect'
 							}
 						end
@@ -114,12 +120,12 @@ function bOpen(zone)
 									colour = 'orange'
 								end
 								table.insert(elements, {
-									label = ('<span style="color: ' .. colour .. ';">%s</span>'):format('$' .. ESX.Math.GroupDigits(v.amount) .. ' will be ready in ' .. v.time .. ' hours')
+									label = cSpan(colour, string.strconcat('$', ESX.Math.GroupDigits(v.amount), ' will be ready in ', v.time, ' hours'))
 								})
 							end
 						end
-						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'collectmoneywash', {
-							title    = 'Collect washed money from ' .. zone.property,
+						ESX.UI.Menu.Open('default', resName, 'washedMoney', {
+							title    = 'Collect Washed Money From ' .. zone.property),
 							align    = 'top-left',
 							elements = elements
 						},
@@ -136,7 +142,7 @@ function bOpen(zone)
 							menu3.close()
 						end)
 					end, zone.property)
-				elseif data2.current.value == 'washmoney' then
+				elseif data2.current.value == 'washMoney' then
 					exports.dd_menus:amount({
 						title = 'Wash money here, at ' .. zone.property .. ', enter value',
 						min = 1,
@@ -145,6 +151,7 @@ function bOpen(zone)
 					function(datad, menud)
 						ESX.TriggerServerCallback('dd_society:aWashMoney', function(valid)
 							if valid then
+								ESX.ShowNotification('Your ~g~$' .. datad.value .. ' ~w~will be washed in 24 hours')
 							end
 						end, datad.value, zone.property)
 					end, false)
@@ -156,15 +163,15 @@ function bOpen(zone)
 		elseif data.current.value == 'properties' then
 			local elements = {}
 			for k, v in pairs(Data.Properties) do
-				if v.owner == Data.Properties[zone.property].owner then
+				if v.owner == propertyOwner then
 					table.insert(elements, {
 						label = v.id,
 						value = v
 					})
 				end
 			end
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'manageproperties', {
-				title    = 'Manage Properties - ' .. Data.Properties[zone.property].owner,
+			ESX.UI.Menu.Open('default', resName, 'manageProperties', {
+				title    = 'Manage Properties - ' .. propertyOwner,
 				align    = 'top-left',
 				elements = elements
 			},
@@ -175,7 +182,7 @@ function bOpen(zone)
 				menu2.close()
 			end)
 		elseif data.current.value == 'vehicles' then
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'managevehicles', {
+			ESX.UI.Menu.Open('default', resName, 'manageVehicles', {
 				title    = 'Manage Vehicles',
 				align    = 'top-left',
 				elements = {
@@ -202,8 +209,8 @@ function bOpen(zone)
 						value = v
 					})
 				end
-				ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'manageemployees', {
-					title    = 'Manage Employees - ' .. Data.Properties[zone.property].owner,
+				ESX.UI.Menu.Open('default', resName, 'manageEmployees', {
+					title    = 'Manage Employees - ' .. propertyOwner,
 					align    = 'top-left',
 					elements = elements
 				},
@@ -218,7 +225,7 @@ function bOpen(zone)
 							ESX.TriggerServerCallback('dd_society:setJob', function()
 								menu2.close()
 								ESX.ShowNotification('~y~' .. datad.current.name .. ' ~w~has been ~g~hired')
-							end, Data.Societies[Data.Properties[zone.property].owner], datad.current.identifier, 0)
+							end, Data.Societies[propertyOwner], datad.current.identifier, 0)
 						end, false)
 					elseif data2.current.value == 'grades' then
 						local elements = {}
@@ -228,14 +235,14 @@ function bOpen(zone)
 								value = v
 							})
 						end
-						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'managegrades', {
-							title    = 'Manage Grades - ' .. Data.Properties[zone.property].owner,
+						ESX.UI.Menu.Open('default', resName, 'manageGrades', {
+							title    = 'Manage Grades - ' .. propertyOwner,
 							align    = 'top-left',
 							elements = elements
 						},
 						function(data3, menu3)
 							local grade = data3.current.value
-							ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'editgrade', {
+							ESX.UI.Menu.Open('default', resName, 'editGrade', {
 								title    = 'Manage Grade - ' .. grade.label,
 								align    = 'top-left',
 								elements = {
@@ -255,7 +262,7 @@ function bOpen(zone)
 												menu3.close()
 												menu2.close()
 												ESX.ShowNotification('Grade ~Y~' .. grade.grade .. ' ~w~now labeled to ~g~' .. datad.value)
-											end, Data.Societies[Data.Properties[zone.property].owner], grade.grade, {label = datad.value})
+											end, Data.Societies[propertyOwner], grade.grade, {label = datad.value})
 										else
 											ESX.ShowNotification('~r~Grade label cannot be empty')
 										end
@@ -271,7 +278,7 @@ function bOpen(zone)
 												menu3.close()
 												menu2.close()
 												ESX.ShowNotification('~Y~' .. grade.label .. ' ~w~salary is now ~g~$' .. datad.value)
-											end, Data.Societies[Data.Properties[zone.property].owner], grade.grade, {salary = datad.value})
+											end, Data.Societies[propertyOwner], grade.grade, {salary = datad.value})
 										else
 											ESX.ShowNotification('~r~Grade salary cannot be empty')
 										end
@@ -287,16 +294,16 @@ function bOpen(zone)
 						end)
 					else
 						local employee = data2.current.value
-						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'manageemployee', {
+						ESX.UI.Menu.Open('default', resName, 'manageEmployee', {
 							title    = 'Manage Employee - ' .. employee.fullname,
 							align    = 'top-left',
 							elements = {
-								{label = 'Change grade', value = 'changegrade'},
+								{label = 'Change grade', value = 'changeGrade'},
 								{label = 'Fire', value = 'fire'},
 							}
 						},
 						function(data3, menu3)
-							if data3.current.value == 'changegrade' then
+							if data3.current.value == 'changeGrade' then
 								local elements = {}
 								for k, v in pairs(Grades) do
 									table.insert(elements, {
@@ -304,7 +311,7 @@ function bOpen(zone)
 										value = v
 									})
 								end
-								ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'setemployeegrade', {
+								ESX.UI.Menu.Open('default', resName, 'setEmployeeGrade', {
 									title    = 'Set Grade - ' .. employee.fullname,
 									align    = 'top-left',
 									elements = elements
@@ -315,7 +322,7 @@ function bOpen(zone)
 										menu3.close()
 										menu2.close()
 										ESX.ShowNotification('~y~' .. employee.fullname .. ' ~w~is now ~g~' .. data4.current.value.label)
-									end, Data.Societies[Data.Properties[zone.property].owner], employee.identifier, data4.current.value.grade)
+									end, Data.Societies[propertyOwner], employee.identifier, data4.current.value.grade)
 								end,
 								function(data4, menu4)
 									menu4.close()
@@ -336,7 +343,7 @@ function bOpen(zone)
 				function(data2, menu2)
 					menu2.close()
 				end)
-			end, Data.Societies[Data.Properties[zone.property].owner])
+			end, Data.Societies[propertyOwner])
 		end
 	end,
 	function(data, menu)
@@ -411,7 +418,7 @@ function bManageGarage(zone, view)
 			if not next(elements) then
 				elements[1] = {label = 'None'}
 			end
-			ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'bossmanagegarage',{
+			ESX.UI.Menu.Open('default', resName, 'bossManageGarage',{
 				title    = title,
 				align    = 'top-left',
 				elements = elements,
@@ -426,7 +433,7 @@ function bManageGarage(zone, view)
 					end, data.current, change)
 				elseif view == 'personal' then
 					local change = {
-						owner = Data.Properties[zone.property].owner
+						owner = propertyOwner
 					}
 					ESX.TriggerServerCallback('dd_society:vModify', function()
 					end, data.current, change)

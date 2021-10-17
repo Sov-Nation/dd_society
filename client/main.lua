@@ -1,4 +1,5 @@
 Data = {}
+resName = GetCurrentResourceName()
 
 CreateThread(function()
 	TriggerEvent('dd_society:getSocieties')

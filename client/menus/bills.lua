@@ -1,7 +1,9 @@
 RegisterCommand('billsmenu', function()
+	local close = ESX.UI.Menu.IsOpen('default', resName, 'playerBills')
 	ESX.UI.Menu.CloseAll()
-	ActionMsg = nil
-	billsOpen()
+	if not close then
+		billsOpen()
+	end
 end)
 
 function billsOpen()
@@ -10,25 +12,25 @@ function billsOpen()
 		for k, v in pairs(Bills) do
 			local label
 			if v.time > 1 then
-				label = ('<span style="color: green;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [due ' .. v.time .. ' days]')
+				label = cSpan('green', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due ', v.time, ' days]'), v.target)
 			elseif v.time == 1 then
-				label = ('<span style="color: yellow;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [due ' .. v.time .. ' day]')
+				label = cSpan('yellow', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due ', v.time, ' day]'), v.target)
 			elseif v.time == 0 then
-				label = ('<span style="color: orange;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [due]')
+				label = cSpan('orange', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due]'), v.target)
 			elseif v.time == -1 then
-				label = ('<span style="color: red;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [overdue ' .. math.abs(v.time) .. ' day]')
+				label = cSpan('red', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [overdue ', math.abs(v.time), ' day]'), v.target)
 			elseif v.time < -1 then
-				label = ('<span style="color: red;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [overdue ' .. math.abs(v.time) .. ' days]')
+				label = cSpan('red', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [overdue ', math.abs(v.time), ' days]'), v.target)
 			end
 			table.insert(elements, {
-				label = v.target .. ': ' .. label,
+				label = label,
 				value = v.id
 			})
 		end
 		if not next(elements) then
 			elements[1] = {label = 'None'}
 		end
-		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'playerbills', {
+		ESX.UI.Menu.Open('default', resName, 'playerBills', {
 			title    = 'Outstanding bills',
 			align    = 'bottom-right',
 			elements = elements
