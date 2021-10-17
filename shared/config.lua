@@ -23,9 +23,9 @@ Config.time = {
 }
 
 Config.Menus = {
-	washedmoney = {label = 'Washed money (this property)', value = 'washedmoney'},
-	washmoney = {label = 'Wash money', value = 'washmoney'},
-	keymaster = {label = 'Keymaster', value = 'keymaster'},
+	washedMoney = {label = 'Washed money (this property)', value = 'washedMoney'},
+	washMoney = {label = 'Wash Money', value = 'washMoney'},
+	keyMaster = {label = 'Keymaster', value = 'keyMaster'},
 }
 
 Config.PropertyTypes = {
@@ -61,8 +61,8 @@ Config.PropertyTypes = {
 	},
 	shop = {
 		sprite = 59,
-		pMenu = {'washmoney'},
-		bMenu = {'washedmoney','washmoney'},
+		pMenu = {'washMoney'},
+		bMenu = {'washedMoney','washMoney'},
 		sMenu = {},
 	},
 	law = {
@@ -73,8 +73,8 @@ Config.PropertyTypes = {
 	},
 	prison = {
 		sprite = 188,
-		pMenu = {'washmoney'},
-		bMenu = {'washedmoney','washmoney'},
+		pMenu = {'washMoney'},
+		bMenu = {'washedMoney','washMoney'},
 		sMenu = {},
 	},
 	hospital = {
@@ -91,32 +91,32 @@ Config.PropertyTypes = {
 	},
 	mechanic = {
 		sprite = 446,
-		pMenu = {'washmoney'},
-		bMenu = {'washedmoney','washmoney'},
+		pMenu = {'washMoney'},
+		bMenu = {'washedMoney','washMoney'},
 		sMenu = {},
 	},
 	bank = {
 		sprite = 207,
 		pMenu = {},
 		bMenu = {},
-		sMenu = {'keymaster'},
+		sMenu = {'keyMaster'},
 	},
 	club = {
 		sprite = 121,
-		pMenu = {'washmoney'},
-		bMenu = {'washedmoney','washmoney'},
+		pMenu = {'washMoney'},
+		bMenu = {'washedMoney','washMoney'},
 		sMenu = {},
 	},
 	industrial = {
 		sprite = 473,
-		pMenu = {'washmoney'},
-		bMenu = {'washedmoney','washmoney'},
+		pMenu = {'washMoney'},
+		bMenu = {'washedMoney','washMoney'},
 		sMenu = {},
 	},
 	scrap = {
 		sprite = 527,
-		pMenu = {'washmoney'},
-		bMenu = {'washedmoney','washmoney'},
+		pMenu = {'washMoney'},
+		bMenu = {'washedMoney','washMoney'},
 		sMenu = {},
 	},
 	courier = {
@@ -127,26 +127,26 @@ Config.PropertyTypes = {
 	},
 	pier = {
 		sprite = 266,
-		pMenu = {'washmoney'},
-		bMenu = {'washedmoney','washmoney'},
+		pMenu = {'washMoney'},
+		bMenu = {'washedMoney','washMoney'},
 		sMenu = {},
 	},
 	outlaw = {
 		sprite = 492,
-		pMenu = {'washmoney'},
-		bMenu = {'washedmoney','washmoney'},
+		pMenu = {'washMoney'},
+		bMenu = {'washedMoney','washMoney'},
 		sMenu = {},
 	},
 	altruist = {
 		sprite = 269,
-		pMenu = {'washmoney'},
-		bMenu = {'washedmoney','washmoney'},
+		pMenu = {'washMoney'},
+		bMenu = {'washedMoney','washMoney'},
 		sMenu = {},
 	},
 	taxi = {
 		sprite = 198,
-		pMenu = {'washmoney'},
-		bMenu = {'washedmoney','washmoney'},
+		pMenu = {'washMoney'},
+		bMenu = {'washedMoney','washMoney'},
 		sMenu = {},
 	},
 	security = {
@@ -161,22 +161,4 @@ Config.PropertyTypes = {
 		bMenu = {},
 		sMenu = {},
 	}
-}
-
-Config.Zones = {
-	garage = {
-		message = 'Press ~INPUT_PICKUP~ to access this garage'
-	},
-	boss = {
-		message = 'Press ~INPUT_PICKUP~ to open the boss menu'
-	},
-	property = {
-		message = 'Press ~INPUT_PICKUP~ to open the property menu'
-	},
-	uniform = {
-		message = 'Press ~INPUT_PICKUP~ to open the uniform menu'
-	},
-	teleport = {
-		message = 'Press ~INPUT_PICKUP~ to open the teleport menu'
-	},
 }
