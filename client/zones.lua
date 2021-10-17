@@ -1,7 +1,16 @@
-CurrentZone = {}
-ActionMsg = nil
+local Zone = {}
+local ZoneMenus = {
+	'garage',
+	'boss',
+	'property',
+	'stash',
+	'locker',
+	'shop',
+	'uniform',
+	'teleport'
+}
 
-CreateThread(function() --ESX.UI.Menu.GetOpened(type, namespace, name)
+CreateThread(function()
 	dataReady()
 	for k, v in pairs(Data.Zones) do
 		local zone
@@ -24,41 +33,66 @@ CreateThread(function() --ESX.UI.Menu.GetOpened(type, namespace, name)
 			if Data.Player.Auth and has_value(Data.Player.Auth.Zones, Data.Zones[zone.data.id].id) or Data.Zones[zone.data.id].public then
 				local insideZone = isPointInside
 				if insideZone then
-					CurrentZone = zone.data
-					zone.data.message = Config.Zones[zone.data.type].message
-					ActionMsg = zone.data.message
+					Zone = zone.data
+					exports.ox_inventory:Notify({text = zone.data.property .. ' - ' .. zone.data.name, duration = 5000})
 				else
-					CurrentZone = {}
-					ActionMsg = nil
-					ESX.UI.Menu.CloseAll()
+					if Zone.id == zone.data.id then
+						Zone = {}
+						for k, v in pairs(ZoneMenus) do
+							if ESX.UI.Menu.IsOpen('default', resName, v) then
+								ESX.UI.Menu.Close('default', resName, v)
+							end
+						end
+					end
 				end
 			end
 		end)
 	end
 end)
 
-CreateThread(function()
-	while true do
-		Wait(0)
-		if ActionMsg then
-			ESX.ShowHelpNotification(ActionMsg)
-		end
-	end
-end)
-
 RegisterCommand('interact', function()
-	ESX.UI.Menu.CloseAll()
-	ActionMsg = nil
+	if next(Zone) then
+		local open, close = ESX.UI.Menu.GetOpenedMenus()
+		for k, v in pairs(open) do
+			if v.namespace == resName then
+				if has_value(ZoneMenus, v.name) then
+					close = true
+					break
+				end
+			end
+		end
+		ESX.UI.Menu.CloseAll()
 
-	if CurrentZone.type == 'garage' then
-		gOpen(CurrentZone)
-	elseif CurrentZone.type == 'boss' then
-		bOpen(CurrentZone)
-	elseif CurrentZone.type == 'property' then
-		pOpen(CurrentZone)
-	elseif CurrentZone.type == 'uniform' then
-		uOpen(CurrentZone)
-	elseif CurrentZone.type == 'teleport' then
-		tOpen(CurrentZone)
+		if not close then
+			if Zone.type == 'garage' then
+				gOpen(Zone)
+			elseif Zone.type == 'boss' then
+				bOpen(Zone)
+			elseif Zone.type == 'property' then
+				pOpen(Zone)
+			elseif Zone.type == 'stash' then
+				TriggerEvent('ox_inventory:openInventory', 'stash', {
+					name = string.strconcat(Zone.property, ':', Zone.type, '-', Zone.designation),
+					label = 'Stash',
+					owner = false,
+					slots = 50,
+					weight = 50000
+				})
+			elseif Zone.type == 'locker' then
+				TriggerEvent('ox_inventory:openInventory', 'stash', {
+					name = string.strconcat(Zone.property, ':', Zone.type, '-', Zone.designation, ':'),
+					label = 'Personal Locker',
+					owner = true,
+					slots = 10,
+					weight = 10000
+				})
+			elseif Zone.type == 'shop' then
+				TriggerEvent('ox_inventory:openInventory', 'shop', {type = 'Property', id = Zone.property})
+			elseif Zone.type == 'uniform' then
+				uOpen(Zone)
+			elseif Zone.type == 'teleport' then
+				tOpen(Zone)
+			end
+		end
 	end
 end)
