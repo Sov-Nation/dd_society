@@ -553,11 +553,12 @@ function kmProperty(property)
 										else
 											ESX.ShowNotification('~y~' .. datad.current.name .. ' ~w~already has this key')
 										end
-									end, property.id, data.current.designation, Player)
+									end, property.id, key.designation, Player)
 								end, false)
 							else
+								local holder = data3.current.value
 								exports.dd_menus:areYouSure({
-									title = 'Are you sure that you want to remove ' .. data.current.label .. ' for ' .. property.id .. ' from ' .. data3.current.value.fullname
+									title = 'Are you sure that you want to remove ' .. data.current.label .. ' for ' .. property.id .. ' from ' .. holder.fullname
 								},
 								function(datad, menud)
 									ESX.TriggerServerCallback('dd_society:pRemoveKey', function()
@@ -565,8 +566,8 @@ function kmProperty(property)
 										menu2.close()
 										menu.close()
 										kmProperty(property, km)
-										ESX.ShowNotification('~g~' .. data.current.label .. ' ~w~for ~y~' .. property.id .. ' ~r~removed ~w~from ~y~' .. data3.current.value.name)
-									end, property.id, data.current.value.designation, data3.current.value)
+										ESX.ShowNotification('~g~' .. data.current.label .. ' ~w~for ~y~' .. property.id .. ' ~r~removed ~w~from ~y~' .. holder.name)
+									end, property.id, key.designation, holder)
 								end, false)
 							end
 						end,
