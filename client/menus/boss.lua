@@ -125,7 +125,7 @@ function bOpen(zone)
 							end
 						end
 						ESX.UI.Menu.Open('default', resName, 'washedMoney', {
-							title    = 'Collect Washed Money From ' .. zone.property),
+							title    = 'Collect Washed Money From ' .. zone.property,
 							align    = 'top-left',
 							elements = elements
 						},

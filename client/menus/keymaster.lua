@@ -97,7 +97,7 @@ function kmOpen()
 						})
 					end
 					ESX.UI.Menu.Open('default', resName, 'keymasterPlayerProperties',{
-						title    = string.strjoin(' - ', 'Keymaster', data2.current.value.ownername, 'Properties',
+						title    = string.strjoin(' - ', 'Keymaster', data2.current.value.ownername, 'Properties'),
 						align    = 'top-left',
 						elements = elements
 					},
