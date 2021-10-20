@@ -14,23 +14,16 @@ CreateThread(function()
 	dataReady()
 	for k, v in pairs(Data.Zones) do
 		local zone
-		if v.zone.type == 'poly' then
-			zone = PolyZone:Create((v.zone.vecs), {
-				minZ = v.zone.min,
-				maxZ = v.zone.max,
 				debugGrid = Config.debugZone,
-				lazyGrid = true,
-				data = v
-			})
-		elseif v.zone.type == 'circle' then
-			zone = CircleZone:Create((v.zone.vec), v.zone.r, {
-				useZ = true,
-				debugPoly = Config.debugZone,
-				data = v
-			})
-		end
+		zone = PolyZone:Create((v.poly), {
+			name = v.property .. ' - ' .. v.name,
+			minZ = v.minZ,
+			maxZ = v.maxZ,
+			lazyGrid = true,
+			data = v
+		})
 		zone:onPlayerInOut(function(isPointInside, point)
-			if Data.Player.Auth and has_value(Data.Player.Auth.Zones, Data.Zones[zone.data.id].id) or Data.Zones[zone.data.id].public then
+			if Data.Player.Auth and has_value(Data.Player.Auth.Zones, zone.data.id) or Data.Zones[zone.data.id].public then
 				local insideZone = isPointInside
 				if insideZone then
 					Zone = zone.data
@@ -64,7 +57,7 @@ RegisterCommand('interact', function()
 		ESX.UI.Menu.CloseAll()
 
 		if not close then
-			if Zone.type == 'garage' then
+			if Zone.type == 'garage' or Zone.type == 'pad' or Zone.type == 'dock' or Zone.type == 'hangar' then
 				gOpen(Zone)
 			elseif Zone.type == 'boss' then
 				bOpen(Zone)
