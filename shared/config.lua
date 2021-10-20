@@ -1,7 +1,7 @@
 Config = {}
 Config.Bank = 'Doka & Doka'
-Config.debugZone = true
-Config.debugDoor = true
+Config.debugZone = false
+Config.debugDoor = false
 
 Config.Garage = {
 	Prices = {
