@@ -1,13 +1,13 @@
 ESX.RegisterCommand({'car', 'veh'}, 'admin', function(xPlayer, args, showError)
-	local vehicle = GetVehiclePedIsIn(GetPlayerPed(xPlayer.source))
-	if vehicle and vehicle ~= 0 then DeleteEntity(vehicle) end
 	if not args.car then
 		args.car = 'elegy'
 	elseif args.car == 'random' then 
 		args.car = Data.Vehicles[math.random(#Data.Vehicles)].model
 		print(args.car)
+		local car = Indexed.Vehicles[joaat(args.car)]
+		print(car.category, car.dealer)
 	end
-	TriggerClientEvent('esx:spawnVehicle', xPlayer.source, args.car)
+	TriggerClientEvent('dd_society:spawnVehicle', xPlayer.source, args.car, false, true)
 end, false, {help = 'Spawn a vehicle', validate = false, arguments = {
 	{name = 'car', help = 'vehicle', type = 'any'}
 }})
@@ -19,10 +19,7 @@ ESX.RegisterCommand({'givecar', 'giveveh'}, 'admin', function(xPlayer, args, sho
 	else
 		args.playerId = ESX.GetPlayerFromId(args.playerId)
 	end
-	local plate = genPlate()
-	local vehicle = GetVehiclePedIsIn(GetPlayerPed(xPlayer.source))
-	if vehicle and vehicle ~= 0 then DeleteEntity(vehicle) end
-	TriggerClientEvent('dd_society:createVehicle', args.playerId.playerId, args.vehicle, plate)
+	TriggerClientEvent('dd_society:spawnVehicle', args.playerId.playerId, args.vehicle, false, true, true, genPlate())
 end, true, {help = 'Spawn a vehicle and give it to a player', validate = false, arguments = {
 	{name = 'vehicle', help = 'Vehicle', type = 'string'},
 	{name = 'playerId', help = 'The player id', type = 'any'}
@@ -70,6 +67,7 @@ function genPlate()
 end
 
 RegisterNetEvent('dd_society:vCreateVehicle', function(props, name)
+	local xPlayer = ESX.GetPlayerFromId(source)
 	local category, type = Indexed.Vehicles[props.model].category
 
 	if category == 'Boat' then

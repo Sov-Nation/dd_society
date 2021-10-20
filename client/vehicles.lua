@@ -1,19 +1,53 @@
 carInstance = {}
 
-RegisterNetEvent('dd_society:createVehicle', function(model, plate)
-	local heading = GetEntityHeading(ESX.PlayerData.ped)
-
-	ESX.Game.SpawnVehicle(model, pedPos, heading, function(veh)
-		local name = GetLabelText(GetDisplayNameFromVehicleModel(model))
+RegisterNetEvent('dd_society:spawnVehicle', function(vehicle, coords, delete, owner, plate)
+	local veh = spawnVehicle(vehicle, coords, delete)
+	if owner and veh then
 		SetVehicleNumberPlateText(veh, plate)
 		local props = getVehicleProperties(veh)
-		TaskWarpPedIntoVehicle(ESX.PlayerData.ped, veh, -1)
+		local name = GetLabelText(GetDisplayNameFromVehicleModel(props.model))
 
 		TriggerServerEvent('dd_society:vCreateVehicle', props, name)
-
 		carInstance[props.plate] = veh
-	end)
+	end
 end)
+
+function spawnVehicle(vehicle, coords, delete)
+	local model = (type(vehicle) == 'number' and vehicle or joaat(vehicle))
+
+	if IsModelInCdimage(model) then
+		ESX.Streaming.RequestModel(model)
+
+		local vec = coords and coords.xyz or pedPos
+		if coords then 
+			heading = coords.w 
+		else
+			heading = GetEntityHeading(ESX.PlayerData.ped)
+		end
+		local oldVeh = GetVehiclePedIsIn(ESX.PlayerData.ped)
+		local vehicle = CreateVehicle(model, vec.xyz, heading, false, false)
+
+		SetVehicleHasBeenOwnedByPlayer(vehicle, true)
+		SetVehicleNeedsToBeHotwired(vehicle, false)
+		SetModelAsNoLongerNeeded(model)
+		SetVehRadioStation(vehicle, 'OFF')
+
+		RequestCollisionAtCoord(coords)
+		while not HasCollisionLoadedAroundEntity(vehicle) do
+			Wait(0)
+		end
+
+		if delete then
+			if oldVeh  and oldVeh ~= 0 then
+				DeleteEntity(oldVeh)
+			end
+			TaskWarpPedIntoVehicle(ESX.PlayerData.ped, vehicle, -1)
+		end
+		return vehicle
+	else
+		TriggerEvent('chat:addMessage', { args = { '^1SYSTEM', 'Invalid vehicle model - ' .. vehicle } })
+	end
+end
 
 function storeVehicle(zone)
 	if IsPedInAnyVehicle(ESX.PlayerData.ped, false) then
@@ -45,7 +79,7 @@ function storeVehicle(zone)
 	end
 end
 
-function SpawnVehicle(vehicle, zone)
+function pickSpawn(vehicle, zone)
 	if carInstance[vehicle.props.plate] then
 		if DoesEntityExist(carInstance[vehicle.props.plate]) then
 			ESX.Game.DeleteVehicle(carInstance[vehicle.props.plate])
@@ -64,10 +98,10 @@ function SpawnVehicle(vehicle, zone)
 	end
 
 	if found then
-		ESX.Game.SpawnVehicle(vehicle.props.model, spot.xyz, spot.w, function(veh)
-			setVehicleProperties(veh, vehicle.props)
-			carInstance[vehicle.props.plate] = veh
-		end)
+		local veh = spawnVehicle(vehicle.props.model, spot, false, false)
+
+		setVehicleProperties(veh, vehicle.props)
+		carInstance[vehicle.props.plate] = veh
 
 		ESX.ShowNotification('Your ~y~vehicle ~w~is ~g~ready')
 

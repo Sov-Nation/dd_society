@@ -77,7 +77,7 @@ function gManage(zone)
 						return
 					end
 					ESX.TriggerServerCallback('dd_society:vModify', function()
-						SpawnVehicle(vehicle, zone)
+						pickSpawn(vehicle, zone)
 						menu2.close()
 						menu.close()
 					end, vehicle, {garage = 0})
