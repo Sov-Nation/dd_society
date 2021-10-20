@@ -47,15 +47,14 @@ function genPlate()
 		Vehicles[k] = v.plate
 	end
 
-	math.randomseed(os.time())
 	for i = 1, 10 do
 		local plate
 
-		for i = 1, 7 do
+		for i = 1, 8 do
 			local c = Chars[math.random(#Chars)]
 			if not plate then
 				plate = c
-			elseif i == 4 then
+			elseif i == 4 or i == 5 then
 				plate = plate .. ' '
 			else
 				plate = plate .. c
