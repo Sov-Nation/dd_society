@@ -13,6 +13,8 @@ function data(name)
 end
 
 CreateThread(function()
+	Data.Vehicles = data('vehicles')
+
 	local Societies = exports.oxmysql:executeSync('SELECT * FROM jobs', {})
 	for k, v in pairs(Societies) do
 		v.grades = json.decode(v.grades)

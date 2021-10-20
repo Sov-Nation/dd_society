@@ -1,3 +1,17 @@
+ESX.RegisterCommand({'car', 'veh'}, 'admin', function(xPlayer, args, showError)
+	local vehicle = GetVehiclePedIsIn(GetPlayerPed(xPlayer.source))
+	if vehicle and vehicle ~= 0 then DeleteEntity(vehicle) end
+	if not args.car then
+		args.car = 'elegy'
+	elseif args.car == 'random' then 
+		args.car = Data.Vehicles[math.random(#Data.Vehicles)].model
+		print(args.car)
+	end
+	TriggerClientEvent('esx:spawnVehicle', xPlayer.source, args.car)
+end, false, {help = 'Spawn a vehicle', validate = false, arguments = {
+	{name = 'car', help = 'vehicle', type = 'any'}
+}})
+
 ESX.RegisterCommand({'givecar', 'giveveh'}, 'admin', function(xPlayer, args, showError)
 	if not args.vehicle then return end
 	if not args.playerId then
