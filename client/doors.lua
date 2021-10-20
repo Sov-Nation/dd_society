@@ -8,7 +8,7 @@ CreateThread(function()
 				if #(pedPos - v.coords) < v.distance then
 					if has_value(Data.Player.Auth.Doors, k) then
 						v.displayText = v.locked and '~r~Locked' or '~g~Unlocked'
-						if Config.debugDoor then
+						if Config.debugDoor or v.debug then
 							v.displayText = v.name .. '\n' .. v.displayText
 						end
 					end	

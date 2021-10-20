@@ -14,11 +14,11 @@ CreateThread(function()
 	dataReady()
 	for k, v in pairs(Data.Zones) do
 		local zone
-				debugGrid = Config.debugZone,
 		zone = PolyZone:Create((v.poly), {
 			name = v.property .. ' - ' .. v.name,
 			minZ = v.minZ,
 			maxZ = v.maxZ,
+			debugGrid = Config.debugZone or v.debug,
 			lazyGrid = true,
 			data = v
 		})
