@@ -96,6 +96,9 @@ ESX.RegisterServerCallback('dd_society:vList', function(source, cb, garage)
 				table.insert(garages, v.id)
 			end
 		end
+		if not next(garages) then
+			garages[1] = 'x'
+		end
 		Vehicles = exports.oxmysql:executeSync('SELECT owned_vehicles.*, users.firstname, users.lastname FROM owned_vehicles LEFT JOIN users ON owned_vehicles.owner = users.identifier WHERE (owner = ? OR owner = ? OR garage IN (?))', {xPlayer.identifier, xPlayer.job.label, garages})
 	else
 		Vehicles = exports.oxmysql:executeSync('SELECT * FROM owned_vehicles WHERE (owner = ? OR owner = ?)', {xPlayer.identifier, xPlayer.job.label})
