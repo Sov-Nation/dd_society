@@ -29,3 +29,8 @@ client_scripts {
 	'@PolyZone/ComboZone.lua',
 	'client/**/*.lua',
 }
+
+files {
+	'data/**/*.lua',
+	'data/*.lua',
+}

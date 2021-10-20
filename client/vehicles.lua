@@ -57,47 +57,38 @@ function SpawnVehicle(vehicle, zone)
 		end
 	end
 
-	local Spots = {}
+	local spot, found
 
-	for k, v in pairs(zone.spawn) do
-		local x, y, z in ESX.PlayerData.coords
-		Spots[math.floor(#(vec(x, y, z) - v.coords))] = v
-	end
-
-	local spot
-
-	for k, v in sipairs(Spots) do
-		if ESX.Game.IsSpawnPointClear(v.coords, 3.0) then
-			spot = v
+	for i = 1, #zone.spawn*2 do
+		spot = zone.spawn[math.random(1, #zone.spawn)]
+		if ESX.Game.IsSpawnPointClear(spot.xyz, 3.0) then
+			found = true
+			print(spot.xyz)
 			break
 		end
 	end
 
-	if not spot then
-		ESX.ShowNotification('~r~There is no space for your vehicle')
-		local change = {
-			garage = zone.id
-		}
+	if found then
+		ESX.Game.SpawnVehicle(vehicle.props.model, spot.xyz, spot.w, function(veh)
+			setVehicleProperties(veh, vehicle.props)
+			carInstance[vehicle.props.plate] = veh
+		end)
+
+		ESX.ShowNotification('Your ~y~vehicle ~w~is ~g~ready')
+
+		CreateThread(function()
+			local vehicleBlip = AddBlipForCoord(spot.coords)
+			Wait(10000)
+			RemoveBlip(vehicleBlip)
+		end)
+	else
+		ESX.ShowNotification('~r~There was no spot found for your vehicle')
 		ESX.TriggerServerCallback('dd_society:vModify', function(passed)
 			if passed then
 				gManage(zone)
 			end
-		end, vehicle, change)
-		return
+		end, vehicle, {garage = zone.id})
 	end
-
-	ESX.Game.SpawnVehicle(vehicle.props.model, spot.coords, spot.heading, function(veh)
-		setVehicleProperties(veh, vehicle.props)
-		carInstance[vehicle.props.plate] = veh
-	end)
-
-	ESX.ShowNotification('Your ~y~vehicle ~w~is ~g~ready')
-
-	CreateThread(function()
-		local vehicleBlip = AddBlipForCoord(spot.coords)
-		Wait(10000)
-		RemoveBlip(vehicleBlip)
-	end)
 end
 
 function vehicleInUse(plate)

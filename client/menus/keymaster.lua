@@ -318,13 +318,11 @@ function kmProperty(property)
 			end)
 		elseif data.current.value == 'doors' then
 			local elements = {}
-			for k, v in pairs(Data.Doors) do
-				if v.property == property.id then
-					table.insert(elements, {
-						label = v.name .. ' (' .. v.id .. ') [edit]',
-						value = v
-					})
-				end
+			for k, v in pairs(property.doors) do
+				table.insert(elements, {
+					label = v.name .. ' (' .. v.id .. ') [edit]',
+					value = v
+				})
 			end
 			if not next(elements) then
 				elements[1] = {label = 'None'}
@@ -409,13 +407,11 @@ function kmProperty(property)
 			end)
 		elseif data.current.value == 'zones' then
 			local elements = {}
-			for k, v in pairs(Data.Zones) do
-				if v.property == property.id then
-					table.insert(elements, {
-						label = v.name .. ' (' .. v.id .. ') [edit]',
-						value = v
-					})
-				end
+			for k, v in pairs(property.zones) do
+				table.insert(elements, {
+					label = v.name .. ' (' .. v.id .. ') [edit]',
+					value = v
+				})
 			end
 			if not next(elements) then
 				elements[1] = {label = 'None'}
@@ -537,6 +533,7 @@ function kmProperty(property)
 									distance = nil
 								},
 								function(datad, menud)
+									menud.close()
 									local Player
 									for k, v in pairs(Players) do
 										if datad.current.identifier == v.identifier then
