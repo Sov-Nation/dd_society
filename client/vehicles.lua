@@ -77,7 +77,7 @@ function SpawnVehicle(vehicle, zone)
 		ESX.ShowNotification('Your ~y~vehicle ~w~is ~g~ready')
 
 		CreateThread(function()
-			local vehicleBlip = AddBlipForCoord(spot.coords)
+			local vehicleBlip = AddBlipForCoord(spot.xyz)
 			Wait(10000)
 			RemoveBlip(vehicleBlip)
 		end)
