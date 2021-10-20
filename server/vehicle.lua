@@ -42,7 +42,7 @@ end
 function genPlate()
 	local Vehicles = exports.oxmysql:executeSync('SELECT plate FROM owned_vehicles', {})
 	for k, v in pairs(Vehicles) do
-		v = v.plate
+		Vehicles[k] = v.plate
 	end
 
 	math.randomseed(os.time())
