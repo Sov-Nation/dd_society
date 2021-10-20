@@ -312,8 +312,3 @@ function updateSociety(Society, save)
 		exports.oxmysql:execute('UPDATE jobs SET colour = ?, account = ? WHERE name = ?', {Society.colour, Society.account, Society.name})
 	end
 end
-
-RegisterNetEvent('dd_society:updateDoor', function(Door)
-	Data.Doors[Door.id] = Door
-	TriggerClientEvent('dd_society:updateDoor', -1, Door)
-end)

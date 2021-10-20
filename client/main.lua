@@ -86,7 +86,10 @@ RegisterNetEvent('dd_society:syncKey', function(key, delete)
 end)
 
 RegisterNetEvent('dd_society:syncDoor', function(door)
-	Data.Doors[door.id] = door
+	Data.Doors[door.id].locked = door.locked
+	Data.Doors[door.id].name = door.name
+	Data.Doors[door.id].distance = door.distance
+	Data.Doors[door.id].onstart = door.onstart
 end)
 
 RegisterNetEvent('dd_society:syncZone', function(zone)
