@@ -1,15 +1,15 @@
 carInstance = {}
 
 RegisterNetEvent('dd_society:createVehicle', function(model, plate)
-	local heading = GetEntityHeading(pedPos)
+	local heading = GetEntityHeading(ESX.PlayerData.ped)
 
 	ESX.Game.SpawnVehicle(model, pedPos, heading, function(veh)
 		local name = GetLabelText(GetDisplayNameFromVehicleModel(model))
 		SetVehicleNumberPlateText(veh, plate)
 		local props = getVehicleProperties(veh)
-		TaskWarpPedIntoVehicle(ped, veh, -1)
+		TaskWarpPedIntoVehicle(ESX.PlayerData.ped, veh, -1)
 
-		TriggerServerEvent('dd_society:vCreateVehicle', props, GetPlayerServerId(PlayerId()), name)
+		TriggerServerEvent('dd_society:vCreateVehicle', props, name)
 
 		carInstance[props.plate] = veh
 	end)
@@ -21,11 +21,7 @@ function storeVehicle(zone)
 		if GetPedInVehicleSeat(vehicleId, -1) == ESX.PlayerData.ped then
 			local vehicle = {}
 			vehicle.props = getVehicleProperties(vehicleId)
-			if vehicle.props ~= nil then
-				local change = {
-					garage = zone.id,
-					props = vehicle.props
-				}
+			if vehicle.props then
 				ESX.TriggerServerCallback('dd_society:vModify', function(passed)
 					if passed then
 						for i = -1, GetVehicleMaxNumberOfPassengers(vehicleId) do
@@ -37,7 +33,7 @@ function storeVehicle(zone)
 					else
 						ESX.ShowNotification('~r~You cannot store this vehicle')
 					end
-				end, vehicle, change)
+				end, vehicle, {garage = zone.id, props = vehicle.props})
 			else
 				ESX.ShowNotification('Error finding vehicle')
 			end
@@ -63,7 +59,6 @@ function SpawnVehicle(vehicle, zone)
 		spot = zone.spawn[math.random(1, #zone.spawn)]
 		if ESX.Game.IsSpawnPointClear(spot.xyz, 3.0) then
 			found = true
-			print(spot.xyz)
 			break
 		end
 	end
@@ -114,25 +109,25 @@ function setVehicleProperties(vehicle, props)
 	end
 
 	if props.windows then
-		for windowId = 1, 9, 1 do
-			if props.windows[windowId] == false then
-				SmashVehicleWindow(vehicle, windowId)
+		for i = 1, 9 do
+			if props.windows[i] == false then
+				SmashVehicleWindow(vehicle, i)
 			end
 		end
 	end
 
 	if props.tyres then
-		for tyreId = 1, 7, 1 do
-			if props.tyres[tyreId] ~= false then
-				SetVehicleTyreBurst(vehicle, tyreId, true, 1000)
+		for i = 1, 7 do
+			if props.tyres[i] ~= false then
+				SetVehicleTyreBurst(vehicle, i, true, 1000)
 			end
 		end
 	end
 
 	if props.doors then
-		for doorId = 0, 5, 1 do
-			if props.doors[doorId] ~= false then
-				SetVehicleDoorBroken(vehicle, doorId - 1, true)
+		for i = 0, 5 do
+			if props.doors[i] ~= false then
+				SetVehicleDoorBroken(vehicle, i - 1, true)
 			end
 		end
 	end

@@ -14,6 +14,12 @@ end
 
 CreateThread(function()
 	Data.Vehicles = data('vehicles')
+	Indexed = {Vehicles = {}}
+	for i = 1, #Data.Vehicles do
+		local veh = Data.Vehicles[i]
+		veh.hash = joaat(veh.model)
+		Indexed.Vehicles[veh.hash] = veh
+	end
 
 	local Societies = exports.oxmysql:executeSync('SELECT * FROM jobs', {})
 	for k, v in pairs(Societies) do
