@@ -19,8 +19,8 @@ function spawnVehicle(vehicle, coords, delete)
 		ESX.Streaming.RequestModel(model)
 
 		local vec = coords and coords.xyz or pedPos
-		if coords then 
-			heading = coords.w 
+		if coords then
+			heading = coords.w
 		else
 			heading = GetEntityHeading(ESX.PlayerData.ped)
 		end
