@@ -42,7 +42,7 @@ return {
 		category = 'Compact',
 		dealer = 'Car',
 		price = 5625,
-		available = false
+		available = true
 	},
 	{
 		model = 'issi3',
@@ -1197,7 +1197,7 @@ return {
 		available = false
 	},
 	{
-		model = 'sabergt',
+		model = 'sabregt',
 		brand = 'Declasse',
 		name = 'Sabre Turbo',
 		category = 'Muscle',
@@ -1206,7 +1206,7 @@ return {
 		available = true
 	},
 	{
-		model = 'sabergt2',
+		model = 'sabregt2',
 		brand = 'Declasse',
 		name = 'Sabre Turbo Custom',
 		category = 'Muscle',
@@ -1269,7 +1269,7 @@ return {
 		available = false
 	},
 	{
-		model = 'stallion',
+		model = 'stalion',
 		brand = 'Declasse',
 		name = 'Stallion',
 		category = 'Muscle',
@@ -1278,7 +1278,7 @@ return {
 		available = true
 	},
 	{
-		model = 'stallion2',
+		model = 'stalion2',
 		brand = 'Declasse',
 		name = 'Burger Shot Stallion',
 		category = 'Muscle',
@@ -2241,16 +2241,16 @@ return {
 		available = true
 	},
 	{
-		model = 'schlegen',
+		model = 'schlagen',
 		brand = 'Benefactor',
-		name = 'Schlegen GT',
+		name = 'Schlagen GT',
 		category = 'Sports',
 		dealer = 'Car',
 		price = 67500,
 		available = true
 	},
 	{
-		model = 'schwartzer',
+		model = 'schwarzer',
 		brand = 'Benefactor',
 		name = 'Schwartzer',
 		category = 'Sports',
@@ -2331,7 +2331,7 @@ return {
 		available = true
 	},
 	{
-		model = 'tropors',
+		model = 'tropos',
 		brand = 'Lampadati',
 		name = 'Tropos Rallye',
 		category = 'Sports',
@@ -2394,7 +2394,7 @@ return {
 		available = true
 	},
 	{
-		model = 'banchee2',
+		model = 'banshee2',
 		brand = 'Bravado',
 		name = 'Banshee 900R',
 		category = 'Super',
@@ -2925,7 +2925,7 @@ return {
 		available = true
 	},
 	{
-		model = 'diabolus',
+		model = 'diablous',
 		brand = 'Principe',
 		name = 'Diabolus',
 		category = 'Motorcycle',
@@ -2934,7 +2934,7 @@ return {
 		available = true
 	},
 	{
-		model = 'diabolus2',
+		model = 'diablous2',
 		brand = 'Principe',
 		name = 'Diabolus Custom',
 		category = 'Motorcycle',
@@ -2997,7 +2997,7 @@ return {
 		available = true
 	},
 	{
-		model = 'frc',
+		model = 'fcr',
 		brand = 'Pegassi',
 		name = 'FCR 1000',
 		category = 'Motorcycle',
@@ -3006,7 +3006,7 @@ return {
 		available = true
 	},
 	{
-		model = 'frc2',
+		model = 'fcr2',
 		brand = 'Pegassi',
 		name = 'FCR 1000 Custom',
 		category = 'Motorcycle',
@@ -3213,7 +3213,7 @@ return {
 		available = true
 	},
 	{
-		model = 'vindicactor',
+		model = 'vindicator',
 		brand = 'Dinka',
 		name = 'Vindicator',
 		category = 'Motorcycle',
@@ -3672,7 +3672,7 @@ return {
 		available = true
 	},
 	{
-		model = 'sandkink2',
+		model = 'sandking2',
 		brand = 'Vapid',
 		name = 'Sandking SWB',
 		category = 'Off Road',
@@ -3735,7 +3735,7 @@ return {
 		available = true
 	},
 	{
-		model = 'dozer',
+		model = 'bulldozer',
 		brand = 'HVY',
 		name = 'Dozer',
 		category = 'Truck',
@@ -4230,7 +4230,7 @@ return {
 		available = true
 	},
 	{
-		model = 'speedo3',
+		model = 'speedo4',
 		brand = 'Vapid',
 		name = 'Speedo Custom',
 		category = 'Van',
@@ -4410,7 +4410,7 @@ return {
 		available = true
 	},
 	{
-		model = 'seachark',
+		model = 'seashark',
 		brand = 'Speedophile',
 		name = 'Seashark',
 		category = 'Boat',
@@ -4419,7 +4419,7 @@ return {
 		available = true
 	},
 	{
-		model = 'seachark2',
+		model = 'seashark2',
 		brand = 'Speedophile',
 		name = 'Seashark II',
 		category = 'Boat',
@@ -4428,7 +4428,7 @@ return {
 		available = true
 	},
 	{
-		model = 'seachark3',
+		model = 'seashark3',
 		brand = 'Speedophile',
 		name = 'Seashark III',
 		category = 'Boat',
@@ -4932,9 +4932,9 @@ return {
 		available = true
 	},
 	{
-		model = 'moltok',
+		model = 'molotok',
 		brand = 'NULL',
-		name = 'V-65 Moltok',
+		name = 'V-65 Molotok',
 		category = 'Plane',
 		dealer = 'Military',
 		price = 0,
@@ -5211,7 +5211,7 @@ return {
 		available = true
 	},
 	{
-		model = 'frietruk',
+		model = 'firetruk',
 		brand = 'MTL',
 		name = 'Fire Truck',
 		category = 'Truck',
@@ -5274,7 +5274,7 @@ return {
 		available = true
 	},
 	{
-		model = 'policecb',
+		model = 'policeb',
 		brand = 'Western',
 		name = 'Police Bike',
 		category = 'Motorcycle',
@@ -5841,9 +5841,9 @@ return {
 		available = true
 	},
 	{
-		model = 'vetri',
+		model = 'vetir',
 		brand = 'HVY',
-		name = 'Vetri',
+		name = 'Vetir',
 		category = 'Off Road',
 		dealer = 'Military',
 		price = 0,
@@ -6115,7 +6115,7 @@ return {
 		brand = 'Declasse',
 		name = 'DR1',
 		category = 'Open Wheel',
-		dealer = 'Car',
+		dealer = 'Arms',
 		price = 0,
 		available = true
 	},
@@ -6124,7 +6124,7 @@ return {
 		brand = 'Benefactor',
 		name = 'BR8',
 		category = 'Open Wheel',
-		dealer = 'Car',
+		dealer = 'Arms',
 		price = 0,
 		available = true
 	},
@@ -6138,20 +6138,20 @@ return {
 		available = true
 	},
 	{
-		model = 'formular',
+		model = 'formula',
 		brand = 'Progen',
 		name = 'PR4',
 		category = 'Open Wheel',
-		dealer = 'Car',
+		dealer = 'Arms',
 		price = 0,
 		available = true
 	},
 	{
-		model = 'formular2',
+		model = 'formula2',
 		brand = 'Ocelot',
 		name = 'R88',
 		category = 'Open Wheel',
-		dealer = 'Car',
+		dealer = 'Arms',
 		price = 0,
 		available = true
 	},
