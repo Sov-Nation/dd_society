@@ -67,10 +67,7 @@ CreateThread(function()
 						elseif v.type == 'lift' then
 							z = offset.z/2
 						end
-						x = x or 0
-						y = y or 0
-						z = z or 0
-						v.text = GetOffsetFromEntityInWorldCoords(v.object, x, y, z)
+						v.text = GetOffsetFromEntityInWorldCoords(v.object, x or 0, y or 0, z or 0)
 					end
 					ESX.Game.Utils.DrawText3D(v.text, v.displayText, (0.75 + v.distance/10))
 				end

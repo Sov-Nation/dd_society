@@ -25,7 +25,6 @@ function spawnVehicle(vehicle, coords, delete)
 			heading = GetEntityHeading(ESX.PlayerData.ped)
 		end
 		local oldVeh = GetVehiclePedIsIn(ESX.PlayerData.ped)
-		local velocity = GetEntityVelocity(oldVeh)
 		local vehicle = CreateVehicle(model, vec.xyz, heading, false, false)
 
 		SetVehicleHasBeenOwnedByPlayer(vehicle, true)

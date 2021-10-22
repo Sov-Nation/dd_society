@@ -102,7 +102,7 @@ function gManage(zone)
 						ESX.ShowNotification("~r~Someone has your vehicle")
 						return
 					end
-
+					local price, garage, owner, details
 					if data2.current.value == 'recover' then
 						price = Config.Garage.Prices.Insurance --change to excess based on vehicle
 						garage = zone.id
