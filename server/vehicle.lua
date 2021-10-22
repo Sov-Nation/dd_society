@@ -1,11 +1,8 @@
 ESX.RegisterCommand({'car', 'veh'}, 'admin', function(xPlayer, args, showError)
 	if not args.car then
 		args.car = 'elegy'
-	elseif args.car == 'random' then 
+	elseif args.car == 'random' then
 		args.car = Data.Vehicles[math.random(#Data.Vehicles)].model
-		print(args.car)
-		local car = Indexed.Vehicles[joaat(args.car)]
-		print(car.category, car.dealer)
 	end
 	TriggerClientEvent('dd_society:spawnVehicle', xPlayer.source, args.car, false, true)
 end, false, {help = 'Spawn a vehicle', validate = false, arguments = {

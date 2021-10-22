@@ -25,6 +25,7 @@ function spawnVehicle(vehicle, coords, delete)
 			heading = GetEntityHeading(ESX.PlayerData.ped)
 		end
 		local oldVeh = GetVehiclePedIsIn(ESX.PlayerData.ped)
+		local velocity = GetEntityVelocity(oldVeh)
 		local vehicle = CreateVehicle(model, vec.xyz, heading, false, false)
 
 		SetVehicleHasBeenOwnedByPlayer(vehicle, true)
@@ -38,9 +39,18 @@ function spawnVehicle(vehicle, coords, delete)
 		end
 
 		if delete then
-			if oldVeh  and oldVeh ~= 0 then
+			if oldVeh and oldVeh ~= 0 then
+				local velocity = GetEntityVelocity(oldVeh)
+				local fVec = GetEntityForwardVector(oldVeh)
+				local fVel = fVec * velocity
+				local lVel = fVec / velocity
 				DeleteEntity(oldVeh)
+				SetEntityVelocity(vehicle, lVel)
+				if fVel.x > 0 and fVel.y > 0 and fVel.z > 0 then
+					SetVehicleForwardSpeed(vehicle, #fVel)
+				end
 			end
+			SetVehicleEngineOn(vehicle, true, true, true)
 			TaskWarpPedIntoVehicle(ESX.PlayerData.ped, vehicle, -1)
 		end
 		return vehicle
