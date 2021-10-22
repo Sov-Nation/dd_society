@@ -58,13 +58,19 @@ CreateThread(function()
 		Data.Zones[v.id] = v
 	end
 
-	for i = 1, #Config.Properties do
-		local property = data('properties/' .. Config.Properties[i])
-		if not property then
-			print(Config.Properties[i] .. '.lua file not found, fix your config at shared/properties.lua')
-			return
-		end
-		property.id = Config.Properties[i]
+	local i, Properties = 0, {}
+	local path = GetResourcePath(GetCurrentResourceName())
+	local dir = io.popen('dir "' .. path:gsub('//', '/') .. '/data/properties/' .. '" /b')
+	for filename in dir:lines() do
+		i = i + 1
+		Properties[i] = filename:gsub('.lua', '')
+	end
+	dir:close()
+	
+	for i = 1, #Properties do
+		local property = data('properties/' .. Properties[i])
+
+		property.id = Properties[i]
 		property.doors = property.doors or {}
 		property.zones = property.zones or {}
 
