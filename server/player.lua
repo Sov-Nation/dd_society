@@ -26,7 +26,7 @@ end, true, {help = 'Fully revive a player', validate = false, arguments = {
 	{name = 'playerId', help = 'The player id', type = 'any'}
 }})
 
-RegisterNetEvent('dd_society:updateDeath', function(isDead)
+RegisterServerEvent('dd_society:updateDeath', function(isDead)
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if type(isDead) == 'boolean' then
@@ -34,7 +34,7 @@ RegisterNetEvent('dd_society:updateDeath', function(isDead)
 	end
 end)
 
-RegisterNetEvent('dd_society:saveJob', function(job)
+RegisterServerEvent('dd_society:saveJob', function(job)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	exports.oxmysql:update('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {job.name, job.grade, xPlayer.identifier})
 end)

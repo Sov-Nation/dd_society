@@ -200,7 +200,7 @@ ESX.RegisterServerCallback('dd_society:pModifyZone', function(source, cb, id, ch
 	cb()
 end)
 
-RegisterNetEvent('dd_society:changeDoorState', function(id, locked)
+RegisterServerEvent('dd_society:changeDoorState', function(id, locked)
 	local Door = Data.Doors[id]
 	Door.locked = locked
 	TriggerClientEvent('dd_society:syncDoor', -1, Door)

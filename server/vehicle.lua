@@ -63,7 +63,7 @@ function genPlate()
 	end
 end
 
-RegisterNetEvent('dd_society:vCreateVehicle', function(props, name)
+RegisterServerEvent('dd_society:vCreateVehicle', function(props, name)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local category, type = Indexed.Vehicles[props.model].category
 
