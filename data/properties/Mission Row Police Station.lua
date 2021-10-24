@@ -1,6 +1,6 @@
 return {
 	type = 'law',
-	blip = vec(425.130, -979.558),
+	blip = vec(439.8, -982.7),
 	doors = {
 		{
 			name = 'Entrance A',

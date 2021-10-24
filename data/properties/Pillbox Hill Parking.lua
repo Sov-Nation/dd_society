@@ -1,6 +1,6 @@
 return {
 	type = 'garage',
-	blip = vec(226.4,-789.0),
+	blip = vec(222.6, -790.8),
 	doors = {
 	},
 	zones = {
