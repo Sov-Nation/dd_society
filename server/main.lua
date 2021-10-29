@@ -62,7 +62,7 @@ CreateThread(function()
 	local path = GetResourcePath(GetCurrentResourceName())
 	local dir = io.popen('dir "' .. path:gsub('//', '/') .. '/data/properties/' .. '" /b')
 	for filename in dir:lines() do
-		i = i + 1
+		i += 1
 		Properties[i] = filename:gsub('.lua', '')
 	end
 	dir:close()
