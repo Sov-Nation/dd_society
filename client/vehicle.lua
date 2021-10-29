@@ -13,7 +13,7 @@ RegisterNetEvent('dd_society:spawnVehicle', function(vehicle, coords, delete, ow
 end)
 
 function spawnVehicle(vehicle, coords, delete)
-	local model = (type(vehicle) == 'number' and vehicle or joaat(vehicle))
+	local model = tonumber(vehicle) or joaat(vehicle)
 
 	if IsModelInCdimage(model) then
 		ESX.Streaming.RequestModel(model)
