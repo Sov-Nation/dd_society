@@ -33,7 +33,8 @@ CreateThread(function()
 						Zone = {}
 						for k, v in pairs(ZoneMenus) do
 							if ESX.UI.Menu.IsOpen('default', resName, v) then
-								ESX.UI.Menu.Close('default', resName, v)
+								ESX.UI.Menu.CloseAll()
+								break
 							end
 						end
 					end
@@ -45,10 +46,10 @@ end)
 
 RegisterCommand('interact', function()
 	if next(Zone) then
-		local open, close = ESX.UI.Menu.GetOpenedMenus()
+		local close
 		for k, v in pairs(open) do
-			if v.namespace == resName then
-				if has_value(ZoneMenus, v.name) then
+			for k, v in pairs(ZoneMenus) do
+				if ESX.UI.Menu.IsOpen('default', resName, v) then
 					close = true
 					break
 				end
