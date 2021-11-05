@@ -56,7 +56,7 @@ RegisterCommand('interact', function()
 		end
 		ESX.UI.Menu.CloseAll()
 
-		if not close then
+		if not close and not ESX.PlayerData.dead and not ESX.PlayerData.ko then
 			if Zone.type == 'garage' or Zone.type == 'pad' or Zone.type == 'dock' or Zone.type == 'hangar' then
 				gOpen(Zone)
 			elseif Zone.type == 'boss' then

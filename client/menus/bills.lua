@@ -1,7 +1,7 @@
 RegisterCommand('billsmenu', function()
 	local close = ESX.UI.Menu.IsOpen('default', resName, 'playerBills')
 	ESX.UI.Menu.CloseAll()
-	if not close then
+	if not close and not ESX.PlayerData.dead and not ESX.PlayerData.ko then
 		billsOpen()
 	end
 end)
