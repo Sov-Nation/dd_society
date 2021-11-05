@@ -16,52 +16,11 @@ ESX.RegisterCommand({'givecar', 'giveveh'}, 'admin', function(xPlayer, args, sho
 	else
 		args.playerId = ESX.GetPlayerFromId(args.playerId)
 	end
-	TriggerClientEvent('dd_society:spawnVehicle', args.playerId.playerId, args.vehicle, false, true, true, genPlate())
+	TriggerClientEvent('dd_society:spawnVehicle', args.playerId.playerId, args.vehicle, false, true, true)
 end, true, {help = 'Spawn a vehicle and give it to a player', validate = false, arguments = {
 	{name = 'vehicle', help = 'Vehicle', type = 'string'},
 	{name = 'playerId', help = 'The player id', type = 'any'}
 }})
-
-local Chars = {}
-for i = 48, 57 do
-	table.insert(Chars, utf8.char(i))
-	table.insert(Chars, utf8.char(i))
-	table.insert(Chars, utf8.char(i))
-	table.insert(Chars, utf8.char(i))
-	table.insert(Chars, utf8.char(i))
-end
-for i = 65, 90 do
-	table.insert(Chars, utf8.char(i))
-	table.insert(Chars, utf8.char(i))
-end
-
-function genPlate()
-	local Vehicles = exports.oxmysql:executeSync('SELECT plate FROM owned_vehicles', {})
-	for k, v in pairs(Vehicles) do
-		Vehicles[k] = v.plate
-	end
-
-	for i = 1, 10 do
-		local plate
-
-		for i = 1, 8 do
-			local c = Chars[math.random(#Chars)]
-			if not plate then
-				plate = c
-			elseif i == 4 or i == 5 then
-				plate = plate .. ' '
-			else
-				plate = plate .. c
-			end
-		end
-
-		if not has_value(Vehicles, plate) then
-			return plate
-		end
-
-		return false
-	end
-end
 
 RegisterServerEvent('dd_society:vCreateVehicle', function(props, name)
 	local xPlayer = ESX.GetPlayerFromId(source)

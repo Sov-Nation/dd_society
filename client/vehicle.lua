@@ -1,9 +1,9 @@
 carInstance = {}
+SetDefaultVehicleNumberPlateTextPattern(-1, Config.defaultPlate);
 
-RegisterNetEvent('dd_society:spawnVehicle', function(vehicle, coords, delete, owner, plate)
+RegisterNetEvent('dd_society:spawnVehicle', function(vehicle, coords, delete, owner)
 	local veh = spawnVehicle(vehicle, coords, delete)
 	if owner and veh then
-		SetVehicleNumberPlateText(veh, plate)
 		local props = getVehicleProperties(veh)
 		local name = GetLabelText(GetDisplayNameFromVehicleModel(props.model))
 
