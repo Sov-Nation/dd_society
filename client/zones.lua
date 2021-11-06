@@ -47,12 +47,10 @@ end)
 RegisterCommand('interact', function()
 	if next(Zone) then
 		local close
-		for k, v in pairs(open) do
-			for k, v in pairs(ZoneMenus) do
-				if ESX.UI.Menu.IsOpen('default', resName, v) then
-					close = true
-					break
-				end
+		for k, v in pairs(ZoneMenus) do
+			if ESX.UI.Menu.IsOpen('default', resName, v) then
+				close = true
+				break
 			end
 		end
 		ESX.UI.Menu.CloseAll()
