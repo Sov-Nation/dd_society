@@ -50,7 +50,7 @@ function spawnVehicle(vehicle, coords, delete)
 				end
 			end
 			SetVehicleEngineOn(vehicle, true, true, true)
-			TaskWarpPedIntoVehicle(ESX.PlayerData.ped, vehicle, -1)
+			SetPedIntoVehicle(ESX.PlayerData.ped, vehicle, -1)
 		end
 		return vehicle
 	else
