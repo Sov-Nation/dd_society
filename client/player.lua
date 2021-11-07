@@ -107,7 +107,7 @@ CreateThread(function()
 	while true do
 		Wait(1000)
 		if ESX.PlayerLoaded and ESX.PlayerData.ped then
-			if GetEntityHealth(ESX.PlayerData.ped) < 125 then
+			if GetEntityHealth(ESX.PlayerData.ped) < 125 or IsPedBeingStunned(ESX.PlayerData.ped, 0) then
 				ESX.PlayerData.ko = true
 				timer = 30
 			end
