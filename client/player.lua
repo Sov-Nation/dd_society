@@ -37,10 +37,8 @@ CreateThread(function()
 			EnableControlAction(0, 0, true) -- v
 			EnableControlAction(0, 1, true) -- pan
 			EnableControlAction(0, 2, true) -- tilt
-			EnableControlAction(0, 38, true) -- e
 			EnableControlAction(2, 199, true) -- esc
 			EnableControlAction(0, 245, true) -- t
-			EnableControlAction(0, 344, true) -- f11
 		else
 			Wait(500)
 		end
