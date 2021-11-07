@@ -96,6 +96,20 @@ CreateThread(function()
 		SetWeaponDamageModifier(`WEAPON_BAT`, blunt)
 		SetWeaponDamageModifier(`WEAPON_GOLFCLUB`, blunt)
 		SetWeaponDamageModifier(`WEAPON_CROWBAR`, blunt)
+		
+		DisableControlAction(0, 36, true) -- ctrl
+		if targetActive then
+			DisableAllControlActions(0)
+			EnableControlAction(0, 0, true) -- v
+			EnableControlAction(0, 1, true) -- pan
+			EnableControlAction(0, 2, true) -- tilt
+			EnableControlAction(0, 21, true) -- sprint
+			EnableControlAction(0, 24, true) -- attack
+			EnableControlAction(0, 25, true) -- aim
+			EnableControlAction(0, 30, true) -- move up/down
+			EnableControlAction(0, 31, true) -- move left/right
+			EnableControlAction(0, 142, true) -- melee attack
+		end
 	end
 end)
 
