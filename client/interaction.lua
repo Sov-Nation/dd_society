@@ -113,7 +113,7 @@ RegisterCommand('+interactionMenu', function()
 	end
 end)
 
-RegisterCommand('-interactionmenu', function()
+RegisterCommand('-interactionMenu', function()
 	if targetActive then
 		SendNUIMessage({response = 'closeTarget'})
 		targetActive = false
