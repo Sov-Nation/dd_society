@@ -113,12 +113,11 @@ CreateThread(function()
 			end
 
 			if ESX.PlayerData.ko then
-				timer = timer - 1
+				timer -= 1
 
 				local vehicle = GetVehiclePedIsIn(ESX.PlayerData.ped, false)
 				if vehicle ~= 0 then
-					local seatPed = GetPedInVehicleSeat(vehicle, -1)
-					if seatPed == ESX.PlayerData.ped then
+					if GetPedInVehicleSeat(vehicle, -1) == ESX.PlayerData.ped then
 						TaskLeaveVehicle(ESX.PlayerData.ped, vehicle, 4160)
 					end
 				end
@@ -135,15 +134,11 @@ CreateThread(function()
 end)
 
 RegisterNetEvent('dd_society:unko', function(t)
-	if t == nil then
-		ESX.PlayerData.ko = false
-	elseif ESX.PlayerData.ko then
-		Wait(t*1000)
-		ESX.PlayerData.ko = false
-	end
+	Wait(t and t*1000 or 0)
+	ESX.PlayerData.ko = false
 end)
 
-RegisterNetEvent('dd_society:ko', function()
+RegisterNetEvent('dd_society:ko', function(t)
 	ESX.PlayerData.ko = true
-	timer = 30
+	timer = t or 30
 end)

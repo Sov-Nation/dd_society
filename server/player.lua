@@ -7,16 +7,18 @@ end, true, {help = 'Revive a player', validate = false, arguments = {
 
 ESX.RegisterCommand('ko', 'admin', function(xPlayer, args, showError)
 	if not args.playerId then args.playerId = xPlayer.playerId end
-	TriggerClientEvent('dd_society:ko', args.playerId)
+	TriggerClientEvent('dd_society:ko', args.playerId, args.time)
 end, true, {help = 'Knock a player out', validate = false, arguments = {
-	{name = 'playerId', help = 'The player id', type = 'any'}
+	{name = 'playerId', help = 'The player id', type = 'any'},
+	{name = 'time', help = 'Seconds to knock out for', type = 'any'},
 }})
 
 ESX.RegisterCommand('unko', 'admin', function(xPlayer, args, showError)
 	if not args.playerId then args.playerId = xPlayer.playerId end
-	TriggerClientEvent('dd_society:unko', args.playerId)
+	TriggerClientEvent('dd_society:unko', args.playerId, args.time)
 end, true, {help = 'Wake a player up', validate = false, arguments = {
-	{name = 'playerId', help = 'The player id', type = 'any'}
+	{name = 'playerId', help = 'The player id', type = 'any'},
+	{name = 'time', help = 'Seconds to wait before the player is woken up', type = 'any'},
 }})
 
 ESX.RegisterCommand({'fr', 'fullrevive'}, 'admin', function(xPlayer, args, showError)
