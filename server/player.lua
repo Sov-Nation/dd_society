@@ -36,6 +36,10 @@ RegisterServerEvent('dd_society:updateDeath', function(isDead)
 	end
 end)
 
+RegisterServerEvent('dd_society:revivePlayer', function(player)
+	TriggerClientEvent('dd_society:revive', player, false)
+end)
+
 RegisterServerEvent('dd_society:saveJob', function(job)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	exports.oxmysql:update('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {job.name, job.grade, xPlayer.identifier})
