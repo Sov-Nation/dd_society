@@ -96,19 +96,6 @@ RegisterNetEvent('dd_society:syncZone', function(zone)
 	Data.Zones[zone.id] = zone
 end)
 
-RegisterKeyMapping('interact', 'Interact', 'keyboard', 'e')
-RegisterKeyMapping('lock/unlock', 'Lock/Unlock Door', 'keyboard', 'x')
-RegisterKeyMapping('societymenu', 'Society Menu', 'keyboard', 'f6')
-RegisterKeyMapping('billsmenu', 'Bills Menu', 'keyboard', 'f7')
-
-CreateThread(function()
-	Wait(1000)
-	TriggerEvent('chat:removeSuggestion', '/interact')
-	TriggerEvent('chat:removeSuggestion', '/lock/unlock')
-	TriggerEvent('chat:removeSuggestion', '/societymenu')
-	TriggerEvent('chat:removeSuggestion', '/billsmenu')
-end)
-
 function showBlips(target)
 	if Blips then
 		if target == Blips.target then

@@ -30,7 +30,11 @@ client_scripts {
 	'client/**/*.lua',
 }
 
+ui_page 'html/index.html'
+
 files {
 	'data/**/*.lua',
-	'data/*.lua',
+	'html/index.html',
+	'html/css/style.css',
+	'html/js/script.js'
 }
