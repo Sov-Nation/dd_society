@@ -37,6 +37,17 @@ RegisterServerEvent('dd_society:updateDeath', function(isDead)
 end)
 
 RegisterServerEvent('dd_society:revivePlayer', function(player, coords)
+	if coords then
+		local xPlayer = ESX.GetPlayerFromId(player)
+		local inventory = {}
+		if next(xPlayer.inventory) then
+			for k, v in pairs(xPlayer.inventory) do
+				inventory[#inventory + 1] = {v.name, v.count, v.metadata}
+			end
+			TriggerEvent('ox_inventory:customDrop', xPlayer.getName() .. "'s Dropped Items", inventory, vec(coords.xy, coords.z + 1))
+		end
+		TriggerEvent('ox_inventory:clearPlayerInventory', player)
+	end
 	TriggerClientEvent('dd_society:revive', player, false, coords and nearestRespawn(coords))
 end)
 
