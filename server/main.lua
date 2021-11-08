@@ -3,7 +3,8 @@ Data = {
 	Properties = {},
 	Keys = {},
 	Doors = {},
-	Zones = {}
+	Zones = {},
+	Respawn = {}
 }
 
 function data(name)
@@ -78,11 +79,14 @@ CreateThread(function()
 
 		Data.Keys[#Data.Keys + 1] = Master
 
+		if property.respawn then
+			Data.Respawn[property.id] = property.respawn
+		end
+
 		if not Data.Properties[property.id] then
 			Data.Properties[property.id] = property
 
 			exports.oxmysql:insertSync('INSERT INTO dd_properties (id, owner) VALUES (?, ?)', {property.id, Config.Bank})
-
 
 			for j = 1, #property.doors do
 				door = property.doors[j]
