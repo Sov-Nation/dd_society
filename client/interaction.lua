@@ -3,6 +3,7 @@ RegisterKeyMapping('lock/unlock', 'Lock/Unlock Door', 'keyboard', 'x')
 RegisterKeyMapping('societyMenu', 'Society Menu', 'keyboard', 'f6')
 RegisterKeyMapping('billsMenu', 'Bills Menu', 'keyboard', 'f7')
 RegisterKeyMapping('interactionMenu', 'Interaction Menu', 'keyboard', 'lcontrol')
+RegisterKeyMapping('bleedOut', 'Bleed Out', 'keyboard', 'e')
 RegisterKeyMapping('revive', 'Revive', 'keyboard', 'e')
 RegisterKeyMapping('repair', 'Repair', 'keyboard', 'e')
 
@@ -14,6 +15,7 @@ CreateThread(function()
 		'societyMenu',
 		'billsMenu',
 		'interactionMenu',
+		'bleedOut',
 		'revive',
 		'repair',
 	}

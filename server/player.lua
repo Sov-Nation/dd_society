@@ -36,11 +36,23 @@ RegisterServerEvent('dd_society:updateDeath', function(isDead)
 	end
 end)
 
-RegisterServerEvent('dd_society:revivePlayer', function(player)
-	TriggerClientEvent('dd_society:revive', player, false)
+RegisterServerEvent('dd_society:revivePlayer', function(player, coords)
+	TriggerClientEvent('dd_society:revive', player, false, coords and nearestRespawn(coords))
 end)
 
 RegisterServerEvent('dd_society:saveJob', function(job)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	exports.oxmysql:update('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {job.name, job.grade, xPlayer.identifier})
 end)
+
+function nearestRespawn(coords)
+	local closest, distance = {}
+	for k, v in pairs(Data.Respawn) do
+		distance = #(coords - v.xyz)
+		if not next(closest) or distance < closest.dist then
+			closest.coords = v
+			closest.dist = distance
+		end
+	end
+	return closest.coords
+end

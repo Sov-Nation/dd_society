@@ -29,9 +29,14 @@ AddEventHandler('esx:setJob', function(job)
 end)
 
 CreateThread(function()
+	local nui
 	while true do
 		Wait(0)
 		if ESX.PlayerLoaded and (ESX.PlayerData.dead or ESX.PlayerData.ko) then
+			if not nui then
+				nui = true
+				-- trigger dead nui
+			end
 			ESX.UI.Menu.CloseAll()
 			DisableAllControlActions(0)
 			EnableControlAction(0, 0, true) -- v
@@ -40,12 +45,13 @@ CreateThread(function()
 			EnableControlAction(2, 199, true) -- esc
 			EnableControlAction(0, 245, true) -- t
 		else
+			nui = false
 			Wait(500)
 		end
 	end
 end)
 
-RegisterNetEvent('dd_society:revive', function(unko)
+RegisterNetEvent('dd_society:revive', function(unko, coords)
 	TriggerServerEvent('dd_society:updateDeath', false)
 
 	DoScreenFadeOut(800)
@@ -54,10 +60,10 @@ RegisterNetEvent('dd_society:revive', function(unko)
 		Wait(50)
 	end
 
-	local heading = GetEntityHeading(ESX.PlayerData.ped)
+	coords = coords or vec(pedPos, GetEntityHeading(ESX.PlayerData.ped))
 
-	SetEntityCoordsNoOffset(ESX.PlayerData.ped, pedPos, heading, false, false, false, true)
-	NetworkResurrectLocalPlayer(pedPos, heading, true, false)
+	SetEntityCoordsNoOffset(ESX.PlayerData.ped, coords.xyz, coords.w, false, false, false, true)
+	NetworkResurrectLocalPlayer(coords.xyz, coords.w, true, false)
 	SetPlayerInvincible(ESX.PlayerData.ped, false)
 	ClearPedBloodDamage(ESX.PlayerData.ped)
 
@@ -67,7 +73,7 @@ RegisterNetEvent('dd_society:revive', function(unko)
 	if unko then
 		TriggerEvent('dd_society:unko')
 	end
-
+	-- disable dead nui
 	StopScreenEffect('DeathFailOut')
 	DoScreenFadeIn(800)
 end)
@@ -153,4 +159,26 @@ end)
 RegisterNetEvent('dd_society:ko', function(t)
 	ESX.PlayerData.ko = true
 	timer = t or 30
+end)
+
+RegisterCommand('bleedOut', function()
+	if ESX.PlayerData.dead or ESX.PlayerData.ko then
+		exports.ox_inventory:Progress({
+			duration = 5000,
+			label = 'Bleeding Out',
+			useWhileDead = true,
+			canCancel = true,
+			disable = {
+				move = true,
+				car = true,
+				combat = true,
+				mouse = false
+			},
+		},
+		function(cancel)
+			if not cancel then
+				TriggerServerEvent('dd_society:revivePlayer', GetPlayerServerId(PlayerId()), pedPos)
+			end
+		end)
+	end
 end)
