@@ -41,12 +41,14 @@ function spawnVehicle(vehicle, coords, delete)
 			if oldVeh and oldVeh ~= 0 then
 				local velocity = GetEntityVelocity(oldVeh)
 				local fVec = GetEntityForwardVector(oldVeh)
-				local fVel = fVec * velocity
-				local lVel = fVec / velocity
 				DeleteEntity(oldVeh)
-				SetEntityVelocity(vehicle, lVel)
-				if fVel.x > 0 and fVel.y > 0 and fVel.z > 0 then
-					SetVehicleForwardSpeed(vehicle, #fVel)
+				if #velocity > 0.1 then
+					local fVel = fVec * velocity
+					local lVel = fVec / velocity
+					SetEntityVelocity(vehicle, lVel)
+					if fVel.x > 0 and fVel.y > 0 and fVel.z > 0 then
+						SetVehicleForwardSpeed(vehicle, #fVel)
+					end
 				end
 			end
 			SetVehicleEngineOn(vehicle, true, true, true)
