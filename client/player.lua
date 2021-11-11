@@ -79,7 +79,10 @@ RegisterNetEvent('dd_society:revive', function(unko, coords)
 	end
 
 	StopScreenEffect('DeathFailOut')
-	DoScreenFadeIn(2000)
+	if not unko then
+		Wait(2000)
+	end
+	DoScreenFadeIn(800)
 end)
 
 CreateThread(function()
