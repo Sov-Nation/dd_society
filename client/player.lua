@@ -77,7 +77,7 @@ RegisterNetEvent('dd_society:revive', function(unko, coords)
 	if unko then
 		TriggerEvent('dd_society:unko')
 	end
-	-- disable dead nui
+
 	StopScreenEffect('DeathFailOut')
 	DoScreenFadeIn(2000)
 end)
