@@ -28,28 +28,32 @@ AddEventHandler('esx:setJob', function(job)
 	refreshBussHUD()
 end)
 
-CreateThread(function()
-	local nui
-	while true do
-		Wait(0)
-		if ESX.PlayerLoaded and (ESX.PlayerData.dead or ESX.PlayerData.ko) then
-			if not nui then
-				nui = true
-				-- trigger dead nui
-			end
-			ESX.UI.Menu.CloseAll()
-			DisableAllControlActions(0)
-			EnableControlAction(0, 0, true) -- v
-			EnableControlAction(0, 1, true) -- pan
-			EnableControlAction(0, 2, true) -- tilt
-			EnableControlAction(2, 199, true) -- esc
-			EnableControlAction(0, 245, true) -- t
-		else
-			nui = false
-			Wait(500)
-		end
+local playingDead
+
+function playDead()
+	if playingDead then
+		return
 	end
-end)
+	playingDead = true
+	SendNUIMessage({response = 'openDead'})
+	CreateThread(function()
+		while true do
+			Wait(0)
+			if ESX.PlayerLoaded and (ESX.PlayerData.dead or ESX.PlayerData.ko) then
+				DisableAllControlActions(0)
+				EnableControlAction(0, 0, true) -- v
+				EnableControlAction(0, 1, true) -- pan
+				EnableControlAction(0, 2, true) -- tilt
+				EnableControlAction(2, 199, true) -- esc
+				EnableControlAction(0, 245, true) -- t
+			else
+				playingDead = false
+				SendNUIMessage({response = 'closeDead'})
+				break
+			end
+		end
+	end)
+end
 
 RegisterNetEvent('dd_society:revive', function(unko, coords)
 	TriggerServerEvent('dd_society:updateDeath', false)
@@ -75,14 +79,13 @@ RegisterNetEvent('dd_society:revive', function(unko, coords)
 	end
 	-- disable dead nui
 	StopScreenEffect('DeathFailOut')
-	DoScreenFadeIn(800)
+	DoScreenFadeIn(2000)
 end)
 
-local unarmed = 0.2
-local blunt = 0.3
-local sharp = 0.5
-
 CreateThread(function()
+	local unarmed = 0.2
+	local blunt = 0.3
+	local sharp = 0.5
 	while true do
 		Wait(0)
 		SetWeaponDamageModifier(`WEAPON_UNARMED`, unarmed)
@@ -132,6 +135,8 @@ CreateThread(function()
 
 			if ESX.PlayerData.ko then
 				timer -= 1
+
+				playDead()
 
 				local vehicle = GetVehiclePedIsIn(ESX.PlayerData.ped, false)
 				if vehicle ~= 0 then

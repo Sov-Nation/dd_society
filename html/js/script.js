@@ -24,5 +24,11 @@ window.addEventListener('message', function(event) {
 		$('div').hide();
 		$('.eye').hide();
 		$('.eye-slash').show();
+
+	} else if (item.response == 'openDead') {
+		$('dead').show();
+
+	} else if (item.response == 'closeDead') {
+		$('dead').hide();
 	}
 });
