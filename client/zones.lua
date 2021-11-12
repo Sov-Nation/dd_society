@@ -27,7 +27,7 @@ CreateThread(function()
 				local insideZone = isPointInside
 				if insideZone then
 					Zone = zone.data
-					exports.ox_inventory:Notify({text = zone.data.property .. ' - ' .. zone.data.name, duration = 5000})
+					exports.ox_inventory:notify({text = zone.data.property .. ' - ' .. zone.data.name, duration = 5000})
 				else
 					if Zone.id == zone.data.id then
 						Zone = {}
