@@ -94,15 +94,14 @@ RegisterCommand('+interactionMenu', function()
 				end
 				if has_value({1, 2}, entityType) and distance < 5 then
 					if entityType == 1 and IsPedAPlayer(entity) then
-						type = 'player'
+						actions = entityTypes.player
 					-- elseif entityType == 1 then
 					-- 	type = 'ped'
 					elseif entityType == 2 then
-						type = 'vehicle'
+						actions = entityTypes.vehicle
 					end
-					if type then
+					if next(actions) then
 						validEntity = entity
-						actions = entityTypes[type]
 						SendNUIMessage({response = 'validTarget', actions = actions})
 					end
 				end
