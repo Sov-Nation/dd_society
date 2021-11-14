@@ -4,7 +4,7 @@ RegisterKeyMapping('societyMenu', 'Society Menu', 'keyboard', 'f6')
 RegisterKeyMapping('billsMenu', 'Bills Menu', 'keyboard', 'f7')
 RegisterKeyMapping('interactionMenu', 'Interaction Menu', 'keyboard', 'lcontrol')
 RegisterKeyMapping('bleedOut', 'Bleed Out', 'keyboard', 'e')
-RegisterKeyMapping('revive', 'Revive', 'keyboard', 'e')
+RegisterKeyMapping('resuscitate', 'Resuscitate', 'keyboard', 'e')
 RegisterKeyMapping('repair', 'Repair', 'keyboard', 'e')
 
 CreateThread(function()
@@ -16,7 +16,7 @@ CreateThread(function()
 		'billsMenu',
 		'interactionMenu',
 		'bleedOut',
-		'revive',
+		'resuscitate',
 		'repair',
 	}
 	for i = 1, #commands do
@@ -50,13 +50,13 @@ local entityTypes = {
 	ped = {
 		{icon = 'fas fa-lock', name = 'cuffPed'},
 		{icon = 'fas fa-lock-open', name = 'uncuffPed'},
-		{icon = 'fas fa-medkit', name = 'revivePed'},
+		{icon = 'fas fa-medkit', name = 'resuscitatePed'},
 		{icon = 'fas fa-people-arrows', name = 'escortPed'},
 	},
 	player = {
 		{icon = 'fas fa-lock', name = 'cuff'},
 		{icon = 'fas fa-lock-open', name = 'uncuff'},
-		{icon = 'fas fa-medkit', name = 'revive'},
+		{icon = 'fas fa-medkit', name = 'resuscitate'},
 		{icon = 'fas fa-mask', name = 'steal'},
 		{icon = 'fas fa-people-arrows', name = 'escort'},
 	},
@@ -133,7 +133,7 @@ function validAction(action)
 	return false
 end
 
-RegisterCommand('revive', function(source, args, rawCommand)
+RegisterCommand('resuscitate', function(source, args, rawCommand)
 	if targetActive and not isBusy and validAction(rawCommand) then
 		SendNUIMessage({response = 'closeTarget'})
 		targetActive = false
@@ -161,7 +161,7 @@ RegisterCommand('revive', function(source, args, rawCommand)
 			function(cancel)
 				if not cancel then
 					TriggerServerEvent('dd_society:revivePlayer', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
-					ESX.ShowNotification('~g~Player revived')
+					ESX.ShowNotification('~g~Player resuscitated')
 				end
 				isBusy = false
 				validEntity = nil
