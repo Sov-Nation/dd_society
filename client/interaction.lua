@@ -138,7 +138,9 @@ RegisterCommand('resuscitate', function(source, args, rawCommand)
 		SendNUIMessage({response = 'closeTarget'})
 		targetActive = false
 		isBusy = true
-		if IsPedDeadOrDying(validEntity, 1) then
+		local targetId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity))
+		local bag = 'Player:' .. targetId
+		if bag.state.dead then
 			ClearPedTasks(ESX.PlayerData.ped)
 			TaskGoToEntity(ESX.PlayerData.ped, validEntity, -1, 1.5, 1.0, 0, 0)
 			repeat Wait(1000) until #(pedPos - entityCoords) < 1.5
@@ -160,7 +162,7 @@ RegisterCommand('resuscitate', function(source, args, rawCommand)
 			},
 			function(cancel)
 				if not cancel then
-					TriggerServerEvent('dd_society:revivePlayer', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+					TriggerServerEvent('dd_society:revivePlayer', targetId)
 					ESX.ShowNotification('~g~Player resuscitated')
 				end
 				isBusy = false
