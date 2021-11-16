@@ -1,3 +1,5 @@
+local playingDead
+
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
 	ESX.PlayerData = xPlayer
@@ -7,17 +9,12 @@ end)
 
 RegisterNetEvent('esx:onPlayerLogout')
 AddEventHandler('esx:onPlayerLogout', function()
+	TriggerServerEvent('dd_society:saveState')
 	ESX.PlayerLoaded = false
 	ESX.PlayerData = {}
-end)
-
-RegisterNetEvent('esx:onPlayerDeath')
-AddEventHandler('esx:onPlayerDeath', function()
-	ESX.PlayerData.dead = true
-	ESX.UI.Menu.CloseAll()
-	TriggerServerEvent('dd_society:updateDeath', true)
-
-	StartScreenEffect('DeathFailOut', 0, false)
+	playingDead = false
+	SendNUIMessage({response = 'closeDead'})
+	AnimpostfxStop('DeathFailOut')
 end)
 
 RegisterNetEvent('esx:setJob')
@@ -28,36 +25,7 @@ AddEventHandler('esx:setJob', function(job)
 	refreshBussHUD()
 end)
 
-local playingDead
-
-function playDead()
-	if playingDead then
-		return
-	end
-	playingDead = true
-	SendNUIMessage({response = 'openDead'})
-	CreateThread(function()
-		while true do
-			Wait(0)
-			if ESX.PlayerLoaded and (ESX.PlayerData.dead or ESX.PlayerData.ko) then
-				DisableAllControlActions(0)
-				EnableControlAction(0, 0, true) -- v
-				EnableControlAction(0, 1, true) -- pan
-				EnableControlAction(0, 2, true) -- tilt
-				EnableControlAction(2, 199, true) -- esc
-				EnableControlAction(0, 245, true) -- t
-			else
-				playingDead = false
-				SendNUIMessage({response = 'closeDead'})
-				break
-			end
-		end
-	end)
-end
-
-RegisterNetEvent('dd_society:revive', function(unko, coords)
-	TriggerServerEvent('dd_society:updateDeath', false)
-
+RegisterNetEvent('dd_society:revive', function(full, coords)
 	DoScreenFadeOut(800)
 
 	while not IsScreenFadedOut() do
@@ -74,12 +42,14 @@ RegisterNetEvent('dd_society:revive', function(unko, coords)
 	TriggerServerEvent('esx:onPlayerSpawn')
 	TriggerEvent('esx:onPlayerSpawn')
 
-	if unko then
-		TriggerEvent('dd_society:unko')
-	end
+	playingDead = false
+	SendNUIMessage({response = 'closeDead'})
+	AnimpostfxStop('DeathFailOut')
 
-	StopScreenEffect('DeathFailOut')
-	if not unko then
+	LocalPlayer.state:set('dead', false, true)
+	if full then
+		LocalPlayer.state:set('ko', 0, true)
+	else
 		Wait(2000)
 	end
 	DoScreenFadeIn(800)
@@ -91,56 +61,80 @@ CreateThread(function()
 	local sharp = 0.5
 	while true do
 		Wait(0)
-		SetWeaponDamageModifier(`WEAPON_UNARMED`, unarmed)
-		SetWeaponDamageModifier(`WEAPON_FLASHLIGHT`, blunt)
-		SetWeaponDamageModifier(`WEAPON_KNUCKLE`, blunt)
-		SetWeaponDamageModifier(`WEAPON_HATCHET`, sharp)
-		SetWeaponDamageModifier(`WEAPON_MACHETE`, sharp)
-		SetWeaponDamageModifier(`WEAPON_SWITCHBLADE`, sharp)
-		SetWeaponDamageModifier(`WEAPON_BOTTLE`, sharp)
-		SetWeaponDamageModifier(`WEAPON_DAGGER`, sharp)
-		SetWeaponDamageModifier(`WEAPON_POOLCUE`, blunt)
-		SetWeaponDamageModifier(`WEAPON_WRENCH`, blunt)
-		SetWeaponDamageModifier(`WEAPON_BATTLEAXE`, sharp)
-		SetWeaponDamageModifier(`WEAPON_KNIFE`, sharp)
-		SetWeaponDamageModifier(`WEAPON_NIGHTSTICK`, blunt)
-		SetWeaponDamageModifier(`WEAPON_HAMMER`, blunt)
-		SetWeaponDamageModifier(`WEAPON_BAT`, blunt)
-		SetWeaponDamageModifier(`WEAPON_GOLFCLUB`, blunt)
-		SetWeaponDamageModifier(`WEAPON_CROWBAR`, blunt)
-		
-		DisableControlAction(0, 36, true) -- ctrl
-		if targetActive then
-			DisableAllControlActions(0)
-			EnableControlAction(0, 0, true) -- v
-			EnableControlAction(0, 1, true) -- pan
-			EnableControlAction(0, 2, true) -- tilt
-			EnableControlAction(0, 21, true) -- sprint
-			EnableControlAction(0, 24, true) -- attack
-			EnableControlAction(0, 25, true) -- aim
-			EnableControlAction(0, 30, true) -- move up/down
-			EnableControlAction(0, 31, true) -- move left/right
-			EnableControlAction(0, 142, true) -- melee attack
+		if ESX.PlayerLoaded then
+			SetWeaponDamageModifier(`WEAPON_UNARMED`, unarmed)
+			SetWeaponDamageModifier(`WEAPON_FLASHLIGHT`, blunt)
+			SetWeaponDamageModifier(`WEAPON_KNUCKLE`, blunt)
+			SetWeaponDamageModifier(`WEAPON_HATCHET`, sharp)
+			SetWeaponDamageModifier(`WEAPON_MACHETE`, sharp)
+			SetWeaponDamageModifier(`WEAPON_SWITCHBLADE`, sharp)
+			SetWeaponDamageModifier(`WEAPON_BOTTLE`, sharp)
+			SetWeaponDamageModifier(`WEAPON_DAGGER`, sharp)
+			SetWeaponDamageModifier(`WEAPON_POOLCUE`, blunt)
+			SetWeaponDamageModifier(`WEAPON_WRENCH`, blunt)
+			SetWeaponDamageModifier(`WEAPON_BATTLEAXE`, sharp)
+			SetWeaponDamageModifier(`WEAPON_KNIFE`, sharp)
+			SetWeaponDamageModifier(`WEAPON_NIGHTSTICK`, blunt)
+			SetWeaponDamageModifier(`WEAPON_HAMMER`, blunt)
+			SetWeaponDamageModifier(`WEAPON_BAT`, blunt)
+			SetWeaponDamageModifier(`WEAPON_GOLFCLUB`, blunt)
+			SetWeaponDamageModifier(`WEAPON_CROWBAR`, blunt)
+			
+			DisableControlAction(0, 36, true) -- ctrl
+			if LocalPlayer.state.dead or (LocalPlayer.state.ko or 0) > 0 then
+				DisableAllControlActions(0)
+				EnableControlAction(0, 0, true) -- v
+				EnableControlAction(0, 1, true) -- pan
+				EnableControlAction(0, 2, true) -- tilt
+				EnableControlAction(2, 199, true) -- esc
+				EnableControlAction(0, 245, true) -- t
+				if not playingDead and LocalPlayer.state.dead then
+					SetEntityHealth(ESX.PlayerData.ped, 0)
+					AnimpostfxPlay('DeathFailOut', 0, true)
+					playingDead = true
+					SendNUIMessage({response = 'openDead'})
+				end
+			else
+				if playingDead then
+					playingDead = false
+					SendNUIMessage({response = 'closeDead'})
+				end
+
+				if targetActive then
+					DisableAllControlActions(0)
+					EnableControlAction(0, 0, true) -- v
+					EnableControlAction(0, 1, true) -- pan
+					EnableControlAction(0, 2, true) -- tilt
+					EnableControlAction(0, 21, true) -- sprint
+					EnableControlAction(0, 24, true) -- attack
+					EnableControlAction(0, 25, true) -- aim
+					EnableControlAction(0, 30, true) -- move up/down
+					EnableControlAction(0, 31, true) -- move left/right
+					EnableControlAction(0, 142, true) -- melee attack
+				end
+			end
 		end
 	end
 end)
-
-local timer
 
 CreateThread(function()
 	while true do
 		Wait(1000)
 		if ESX.PlayerLoaded and ESX.PlayerData.ped then
-			if GetEntityHealth(ESX.PlayerData.ped) < 125 or IsPedBeingStunned(ESX.PlayerData.ped, 0) then
-				ESX.PlayerData.ko = true
-				timer = 30
+			local health = GetEntityHealth(ESX.PlayerData.ped)
+			if health < 125 or IsPedBeingStunned(ESX.PlayerData.ped, 0) then
+				if LocalPlayer.state.ko < 30 then
+					LocalPlayer.state:set('ko', 30, true)
+				end
+
+				if not LocalPlayer.state.dead and health == 0 then
+					LocalPlayer.state:set('dead', true, true)
+				end
+			elseif LocalPlayer.state.ko > 0 then
+				LocalPlayer.state:set('ko', LocalPlayer.state.ko - 1, true)
 			end
-
-			if ESX.PlayerData.ko then
-				timer -= 1
-
-				playDead()
-
+			
+			if LocalPlayer.state.ko > 0 then
 				local vehicle = GetVehiclePedIsIn(ESX.PlayerData.ped, false)
 				if vehicle ~= 0 then
 					if GetPedInVehicleSeat(vehicle, -1) == ESX.PlayerData.ped then
@@ -151,26 +145,13 @@ CreateThread(function()
 				SetPlayerHealthRechargeMultiplier((ESX.PlayerData.ped), 1.0)
 				SetPedToRagdoll(ESX.PlayerData.ped, 2000, 2000, 0, 0, 0, 0)
 				ResetPedRagdollTimer(ESX.PlayerData.ped)
-				if timer == 0 then
-					ESX.PlayerData.ko = false
-				end
 			end
 		end
 	end
 end)
 
-RegisterNetEvent('dd_society:unko', function(t)
-	Wait(t and t*1000 or 0)
-	ESX.PlayerData.ko = false
-end)
-
-RegisterNetEvent('dd_society:ko', function(t)
-	ESX.PlayerData.ko = true
-	timer = t or 30
-end)
-
 RegisterCommand('bleedOut', function()
-	if ESX.PlayerData.dead or ESX.PlayerData.ko then
+	if LocalPlayer.state.dead then
 		exports.ox_inventory:Progress({
 			duration = 5000,
 			label = 'Bleeding Out',

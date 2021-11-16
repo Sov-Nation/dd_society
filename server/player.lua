@@ -1,39 +1,50 @@
 ESX.RegisterCommand('revive', 'admin', function(xPlayer, args, showError)
-	if not args.playerId then args.playerId = xPlayer.playerId end
+	args.playerId = args.playerId or xPlayer.playerId
+	Player(args.playerId).state.dead = false
 	TriggerClientEvent('dd_society:revive', args.playerId, false)
 end, true, {help = 'Revive a player', validate = false, arguments = {
 	{name = 'playerId', help = 'The player id', type = 'any'}
 }})
 
 ESX.RegisterCommand('ko', 'admin', function(xPlayer, args, showError)
-	if not args.playerId then args.playerId = xPlayer.playerId end
-	TriggerClientEvent('dd_society:ko', args.playerId, args.time)
+	Player(args.playerId or xPlayer.playerId).state.ko = tonumber(args.time) or 30
 end, true, {help = 'Knock a player out', validate = false, arguments = {
 	{name = 'playerId', help = 'The player id', type = 'any'},
 	{name = 'time', help = 'Seconds to knock out for', type = 'any'},
 }})
 
 ESX.RegisterCommand('unko', 'admin', function(xPlayer, args, showError)
-	if not args.playerId then args.playerId = xPlayer.playerId end
-	TriggerClientEvent('dd_society:unko', args.playerId, args.time)
+	Player(args.playerId or xPlayer.playerId).state.ko = tonumber(args.time) or 0
 end, true, {help = 'Wake a player up', validate = false, arguments = {
 	{name = 'playerId', help = 'The player id', type = 'any'},
 	{name = 'time', help = 'Seconds to wait before the player is woken up', type = 'any'},
 }})
 
 ESX.RegisterCommand({'fr', 'fullrevive'}, 'admin', function(xPlayer, args, showError)
-	if not args.playerId then args.playerId = xPlayer.playerId end
 	TriggerClientEvent('dd_society:revive', args.playerId, true)
 end, true, {help = 'Fully revive a player', validate = false, arguments = {
+	TriggerClientEvent('dd_society:revive', args.playerId or xPlayer.playerId, true)
+end, true, {help = 'Fully revive and reset a player', validate = false, arguments = {
 	{name = 'playerId', help = 'The player id', type = 'any'}
 }})
 
-RegisterServerEvent('dd_society:updateDeath', function(isDead)
-	local xPlayer = ESX.GetPlayerFromId(source)
+RegisterServerEvent('esx:playerLoaded', function(playerId)
+	local xPlayer = ESX.GetPlayerFromId(playerId)
+	local ply = Player(playerId)
+	ply.state.id = xPlayer.identifier
+	local state = exports.oxmysql:scalarSync('SELECT state FROM users WHERE identifier = ?', {ply.state.id})
+	state = json.decode(state)
+	ply.state.dead = state.dead or false
+	ply.state.ko = state.ko or 0
+end)
 
-	if type(isDead) == 'boolean' then
-		exports.oxmysql:update('UPDATE users SET is_dead = ? WHERE identifier = ?', {isDead, xPlayer.identifier})
-	end
+RegisterServerEvent('dd_society:saveState', function()
+	local ply = Player(source)
+	local state = {
+		dead = ply.state.dead,
+		ko = ply.state.ko,
+	}
+	exports.oxmysql:update('UPDATE users SET state = ? WHERE identifier = ?', {json.encode(state), ply.state.id})
 end)
 
 RegisterServerEvent('dd_society:revivePlayer', function(player, coords)
