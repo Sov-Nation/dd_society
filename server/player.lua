@@ -21,8 +21,6 @@ end, true, {help = 'Wake a player up', validate = false, arguments = {
 }})
 
 ESX.RegisterCommand({'fr', 'fullrevive'}, 'admin', function(xPlayer, args, showError)
-	TriggerClientEvent('dd_society:revive', args.playerId, true)
-end, true, {help = 'Fully revive a player', validate = false, arguments = {
 	TriggerClientEvent('dd_society:revive', args.playerId or xPlayer.playerId, true)
 end, true, {help = 'Fully revive and reset a player', validate = false, arguments = {
 	{name = 'playerId', help = 'The player id', type = 'any'}
