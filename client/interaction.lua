@@ -5,6 +5,7 @@ RegisterKeyMapping('billsMenu', 'Bills Menu', 'keyboard', 'f7')
 RegisterKeyMapping('interactionMenu', 'Interaction Menu', 'keyboard', 'lcontrol')
 RegisterKeyMapping('bleedOut', 'Bleed Out', 'keyboard', 'e')
 RegisterKeyMapping('resuscitate', 'Resuscitate', 'keyboard', 'e')
+RegisterKeyMapping('cuff', 'Cuff', 'keyboard', 'r')
 RegisterKeyMapping('repair', 'Repair', 'keyboard', 'e')
 
 CreateThread(function()
@@ -17,6 +18,7 @@ CreateThread(function()
 		'interactionMenu',
 		'bleedOut',
 		'resuscitate',
+		'cuff',
 		'repair',
 	}
 	for i = 1, #commands do
@@ -68,10 +70,10 @@ local entityTypes = {
 	},
 }
 
-local isBusy, validEntity, actions, entityCoords
+local validEntity, actions, entityCoords
 
 RegisterCommand('+interactionMenu', function()
-	if not targetActive and not IsPedInAnyVehicle(ESX.PlayerData.ped, false) and not isBusy and not (ESX.PlayerData.dead or ESX.PlayerData.ko) then 
+	if not targetActive and not IsPedInAnyVehicle(ESX.PlayerData.ped, false) and not isBusy and not (LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed) then 
 		targetActive = true
 		local hit, coords, entity, entityType = RaycastCamera(switch())
 		entityCoords = coords
@@ -172,6 +174,112 @@ RegisterCommand('resuscitate', function(source, args, rawCommand)
 			isBusy = false
 			validEntity = nil
 		end
+	end
+end)
+
+RegisterCommand('cuff', function(source, args, rawCommand)
+	if targetActive and not isBusy and validAction(rawCommand) then
+		SendNUIMessage({response = 'closeTarget'})
+		targetActive = false
+		isBusy = true
+		ClearPedTasks(ESX.PlayerData.ped)
+		TaskGoToEntity(ESX.PlayerData.ped, validEntity, -1, 1.5, 1.0, 0, 0)
+		repeat Wait(1000) until #(pedPos - entityCoords) < 1.5
+		TriggerServerEvent('dd_society:cuffPlayer', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+	end
+end)
+
+RegisterNetEvent('dd_society:Cuffer', function(target, cuffed)
+	if cuffed then
+		exports.ox_inventory:Progress({
+			duration = 4000,
+			label = 'Uncuffing',
+			useWhileDead = false,
+			canCancel = false,
+			disable = {
+				move = true,
+				car = true,
+				combat = true,
+				mouse = false
+			},
+			anim = {
+				dict = 'mp_arresting', 
+				clip = 'a_uncuff',
+			},
+		},
+		function(cancel)
+			isBusy = false
+		end)
+	else
+		exports.ox_inventory:Progress({
+			duration = 4700,
+			label = 'Cuffing',
+			useWhileDead = false,
+			canCancel = false,
+			disable = {
+				move = true,
+				car = true,
+				combat = true,
+				mouse = false
+			},
+			anim = {
+				dict = 'mp_arrest_paired', 
+				clip = 'cop_p2_back_right',
+			},
+		},
+		function(cancel)
+			isBusy = false
+		end)
+	end
+end)
+
+RegisterNetEvent('dd_society:Cuffee', function()
+	isBusy = true
+	TriggerEvent('esx_policejob:handcuff')
+	LocalPlayer.state.cuffed = not LocalPlayer.state.cuffed
+	ClearPedTasks(ESX.PlayerData.ped)
+	SetPedConfigFlag(ESX.PlayerData.ped, 146, LocalPlayer.state.cuffed)
+	if LocalPlayer.state.cuffed then
+		TriggerEvent('ox_inventory:disarm')
+		exports.ox_inventory:Progress({
+			duration = 4700,
+			label = 'Getting Cuffed',
+			useWhileDead = true,
+			canCancel = false,
+			disable = {
+				move = true,
+				car = true,
+				combat = true,
+				mouse = false
+			},
+			anim = {
+				dict = 'mp_arrest_paired', 
+				clip = 'crook_p2_back_right',
+			},
+		},
+		function(cancel)
+			isBusy = false
+		end)
+	else
+		exports.ox_inventory:Progress({
+			duration = 4000,
+			label = 'Getting Uncuffed',
+			useWhileDead = true,
+			canCancel = false,
+			disable = {
+				move = true,
+				car = true,
+				combat = true,
+				mouse = false
+			},
+			anim = {
+				dict = 'mp_arresting', 
+				clip = 'b_uncuff',
+			},
+		},
+		function(cancel)
+			isBusy = false
+		end)
 	end
 end)
 

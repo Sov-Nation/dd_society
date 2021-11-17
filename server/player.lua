@@ -36,6 +36,8 @@ RegisterServerEvent('esx:playerLoaded', function(playerId)
 	state = json.decode(state)
 	ply.state.dead = state.dead or false
 	ply.state.ko = state.ko or 0
+	ply.state.cuffed = state.cuffed or false
+	ply.state.handsUp = false
 end)
 
 RegisterServerEvent('dd_society:saveState', function()
@@ -43,6 +45,7 @@ RegisterServerEvent('dd_society:saveState', function()
 	local state = {
 		dead = ply.state.dead,
 		ko = ply.state.ko,
+		cuffed = ply.state.cuffed
 	}
 	exports.oxmysql:update('UPDATE users SET state = ? WHERE identifier = ?', {json.encode(state), ply.state.id})
 end)
@@ -60,6 +63,11 @@ RegisterServerEvent('dd_society:revivePlayer', function(player, coords)
 		TriggerEvent('ox_inventory:clearPlayerInventory', player)
 	end
 	TriggerClientEvent('dd_society:revive', player, false, coords and nearestRespawn(coords))
+end)
+
+RegisterNetEvent('dd_society:cuffPlayer', function(target)
+	TriggerClientEvent('dd_society:Cuffer', source, target, Player(target).state.cuffed)
+	TriggerClientEvent('dd_society:Cuffee', target)
 end)
 
 RegisterServerEvent('dd_society:saveJob', function(job)

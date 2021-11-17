@@ -100,6 +100,22 @@ CreateThread(function()
 					SendNUIMessage({response = 'closeDead'})
 				end
 
+				if LocalPlayer.state.cuffed then
+					if not isBusy and not (IsEntityPlayingAnim(ESX.PlayerData.ped, 'mp_arresting', 'idle', 3) or IsEntityPlayingAnim(ESX.PlayerData.ped, 'mp_arrest_paired', 'crook_p2_back_right', 3) or IsEntityPlayingAnim(ESX.PlayerData.ped, 'mp_arresting', 'b_cuff', 3)) or IsPedRagdoll(ESX.PlayerData.ped) then
+						ClearPedTasks(ESX.PlayerData.ped)
+						lib:requestAnimDict('mp_arresting')
+						TaskPlayAnim(ESX.PlayerData.ped, 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0.0, 0, 0, 0)
+					end
+					DisableAllControlActions(0)
+					EnableControlAction(0, 0, true) -- v
+					EnableControlAction(0, 1, true) -- pan
+					EnableControlAction(0, 2, true) -- tilst
+					EnableControlAction(0, 21, true) -- sprint
+					EnableControlAction(0, 30, true) -- move up/down
+					EnableControlAction(0, 31, true) -- move left/right
+					EnableControlAction(0, 245, true) -- t
+				end
+
 				if targetActive then
 					DisableAllControlActions(0)
 					EnableControlAction(0, 0, true) -- v
