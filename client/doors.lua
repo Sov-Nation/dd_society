@@ -21,6 +21,10 @@ CreateThread(function()
 end)
 
 RegisterCommand('lock/unlock', function()
+	if not (LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed) then
+		return
+	end
+	
 	local closeDist = 25
 	local closeDoor = {}
 	for k, v in pairs(Data.Player.Auth.Doors) do

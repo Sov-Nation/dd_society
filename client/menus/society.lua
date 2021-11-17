@@ -1,7 +1,7 @@
 RegisterCommand('societyMenu', function()
 	local close = ESX.UI.Menu.IsOpen('default', resName, 'society')
 	ESX.UI.Menu.CloseAll()
-	if not close and not ESX.PlayerData.dead and not ESX.PlayerData.ko then
+	if not close and not (LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed) then
 		sOpen()
 	end
 end)
