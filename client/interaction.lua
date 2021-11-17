@@ -73,7 +73,7 @@ local entityTypes = {
 local validEntity, actions, entityCoords
 
 RegisterCommand('+interactionMenu', function()
-	if not targetActive and not IsPedInAnyVehicle(ESX.PlayerData.ped, false) and not isBusy and not (LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed) then 
+	if not targetActive and not IsPedInAnyVehicle(ESX.PlayerData.ped, false) and not isBusy and not (LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed) and not LocalPlayer.state.invOpen then 
 		targetActive = true
 		local hit, coords, entity, entityType = RaycastCamera(switch())
 		entityCoords = coords
@@ -118,6 +118,14 @@ end)
 
 RegisterCommand('-interactionMenu', function()
 	if targetActive then
+		SendNUIMessage({response = 'closeTarget'})
+		targetActive = false
+		validEntity = nil
+	end
+end)
+
+AddStateBagChangeHandler('invOpen', 'player:' .. GetPlayerServerId(PlayerId()), function(bagName, _, value, _, _)
+	if targetActive and value then
 		SendNUIMessage({response = 'closeTarget'})
 		targetActive = false
 		validEntity = nil
