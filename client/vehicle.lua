@@ -1,5 +1,5 @@
 carInstance = {}
-SetDefaultVehicleNumberPlateTextPattern(-1, Config.defaultPlate);
+SetDefaultVehicleNumberPlateTextPattern(-1, Config.defaultPlate)
 
 RegisterNetEvent('dd_society:spawnVehicle', function(vehicle, coords, delete, owner)
 	local veh = spawnVehicle(vehicle, coords, delete)
