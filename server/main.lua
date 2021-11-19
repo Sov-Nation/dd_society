@@ -59,14 +59,34 @@ CreateThread(function()
 		Data.Zones[v.id] = v
 	end
 
-	local i, Properties = 0, {}
-	local path = GetResourcePath(GetCurrentResourceName())
-	local dir = io.popen('dir "' .. path:gsub('//', '/') .. '/data/properties/' .. '" /b')
-	for filename in dir:lines() do
-		i += 1
-		Properties[i] = filename:gsub('.lua', '')
-	end
-	dir:close()
+--	local i, Properties = 0, {}
+--	local path = GetResourcePath(GetCurrentResourceName())
+--	local dir = io.popen('dir "' .. path:gsub('//', '/') .. '/data/properties/' .. '" /b')
+--	for filename in dir:lines() do
+--		i += 1
+--		Properties[i] = filename:gsub('.lua', '')
+--	end
+--	dir:close()
+		
+		--LINUX VERSION
+		
+		    local i, Properties = 0, {}
+    local path = GetResourcePath(GetCurrentResourceName())
+    local system, dir = os.getenv('OS')
+    if system and system:match('Windows') then
+        dir = io.popen('dir "' .. path:gsub('//', '/') .. '/data/properties/" /b')
+    else
+        dir = io.popen('ls "' .. path:gsub('//', '/') .. '/data/properties/"')
+    end
+    for filename in dir:lines() do
+        i += 1
+        Properties[i] = filename:gsub('.lua', '')
+    end
+    dir:close()
+		
+		--END OF LINUX VERSION
+		
+		
 	
 	for i = 1, #Properties do
 		local property = data('properties/' .. Properties[i])
