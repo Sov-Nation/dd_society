@@ -18,7 +18,7 @@ CreateThread(function()
 			name = v.property .. ' - ' .. v.name,
 			minZ = v.minZ,
 			maxZ = v.maxZ,
-			debugGrid = Config.debugZone or v.debug,
+			debugGrid = Config.debugZone or Data.Properties[v.property].debug or v.debug,
 			lazyGrid = true,
 			data = v
 		})
