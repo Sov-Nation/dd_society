@@ -50,6 +50,7 @@ RegisterNetEvent('dd_society:revive', function(full, coords)
 	if full then
 		LocalPlayer.state:set('ko', 0, true)
 		LocalPlayer.state:set('cuffed', false, true)
+		SetPedConfigFlag(ESX.PlayerData.ped, 146, false)
 	else
 		Wait(2000)
 	end
