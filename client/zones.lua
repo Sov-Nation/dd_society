@@ -6,7 +6,6 @@ local ZoneMenus = {
 	'stash',
 	'locker',
 	'shop',
-	'uniform',
 	'teleport'
 }
 
@@ -14,14 +13,23 @@ CreateThread(function()
 	dataReady()
 	for k, v in pairs(Data.Zones) do
 		local zone
-		zone = PolyZone:Create((v.poly), {
-			name = v.property .. ' - ' .. v.name,
-			minZ = v.minZ,
-			maxZ = v.maxZ,
-			debugGrid = Config.debugZone or Data.Properties[v.property].debug or v.debug,
-			lazyGrid = true,
-			data = v
-		})
+		if v.poly then
+			zone = PolyZone:Create((v.poly), {
+				name = v.property .. ' - ' .. v.name,
+				minZ = v.minZ,
+				maxZ = v.maxZ,
+				debugGrid = Config.debugZone or Data.Properties[v.property].debug or v.debug,
+				lazyGrid = true,
+				data = v
+			})
+		elseif v.circle then
+			zone = CircleZone:Create((v.circle), 1.8, {
+				name = v.property .. ' - ' .. v.name,
+				useZ = true,
+				debugPoly = Config.debugZone or Data.Properties[v.property].debug or v.debug,
+				data = v
+			})
+		end
 		zone:onPlayerInOut(function(isPointInside, point)
 			if Data.Player.Auth and has_value(Data.Player.Auth.Zones, zone.data.id) or Data.Zones[zone.data.id].public then
 				local insideZone = isPointInside
