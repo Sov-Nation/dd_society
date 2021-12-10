@@ -6,6 +6,7 @@ function kmOpen()
 		elements = {
 			{label = 'Societies', value = 'societies'},
 			{label = 'Players', value = 'players'},
+			{label = 'Property types', value = 'propTypes'},
 			{label = 'Properties', value = 'properties'},
 		}
 	},
@@ -110,6 +111,57 @@ function kmOpen()
 						menu3.close()
 					end)
 				end
+			end,
+			function(data2, menu2)
+				menu2.close()
+			end)
+		elseif data.current.value == 'propTypes' then
+			local elements = {}
+			local propTypes = {}
+			for k, v in pairs(Data.Properties) do
+				if not propTypes[v.type] then
+					propTypes[v.type] = {v}
+				else
+					table.insert(propTypes[v.type], v)
+				end
+			end
+			for k, v in pairs(propTypes) do
+				local pType = k:gsub("^%l", string.upper)
+				table.insert(elements, {
+					type = pType,
+					label = pType .. ' - (' .. #v .. ')',
+					value = v
+				})
+			end
+			if not next(elements) then
+				elements[1] = {label = 'None'}
+			end
+			ESX.UI.Menu.Open('default', resName, 'keymasterPropTypes',{
+				title    = 'Keymaster - Property Types',
+				align    = 'top-left',
+				elements = elements
+			},
+			function(data2, menu2)
+				local elements = {}
+				for k, v in pairs(data2.current.value) do
+					table.insert(elements, {
+						label = v.id .. ' - (' .. (v.ownername or v.owner) .. ')',
+						value = v
+					})
+				end
+				ESX.UI.Menu.Open('default', resName, 'keymasterPropTypesProperties',{
+					title    = 'Keymaster - ' .. data2.current.type .. ' Properties',
+					align    = 'top-left',
+					elements = elements
+				},
+				function(data3, menu3)
+					if data3.current.value then
+						kmProperty(data3.current.value)
+					end
+				end,
+				function(data3, menu3)
+					menu3.close()
+				end)
 			end,
 			function(data2, menu2)
 				menu2.close()
