@@ -257,11 +257,12 @@ end)
 
 ESX.RegisterServerCallback('dd_society:getPlayer', function(source, cb, ident)
 	if ident == 'self' then
-		ident = nil
-		while not ident do
+		xPlayer = nil
+		while not xPlayer do
 			Wait(0)
-			ident = ESX.GetPlayerFromId(source).identifier
+			xPlayer = ESX.GetPlayerFromId(source)
 		end
+		ident = xPlayer.identifier
 	end
 
 	local Player = exports.oxmysql:singleSync('SELECT identifier, dd_keys, firstname, lastname FROM users WHERE identifier = ?', {ident})
