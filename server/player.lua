@@ -66,8 +66,8 @@ RegisterServerEvent('dd_society:revivePlayer', function(player, coords)
 end)
 
 RegisterNetEvent('dd_society:cuffPlayer', function(target)
-	TriggerClientEvent('dd_society:Cuffer', source, target, Player(target).state.cuffed, Player(target).state.escorted)
-	TriggerClientEvent('dd_society:Cuffee', target)
+	TriggerClientEvent('dd_society:cuffer', source, target, Player(target).state.cuffed, Player(target).state.escorted)
+	TriggerClientEvent('dd_society:cuffee', target)
 end)
 
 RegisterNetEvent('dd_society:escortPlayer', function(target)

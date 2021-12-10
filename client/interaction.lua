@@ -202,7 +202,7 @@ RegisterCommand('cuff', function(source, args, rawCommand)
 	end
 end)
 
-RegisterNetEvent('dd_society:Cuffer', function(target, cuffed, escorted)
+RegisterNetEvent('dd_society:cuffer', function(target, cuffed, escorted)
 	if cuffed == escorted or cuffed and escorted then
 		TriggerServerEvent('dd_society:escortPlayer', target)
 	end
@@ -249,7 +249,7 @@ RegisterNetEvent('dd_society:Cuffer', function(target, cuffed, escorted)
 	end
 end)
 
-RegisterNetEvent('dd_society:Cuffee', function()
+RegisterNetEvent('dd_society:cuffee', function()
 	isBusy = true
 	LocalPlayer.state:set('cuffed', not LocalPlayer.state.cuffed, true)
 	ClearPedTasks(ESX.PlayerData.ped)
