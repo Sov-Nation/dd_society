@@ -6,6 +6,7 @@ RegisterKeyMapping('+interactionMenu', 'Interaction Menu', 'keyboard', 'lcontrol
 RegisterKeyMapping('bleedOut', 'Bleed Out', 'keyboard', 'e')
 RegisterKeyMapping('resuscitate', 'Resuscitate', 'keyboard', 'e')
 RegisterKeyMapping('cuff', 'Cuff', 'keyboard', 'r')
+RegisterKeyMapping('escort', 'Escort', 'keyboard', 'q')
 RegisterKeyMapping('repair', 'Repair', 'keyboard', 'e')
 
 CreateThread(function()
@@ -19,6 +20,7 @@ CreateThread(function()
 		'bleedOut',
 		'resuscitate',
 		'cuff',
+		'escort',
 		'repair',
 	}
 	for i = 1, #commands do
@@ -93,6 +95,11 @@ RegisterCommand('+interactionMenu', function()
 					validEntity = nil
 					actions = nil
 					SendNUIMessage({response = 'leftTarget'})
+				end
+				if LocalPlayer.state.escorting then
+					validEntity = GetPlayerPed(GetPlayerFromServerId(LocalPlayer.state.escorting))
+					actions = entityTypes.player
+					SendNUIMessage({response = 'validTarget', actions = actions})
 				end
 				if has_value({1, 2}, entityType) and distance < 5 then
 					if entityType == 1 and IsPedAPlayer(entity) then
@@ -197,7 +204,10 @@ RegisterCommand('cuff', function(source, args, rawCommand)
 	end
 end)
 
-RegisterNetEvent('dd_society:Cuffer', function(target, cuffed)
+RegisterNetEvent('dd_society:Cuffer', function(target, cuffed, escorted)
+	if cuffed == escorted or cuffed and escorted then
+		TriggerServerEvent('dd_society:escortPlayer', target)
+	end
 	if cuffed then
 		exports.ox_inventory:Progress({
 			duration = 4000,
@@ -288,6 +298,30 @@ RegisterNetEvent('dd_society:Cuffee', function()
 		function(cancel)
 			isBusy = false
 		end)
+	end
+end)
+
+RegisterCommand('escort', function(source, args, rawCommand)
+	if targetActive and not isBusy and validAction(rawCommand) then
+		SendNUIMessage({response = 'closeTarget'})
+		targetActive = false
+		ClearPedTasks(ESX.PlayerData.ped)
+		TaskGoToEntity(ESX.PlayerData.ped, validEntity, -1, 1.5, 1.0, 0, 0)
+		-- repeat Wait(1000) until #(pedPos - entityCoords) < 1.5
+		TriggerServerEvent('dd_society:escortPlayer', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+	end
+end)
+
+RegisterNetEvent('dd_society:escort', function(id)
+	if id == LocalPlayer.state.escorted then
+		return
+	end
+	LocalPlayer.state:set('escorted', id, true)
+	if LocalPlayer.state.escorted then
+		local entity = GetPlayerPed(GetPlayerFromServerId(id))
+		AttachEntityToEntity(ESX.PlayerData.ped, entity, 11816, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, true, true, false, false, 2, true)
+	else
+		DetachEntity(ESX.PlayerData.ped, true, false)
 	end
 end)
 

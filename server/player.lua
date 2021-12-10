@@ -35,6 +35,8 @@ RegisterServerEvent('esx:playerLoaded', function(playerId)
 	ply.state.dead = state.dead or false
 	ply.state.ko = state.ko or 0
 	ply.state.cuffed = state.cuffed or false
+	ply.state.escorted = false
+	ply.state.escorting = false
 	ply.state.handsUp = false
 end)
 
@@ -64,8 +66,23 @@ RegisterServerEvent('dd_society:revivePlayer', function(player, coords)
 end)
 
 RegisterNetEvent('dd_society:cuffPlayer', function(target)
-	TriggerClientEvent('dd_society:Cuffer', source, target, Player(target).state.cuffed)
+	TriggerClientEvent('dd_society:Cuffer', source, target, Player(target).state.cuffed, Player(target).state.escorted)
 	TriggerClientEvent('dd_society:Cuffee', target)
+end)
+
+RegisterNetEvent('dd_society:escortPlayer', function(target)
+	local id = source
+	local ply = Player(source)
+	if ply.state.escorting == target then
+		ply.state.escorting = false
+		id = false
+	elseif ply.state.escorting then
+		TriggerClientEvent('dd_society:escort', ply.state.escorting, false)
+		ply.state.escorting = target
+	else
+		ply.state.escorting = target
+	end
+	TriggerClientEvent('dd_society:escort', target, id)
 end)
 
 RegisterServerEvent('dd_society:saveJob', function(job)
