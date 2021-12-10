@@ -228,7 +228,7 @@ RegisterNetEvent('dd_society:Cuffer', function(target, cuffed, escorted)
 		end)
 	else
 		exports.ox_inventory:Progress({
-			duration = 4700,
+			duration = 4500,
 			label = 'Cuffing',
 			useWhileDead = false,
 			canCancel = false,
@@ -258,7 +258,7 @@ RegisterNetEvent('dd_society:Cuffee', function()
 	if LocalPlayer.state.cuffed then
 		TriggerEvent('ox_inventory:disarm')
 		exports.ox_inventory:Progress({
-			duration = 4700,
+			duration = 4500,
 			label = 'Getting Cuffed',
 			useWhileDead = true,
 			canCancel = false,
