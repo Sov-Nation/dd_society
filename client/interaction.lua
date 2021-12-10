@@ -53,13 +53,11 @@ end
 local entityTypes = {
 	ped = {
 		{icon = 'fas fa-lock', name = 'cuffPed'},
-		{icon = 'fas fa-lock-open', name = 'uncuffPed'},
 		{icon = 'fas fa-medkit', name = 'resuscitatePed'},
 		{icon = 'fas fa-people-arrows', name = 'escortPed'},
 	},
 	player = {
 		{icon = 'fas fa-lock', name = 'cuff'},
-		{icon = 'fas fa-lock-open', name = 'uncuff'},
 		{icon = 'fas fa-medkit', name = 'resuscitate'},
 		{icon = 'fas fa-mask', name = 'steal'},
 		{icon = 'fas fa-people-arrows', name = 'escort'},
