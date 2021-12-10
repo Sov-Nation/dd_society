@@ -251,7 +251,6 @@ end)
 
 RegisterNetEvent('dd_society:Cuffee', function()
 	isBusy = true
-	TriggerEvent('esx_policejob:handcuff')
 	LocalPlayer.state:set('cuffed', not LocalPlayer.state.cuffed, true)
 	ClearPedTasks(ESX.PlayerData.ped)
 	SetPedConfigFlag(ESX.PlayerData.ped, 146, LocalPlayer.state.cuffed)
