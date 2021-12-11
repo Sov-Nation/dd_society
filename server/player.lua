@@ -70,19 +70,19 @@ RegisterNetEvent('dd_society:cuffPlayer', function(target)
 	TriggerClientEvent('dd_society:cuffee', target)
 end)
 
-RegisterNetEvent('dd_society:escortPlayer', function(target)
+RegisterNetEvent('dd_society:escortPlayer', function(target, vehicle, seat)
 	local id = source
 	local ply = Player(source)
 	if ply.state.escorting == target then
 		ply.state.escorting = false
 		id = false
 	elseif ply.state.escorting then
-		TriggerClientEvent('dd_society:escort', ply.state.escorting, false)
+		TriggerClientEvent('dd_society:escort', ply.state.escorting, false, vehicle, seat)
 		ply.state.escorting = target
 	else
 		ply.state.escorting = target
 	end
-	TriggerClientEvent('dd_society:escort', target, id)
+	TriggerClientEvent('dd_society:escort', target, id, vehicle, seat)
 end)
 
 RegisterServerEvent('dd_society:saveJob', function(job)

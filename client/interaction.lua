@@ -7,6 +7,7 @@ RegisterKeyMapping('bleedOut', 'Bleed Out', 'keyboard', 'e')
 RegisterKeyMapping('resuscitate', 'Resuscitate', 'keyboard', 'r')
 RegisterKeyMapping('cuff', 'Cuff', 'keyboard', 'e')
 RegisterKeyMapping('escort', 'Escort', 'keyboard', 'q')
+RegisterKeyMapping('vehicleEscort', 'Vehicle Escort', 'keyboard', 'q')
 RegisterKeyMapping('repair', 'Repair', 'keyboard', 'e')
 
 CreateThread(function()
@@ -65,8 +66,7 @@ local entityTypes = {
 	vehicle = {
 		{icon = 'fas fa-tools', name = 'repair'},
 		{icon = 'fas fa-barcode', name = 'vehicleInfo'},
-		{icon = 'fas fa-sign-in-alt', name = 'escortInVehicle'},
-		{icon = 'fas fa-sign-out-alt', name = 'escortOutVehicle'},
+		{icon = 'fas fa-people-arrows', name = 'vehicleEscort'},
 	},
 }
 
@@ -203,9 +203,6 @@ RegisterCommand('cuff', function(source, args, rawCommand)
 end)
 
 RegisterNetEvent('dd_society:cuffer', function(target, cuffed, escorted)
-	if cuffed == escorted or cuffed and escorted then
-		TriggerServerEvent('dd_society:escortPlayer', target)
-	end
 	if cuffed then
 		exports.ox_inventory:Progress({
 			duration = 4000,
@@ -224,9 +221,15 @@ RegisterNetEvent('dd_society:cuffer', function(target, cuffed, escorted)
 			},
 		},
 		function(cancel)
+			if escorted then
+				TriggerServerEvent('dd_society:escortPlayer', target)
+			end
 			isBusy = false
 		end)
 	else
+		if not escorted then
+			TriggerServerEvent('dd_society:escortPlayer', target)
+		end
 		exports.ox_inventory:Progress({
 			duration = 4500,
 			label = 'Cuffing',
@@ -309,16 +312,23 @@ RegisterCommand('escort', function(source, args, rawCommand)
 	end
 end)
 
-RegisterNetEvent('dd_society:escort', function(id)
+RegisterNetEvent('dd_society:escort', function(id, vehicle, seat)
 	if id == LocalPlayer.state.escorted then
 		return
 	end
 	LocalPlayer.state:set('escorted', id, true)
 	if LocalPlayer.state.escorted then
+		if vehicle and seat then
+			TaskLeaveVehicle(ESX.PlayerData.ped, NetworkGetEntityFromNetworkId(vehicle), 16)
+			Wait(100)
+		end
 		local entity = GetPlayerPed(GetPlayerFromServerId(id))
 		AttachEntityToEntity(ESX.PlayerData.ped, entity, 11816, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, true, true, false, false, 2, true)
 	else
 		DetachEntity(ESX.PlayerData.ped, true, false)
+		if vehicle and seat then
+			SetPedIntoVehicle(ESX.PlayerData.ped, NetworkGetEntityFromNetworkId(vehicle), seat)
+		end
 	end
 end)
 
@@ -361,5 +371,36 @@ RegisterCommand('repair', function(source, args, rawCommand)
 			isBusy = false
 			validEntity = nil
 		end)
+	end
+end)
+
+RegisterCommand('vehicleEscort', function(source, args, rawCommand)
+	if targetActive and not isBusy and validAction(rawCommand) then
+		SendNUIMessage({response = 'closeTarget'})
+		targetActive = false
+		isBusy = true
+		local backSeats = GetVehicleModelNumberOfSeats(GetEntityModel(validEntity)) - 2
+		if backSeats < 1 then
+			isBusy = false
+			validEntity = nil
+			return
+		end
+		if LocalPlayer.state.escorting then
+			for i = 1, backSeats do
+				if IsVehicleSeatFree(validEntity, i) then
+					TriggerServerEvent('dd_society:escortPlayer', LocalPlayer.state.escorting, NetworkGetNetworkIdFromEntity(validEntity), i)
+					break
+				end
+			end
+		else
+			for i = 1, backSeats do
+				if not IsVehicleSeatFree(validEntity, i) then
+					TriggerServerEvent('dd_society:escortPlayer', GetPlayerServerId(NetworkGetPlayerIndexFromPed(GetPedInVehicleSeat(validEntity, i))), NetworkGetNetworkIdFromEntity(validEntity), i)
+					break
+				end
+			end
+		end
+		isBusy = false
+		validEntity = nil
 	end
 end)
