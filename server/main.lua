@@ -88,6 +88,17 @@ CreateThread(function()
 			Data.Respawn[property.id] = property.respawn
 		end
 
+		for j = 1, #property.zones do
+			local zone = property.zones[j]
+			if zone.type == 'boss' then
+				exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Boss Stash', 50, 50000, false)
+			elseif zone.type == 'stash' then
+				exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Stash', 50, 50000, false)
+			elseif zone.type == 'locker' then
+				exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Personal Locker', 10, 10000, true)
+			end
+		end
+
 		if not Data.Properties[property.id] then
 			Data.Properties[property.id] = property
 

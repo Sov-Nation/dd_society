@@ -71,21 +71,9 @@ RegisterCommand('interact', function()
 			elseif Zone.type == 'property' then
 				pOpen(Zone)
 			elseif Zone.type == 'stash' then
-				TriggerEvent('ox_inventory:openInventory', 'stash', {
-					name = string.strconcat(Zone.property, ':', Zone.type, '-', Zone.designation),
-					label = 'Stash',
-					owner = false,
-					slots = 50,
-					weight = 50000
-				})
+				TriggerEvent('ox_inventory:openInventory', 'stash', string.strconcat(Zone.property, ':', Zone.type, '-', Zone.designation))
 			elseif Zone.type == 'locker' then
-				TriggerEvent('ox_inventory:openInventory', 'stash', {
-					name = string.strconcat(Zone.property, ':', Zone.type, '-', Zone.designation, ':'),
-					label = 'Personal Locker',
-					owner = true,
-					slots = 10,
-					weight = 10000
-				})
+				TriggerEvent('ox_inventory:openInventory', 'stash', string.strconcat(Zone.property, ':', Zone.type, '-', Zone.designation))
 			elseif Zone.type == 'shop' then
 				TriggerEvent('ox_inventory:openInventory', 'shop', {type = 'Property', id = Zone.property})
 			elseif Zone.type == 'uniform' then

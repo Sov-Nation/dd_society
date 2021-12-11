@@ -14,14 +14,8 @@ function bOpen(zone)
 	function(data, menu)
 		if data.current.value == 'stash' then
 			menu.close()
-			TriggerEvent('ox_inventory:openInventory', 'stash', {
-				name = string.strconcat(zone.property, ':', zone.type, '-', zone.designation),
-				label = 'Stash',
-				owner = false,
-				slots = 50,
-				weight = 50000
-			})
-	elseif data.current.value == 'finance' then
+			TriggerEvent('ox_inventory:openInventory', 'stash', string.strconcat(zone.property, ':', zone.type, '-', zone.designation))
+		elseif data.current.value == 'finance' then
 			local elements = {
 				{label = 'Withdraw cash', value = 'withdraw'},
 				{label = 'Deposit cash', value = 'deposit'},
