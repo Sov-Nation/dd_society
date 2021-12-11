@@ -55,7 +55,7 @@ CreateThread(function()
 	end
 
 	local Zones = exports.oxmysql:executeSync('SELECT * FROM dd_zones', {})
-	for k, v in pairs(Zones) do		
+	for k, v in pairs(Zones) do
 		Data.Zones[v.id] = v
 	end
 
@@ -72,7 +72,7 @@ CreateThread(function()
 		Properties[i] = filename:gsub('.lua', '')
 	end
 	dir:close()
-	
+
 	for i = 1, #Properties do
 		local property = data('properties/' .. Properties[i])
 
@@ -111,7 +111,7 @@ CreateThread(function()
 				door.id = #Data.Doors + 1
 
 				Data.Doors[#Data.Doors + 1] = door
-				
+
 				exports.oxmysql:insertSync('INSERT INTO dd_doors (property, designation, name, distance, onstart) VALUES (?, ?, ?, ?, ?)', {door.property, door.designation, door.name, door.distance, door.onstart})
 			end
 
@@ -120,7 +120,7 @@ CreateThread(function()
 				zone.designation = j
 				zone.property = property.id
 				zone.id = #Data.Zones + 1
-				
+
 				Data.Zones[#Data.Zones + 1] = zone
 
 				exports.oxmysql:insertSync('INSERT INTO dd_zones (property, designation, name, public) VALUES (?, ?, ?, ?)', {zone.property, zone.designation, zone.name, zone.public})
@@ -301,7 +301,7 @@ ESX.RegisterServerCallback('dd_society:getEmployees', function(source, cb, socie
 	local Employees = exports.oxmysql:executeSync('SELECT identifier, dd_keys, firstname, lastname, job_grade FROM users WHERE job = ?', {society.name})
 
 	local Grades = exports.oxmysql:executeSync('SELECT job_grades.grade, job_grades.name, job_grades.label, job_grades.salary FROM job_grades WHERE job_name = ?', {society.name})
-	
+
 	for k, v in pairs(Employees) do
 		for k2, v2 in pairs(Grades) do
 			if v.job_grade == v2.grade then
@@ -310,7 +310,7 @@ ESX.RegisterServerCallback('dd_society:getEmployees', function(source, cb, socie
 				break
 			end
 		end
-		
+
 		v.dd_keys = json.decode(v.dd_keys)
 		v.fullname = v.firstname .. ' ' .. v.lastname
 	end
