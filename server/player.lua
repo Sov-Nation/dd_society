@@ -65,24 +65,30 @@ RegisterServerEvent('dd_society:revivePlayer', function(player, coords)
 	TriggerClientEvent('dd_society:revive', player, false, coords and nearestRespawn(coords))
 end)
 
-RegisterNetEvent('dd_society:cuffPlayer', function(target)
-	TriggerClientEvent('dd_society:cuffer', source, target, Player(target).state.cuffed, Player(target).state.escorted)
-	TriggerClientEvent('dd_society:cuffee', target)
-end)
-
-RegisterNetEvent('dd_society:escortPlayer', function(target, vehicle, seat)
-	local id = source
-	local ply = Player(source)
-	if ply.state.escorting == target then
-		ply.state.escorting = false
-		id = false
-	elseif ply.state.escorting then
-		TriggerClientEvent('dd_society:escort', ply.state.escorting, false, vehicle, seat)
+RegisterNetEvent('dd_society:cuff', function(target)
+	local ply, tgt = Player(source), Player(target)
+	tgt.state.cuffed = not tgt.state.cuffed
+	if tgt.state.cuffed then
+		tgt.state.escorted = source
 		ply.state.escorting = target
 	else
-		ply.state.escorting = target
+		tgt.state.escorted = false
+		ply.state.escorting = false
 	end
-	TriggerClientEvent('dd_society:escort', target, id, vehicle, seat)
+	TriggerClientEvent('dd_society:restrainer', source, tgt.state.cuffed)
+	TriggerClientEvent('dd_society:cuff', target, source, tgt.state.cuffed)
+end)
+
+RegisterNetEvent('dd_society:escort', function(target, vehicle, seat)
+	local ply, tgt = Player(source), Player(target)
+	if tgt.state.escorted ~= source then
+		tgt.state.escorted = source
+		ply.state.escorting = target
+	else
+		tgt.state.escorted = false
+		ply.state.escorting = false
+	end
+	TriggerClientEvent('dd_society:escort', target, source, tgt.state.escorted, vehicle, seat)
 end)
 
 RegisterServerEvent('dd_society:saveJob', function(job)

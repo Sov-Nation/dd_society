@@ -197,39 +197,16 @@ RegisterCommand('cuff', function(source, args, rawCommand)
 		isBusy = true
 		ClearPedTasks(ESX.PlayerData.ped)
 		TaskGoToEntity(ESX.PlayerData.ped, validEntity, -1, 1.5, 1.0, 0, 0)
-		repeat Wait(1000) until #(pedPos - entityCoords) < 1.5
-		TriggerServerEvent('dd_society:cuffPlayer', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+		while #(pedPos - entityCoords) > 1.5 do Wait(1000) end
+		TriggerServerEvent('dd_society:cuff', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+		isBusy = false
+		validEntity = nil
 	end
 end)
 
-RegisterNetEvent('dd_society:cuffer', function(target, cuffed, escorted)
-	if cuffed then
-		exports.ox_inventory:Progress({
-			duration = 4000,
-			label = 'Uncuffing',
-			useWhileDead = false,
-			canCancel = false,
-			disable = {
-				move = true,
-				car = true,
-				combat = true,
-				mouse = false
-			},
-			anim = {
-				dict = 'mp_arresting', 
-				clip = 'a_uncuff',
-			},
-		},
-		function(cancel)
-			if escorted then
-				TriggerServerEvent('dd_society:escortPlayer', target)
-			end
-			isBusy = false
-		end)
-	else
-		if not escorted then
-			TriggerServerEvent('dd_society:escortPlayer', target)
-		end
+RegisterNetEvent('dd_society:restrainer', function(cuff)
+	isBusy = true
+	if cuff then
 		exports.ox_inventory:Progress({
 			duration = 4500,
 			label = 'Cuffing',
@@ -249,15 +226,35 @@ RegisterNetEvent('dd_society:cuffer', function(target, cuffed, escorted)
 		function(cancel)
 			isBusy = false
 		end)
+	else
+		exports.ox_inventory:Progress({
+			duration = 4000,
+			label = 'Uncuffing',
+			useWhileDead = false,
+			canCancel = false,
+			disable = {
+				move = true,
+				car = true,
+				combat = true,
+				mouse = false
+			},
+			anim = {
+				dict = 'mp_arresting', 
+				clip = 'a_uncuff',
+			},
+		},
+		function(cancel)
+			isBusy = false
+		end)
 	end
 end)
 
-RegisterNetEvent('dd_society:cuffee', function()
+RegisterNetEvent('dd_society:cuff', function(control, cuff)
 	isBusy = true
-	LocalPlayer.state:set('cuffed', not LocalPlayer.state.cuffed, true)
 	ClearPedTasks(ESX.PlayerData.ped)
-	SetPedConfigFlag(ESX.PlayerData.ped, 146, LocalPlayer.state.cuffed)
-	if LocalPlayer.state.cuffed then
+	SetPedConfigFlag(ESX.PlayerData.ped, 146, cuff)
+	AttachEntityToEntity(ESX.PlayerData.ped, GetPlayerPed(GetPlayerFromServerId(control)), 11816, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, true, true, false, false, 2, true)
+	if cuff then
 		TriggerEvent('ox_inventory:disarm')
 		exports.ox_inventory:Progress({
 			duration = 4500,
@@ -296,6 +293,7 @@ RegisterNetEvent('dd_society:cuffee', function()
 			},
 		},
 		function(cancel)
+			DetachEntity(ESX.PlayerData.ped, true, false)
 			isBusy = false
 		end)
 	end
@@ -305,25 +303,23 @@ RegisterCommand('escort', function(source, args, rawCommand)
 	if targetActive and not isBusy and validAction(rawCommand) then
 		SendNUIMessage({response = 'closeTarget'})
 		targetActive = false
+		isBusy = true
 		ClearPedTasks(ESX.PlayerData.ped)
 		TaskGoToEntity(ESX.PlayerData.ped, validEntity, -1, 1.5, 1.0, 0, 0)
-		-- repeat Wait(1000) until #(pedPos - entityCoords) < 1.5
-		TriggerServerEvent('dd_society:escortPlayer', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+		while #(pedPos - entityCoords) > 1.5 and not LocalPlayer.state.escorting do Wait(1000) end
+		TriggerServerEvent('dd_society:escort', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+		isBusy = false
+		validEntity = nil
 	end
 end)
 
-RegisterNetEvent('dd_society:escort', function(id, vehicle, seat)
-	if id == LocalPlayer.state.escorted then
-		return
-	end
-	LocalPlayer.state:set('escorted', id, true)
-	if LocalPlayer.state.escorted then
+RegisterNetEvent('dd_society:escort', function(control, escort, vehicle, seat)
+	if escort then
 		if vehicle and seat then
 			TaskLeaveVehicle(ESX.PlayerData.ped, NetworkGetEntityFromNetworkId(vehicle), 16)
-			Wait(100)
+			Wait(10)
 		end
-		local entity = GetPlayerPed(GetPlayerFromServerId(id))
-		AttachEntityToEntity(ESX.PlayerData.ped, entity, 11816, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, true, true, false, false, 2, true)
+		AttachEntityToEntity(ESX.PlayerData.ped, GetPlayerPed(GetPlayerFromServerId(control)), 11816, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, true, true, false, false, 2, true)
 	else
 		DetachEntity(ESX.PlayerData.ped, true, false)
 		if vehicle and seat then
@@ -378,7 +374,6 @@ RegisterCommand('vehicleEscort', function(source, args, rawCommand)
 	if targetActive and not isBusy and validAction(rawCommand) then
 		SendNUIMessage({response = 'closeTarget'})
 		targetActive = false
-		isBusy = true
 		local backSeats = GetVehicleModelNumberOfSeats(GetEntityModel(validEntity)) - 2
 		if backSeats < 1 then
 			isBusy = false
@@ -388,19 +383,18 @@ RegisterCommand('vehicleEscort', function(source, args, rawCommand)
 		if LocalPlayer.state.escorting then
 			for i = 1, backSeats do
 				if IsVehicleSeatFree(validEntity, i) then
-					TriggerServerEvent('dd_society:escortPlayer', LocalPlayer.state.escorting, NetworkGetNetworkIdFromEntity(validEntity), i)
+					TriggerServerEvent('dd_society:escort', LocalPlayer.state.escorting, NetworkGetNetworkIdFromEntity(validEntity), i)
 					break
 				end
 			end
 		else
 			for i = 1, backSeats do
 				if not IsVehicleSeatFree(validEntity, i) then
-					TriggerServerEvent('dd_society:escortPlayer', GetPlayerServerId(NetworkGetPlayerIndexFromPed(GetPedInVehicleSeat(validEntity, i))), NetworkGetNetworkIdFromEntity(validEntity), i)
+					TriggerServerEvent('dd_society:escort', GetPlayerServerId(NetworkGetPlayerIndexFromPed(GetPedInVehicleSeat(validEntity, i))), NetworkGetNetworkIdFromEntity(validEntity), i)
 					break
 				end
 			end
 		end
-		isBusy = false
 		validEntity = nil
 	end
 end)
