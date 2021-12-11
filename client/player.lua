@@ -111,7 +111,7 @@ CreateThread(function()
 					DisableAllControlActions(0)
 					EnableControlAction(0, 0, true) -- v
 					EnableControlAction(0, 1, true) -- pan
-					EnableControlAction(0, 2, true) -- tilst
+					EnableControlAction(0, 2, true) -- tilt
 					EnableControlAction(0, 21, true) -- sprint
 					EnableControlAction(0, 30, true) -- move up/down
 					EnableControlAction(0, 31, true) -- move left/right
