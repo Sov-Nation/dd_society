@@ -70,13 +70,12 @@ local entityTypes = {
 	},
 }
 
-local validEntity, actions, entityCoords
+local validEntity, actions
 
 RegisterCommand('+interactionMenu', function()
 	if not targetActive and not IsPedInAnyVehicle(ESX.PlayerData.ped, false) and not isBusy and not (LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed) and not LocalPlayer.state.invOpen then 
 		targetActive = true
 		local hit, coords, entity, entityType = RaycastCamera(switch())
-		entityCoords = coords
 		local sleep = 10
 		SendNUIMessage({response = 'openTarget'})
 		while targetActive do
@@ -116,7 +115,6 @@ RegisterCommand('+interactionMenu', function()
 			Wait(sleep)
 			sleep = 10
 			_, coords, entity, entityType = RaycastCamera(hit)
-			entityCoords = coords
 		end
 	end
 end)
@@ -157,32 +155,38 @@ RegisterCommand('resuscitate', function(source, args, rawCommand)
 		local bag = 'Player:' .. targetId
 		if bag.state.dead then
 			ClearPedTasks(ESX.PlayerData.ped)
-			TaskGoToEntity(ESX.PlayerData.ped, validEntity, -1, 1.5, 1.0, 0, 0)
-			repeat Wait(1000) until #(pedPos - entityCoords) < 1.5
-			exports.ox_inventory:Progress({
-				duration = 10000,
-				label = 'Reviving',
-				useWhileDead = false,
-				canCancel = true,
-				disable = {
-					move = true,
-					car = true,
-					combat = true,
-					mouse = false
+			TaskGoToEntity(ESX.PlayerData.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
+			local count = 0
+			while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not LocalPlayer.state.escorting and count < 20 do
+				Wait(100)
+				count += 1
+			end
+			if count < 20 and #(pedPos - GetEntityCoords(validEntity)) < 1.5 then
+				exports.ox_inventory:Progress({
+					duration = 10000,
+					label = 'Reviving',
+					useWhileDead = false,
+					canCancel = true,
+					disable = {
+						move = true,
+						car = true,
+						combat = true,
+						mouse = false
+					},
+					anim = {
+						dict = 'mini@cpr@char_a@cpr_str', 
+						clip = 'cpr_pumpchest',
+					},
 				},
-				anim = {
-					dict = 'mini@cpr@char_a@cpr_str', 
-					clip = 'cpr_pumpchest',
-				},
-			},
-			function(cancel)
-				if not cancel then
-					TriggerServerEvent('dd_society:revivePlayer', targetId)
-					ESX.ShowNotification('~g~Player resuscitated')
-				end
-				isBusy = false
-				validEntity = nil
-			end)
+				function(cancel)
+					if not cancel then
+						TriggerServerEvent('dd_society:revivePlayer', targetId)
+						ESX.ShowNotification('~g~Player resuscitated')
+					end
+					isBusy = false
+					validEntity = nil
+				end)
+			end
 		else
 			isBusy = false
 			validEntity = nil
@@ -196,9 +200,15 @@ RegisterCommand('cuff', function(source, args, rawCommand)
 		targetActive = false
 		isBusy = true
 		ClearPedTasks(ESX.PlayerData.ped)
-		TaskGoToEntity(ESX.PlayerData.ped, validEntity, -1, 1.5, 1.0, 0, 0)
-		while #(pedPos - entityCoords) > 1.5 do Wait(1000) end
-		TriggerServerEvent('dd_society:cuff', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+		TaskGoToEntity(ESX.PlayerData.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
+		local count = 0
+		while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not LocalPlayer.state.escorting and count < 20 do
+			Wait(100)
+			count += 1
+		end
+		if count < 20 and #(pedPos - GetEntityCoords(validEntity)) < 1.5 then
+			TriggerServerEvent('dd_society:cuff', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+		end
 		isBusy = false
 		validEntity = nil
 	end
@@ -305,9 +315,15 @@ RegisterCommand('escort', function(source, args, rawCommand)
 		targetActive = false
 		isBusy = true
 		ClearPedTasks(ESX.PlayerData.ped)
-		TaskGoToEntity(ESX.PlayerData.ped, validEntity, -1, 1.5, 1.0, 0, 0)
-		while #(pedPos - entityCoords) > 1.5 and not LocalPlayer.state.escorting do Wait(1000) end
-		TriggerServerEvent('dd_society:escort', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+		TaskGoToEntity(ESX.PlayerData.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
+		local count = 0
+		while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not LocalPlayer.state.escorting and count < 20 do
+			Wait(100)
+			count += 1
+		end
+		if count < 20 and #(pedPos - GetEntityCoords(validEntity)) < 1.5 then
+			TriggerServerEvent('dd_society:escort', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+		end
 		isBusy = false
 		validEntity = nil
 	end
