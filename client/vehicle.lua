@@ -13,29 +13,17 @@ RegisterNetEvent('dd_society:spawnVehicle', function(vehicle, coords, delete, ow
 end)
 
 function spawnVehicle(vehicle, coords, delete)
-	local model = tonumber(vehicle) or joaat(vehicle)
-
-	if IsModelInCdimage(model) then
-		ESX.Streaming.RequestModel(model)
-
+	local model = lib:requestModel(vehicle, 5000)
+	if model then
 		local vec = coords and coords.xyz or pedPos
-		if coords then
-			heading = coords.w
-		else
-			heading = GetEntityHeading(ESX.PlayerData.ped)
-		end
+		local heading = coords and coords.w or GetEntityHeading(ESX.PlayerData.ped)
+
 		local oldVeh = GetVehiclePedIsIn(ESX.PlayerData.ped)
-		local vehicle = CreateVehicle(model, vec.xyz, heading, false, false)
-
-		SetVehicleHasBeenOwnedByPlayer(vehicle, true)
-		SetVehicleNeedsToBeHotwired(vehicle, false)
+		local vehicle = CreateVehicle(model, vec, heading, true, false)
 		SetModelAsNoLongerNeeded(model)
-		SetVehRadioStation(vehicle, 'OFF')
 
-		RequestCollisionAtCoord(coords)
-		while not HasCollisionLoadedAroundEntity(vehicle) do
-			Wait(0)
-		end
+		RequestCollisionAtCoord(vec)
+		repeat Wait(0) until HasCollisionLoadedAroundEntity(vehicle)
 
 		if delete then
 			if oldVeh and oldVeh ~= 0 then
@@ -51,12 +39,15 @@ function spawnVehicle(vehicle, coords, delete)
 					end
 				end
 			end
+			SetVehicleHasBeenOwnedByPlayer(vehicle, true)
+			SetVehicleNeedsToBeHotwired(vehicle, false)
+			SetVehRadioStation(vehicle, 'OFF')
 			SetVehicleEngineOn(vehicle, true, true, true)
 			SetPedIntoVehicle(ESX.PlayerData.ped, vehicle, -1)
 		end
 		return vehicle
 	else
-		TriggerEvent('chat:addMessage', { args = { '^1SYSTEM', 'Invalid vehicle model - ' .. vehicle } })
+		TriggerEvent('chat:addMessage', { args = { '^1SYSTEM', 'Unable to load vehicle model - ' .. vehicle } })
 	end
 end
 
