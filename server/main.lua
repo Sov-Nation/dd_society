@@ -59,128 +59,133 @@ CreateThread(function()
 		Data.Zones[v.id] = v
 	end
 
-	local i, Properties = 0, {}
+	local Properties = {}
+	local system = os.getenv('OS')
+	local command = system and system:match('Windows') and 'dir "' or 'ls "'
 	local path = GetResourcePath(GetCurrentResourceName())
-	local system, dir = os.getenv('OS')
-	if system and system:match('Windows') then
-		dir = io.popen('dir "' .. path:gsub('//', '/') .. '/data/properties/" /b')
-	else
-		dir = io.popen('ls "' .. path:gsub('//', '/') .. '/data/properties/"')
-	end
-	for filename in dir:lines() do
-		i += 1
-		Properties[i] = filename:gsub('.lua', '')
+	local types = path:gsub('//', '/') .. '/data/properties'
+	local suffix = command == 'dir "' and '/" /b' or '/"'
+	local dir = io.popen(command .. types .. suffix)
+	for line in dir:lines() do
+		Properties[line] = {}
+		local properties = io.popen(command .. types .. '/' .. line .. suffix)
+		for filename in properties:lines() do
+			Properties[line][#Properties[line] + 1] = filename:gsub('.lua', '')
+		end
 	end
 	dir:close()
 
-	for i = 1, #Properties do
-		local property = data('properties/' .. Properties[i])
+	for k, v in pairs(Properties) do
+		for i = 1, #v do
+			local property = data('properties/' .. k .. '/' .. v[i])
 
-		property.id = Properties[i]
-		property.doors = property.doors or {}
-		property.zones = property.zones or {}
+			property.id = v[i]
+			property.type = k
+			property.doors = property.doors or {}
+			property.zones = property.zones or {}
 
-		local Master = {name = 'Master', designation = 0, property = property.id}
+			local Master = {name = 'Master', designation = 0, property = property.id}
 
-		Data.Keys[#Data.Keys + 1] = Master
+			Data.Keys[#Data.Keys + 1] = Master
 
-		if property.respawn then
-			Data.Respawn[property.id] = property.respawn
-		end
-
-		for j = 1, #property.zones do
-			local zone = property.zones[j]
-			if zone.type == 'boss' then
-				exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Boss Stash', 50, 50000, false)
-			elseif zone.type == 'stash' then
-				exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Stash', 50, 50000, false)
-			elseif zone.type == 'locker' then
-				exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Personal Locker', 10, 10000, true)
-			end
-		end
-
-		if not Data.Properties[property.id] then
-			Data.Properties[property.id] = property
-
-			exports.oxmysql:insertSync('INSERT INTO dd_properties (id, owner) VALUES (?, ?)', {property.id, Config.Bank})
-
-			for j = 1, #property.doors do
-				door = property.doors[j]
-				door.designation = j
-				door.property = property.id
-				door.id = #Data.Doors + 1
-
-				Data.Doors[#Data.Doors + 1] = door
-
-				exports.oxmysql:insertSync('INSERT INTO dd_doors (property, designation, name, distance, onstart) VALUES (?, ?, ?, ?, ?)', {door.property, door.designation, door.name, door.distance, door.onstart})
+			if property.respawn then
+				Data.Respawn[property.id] = property.respawn
 			end
 
 			for j = 1, #property.zones do
-				zone = property.zones[j]
-				zone.designation = j
-				zone.property = property.id
-				zone.id = #Data.Zones + 1
-
-				Data.Zones[#Data.Zones + 1] = zone
-
-				exports.oxmysql:insertSync('INSERT INTO dd_zones (property, designation, name, public) VALUES (?, ?, ?, ?)', {zone.property, zone.designation, zone.name, zone.public})
-			end
-		else
-			property.owner = Data.Properties[property.id].owner
-			Data.Properties[property.id] = property
-
-			for j = 1, #property.doors do
-				door = property.doors[j]
-				door.designation = j
-
-				local dupeDoor
-				for k = 1, #Data.Doors do
-					if Data.Doors[k].property == property.id and Data.Doors[k].designation == door.designation then
-						dupeDoor = Data.Doors[k]
-						break
-					end
+				local zone = property.zones[j]
+				if zone.type == 'boss' then
+					exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Boss Stash', 50, 50000, false)
+				elseif zone.type == 'stash' then
+					exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Stash', 50, 50000, false)
+				elseif zone.type == 'locker' then
+					exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Personal Locker', 10, 10000, true)
 				end
+			end
 
-				if not dupeDoor then
+			if not Data.Properties[property.id] then
+				Data.Properties[property.id] = property
+
+				exports.oxmysql:insertSync('INSERT INTO dd_properties (id, owner) VALUES (?, ?)', {property.id, Config.Bank})
+
+				for j = 1, #property.doors do
+					door = property.doors[j]
+					door.designation = j
+					door.property = property.id
+					door.id = #Data.Doors + 1
+
 					Data.Doors[#Data.Doors + 1] = door
 
-					exports.oxmysql:insertSync('INSERT INTO dd_doors (property, designation, name, distance, onstart) VALUES (?, ?, ?, ?, ?)', {property.id, door.designation, door.name, door.distance, door.onstart})
-				else
-					door.id = dupeDoor.id
-					door.property = dupeDoor.property
-					door.name = dupeDoor.name
-					door.distance = dupeDoor.distance
-					door.onstart = dupeDoor.onstart
-					door.locked = dupeDoor.locked
-
-					Data.Doors[dupeDoor.id] = door
+					exports.oxmysql:insertSync('INSERT INTO dd_doors (property, designation, name, distance, onstart) VALUES (?, ?, ?, ?, ?)', {door.property, door.designation, door.name, door.distance, door.onstart})
 				end
-			end
 
-			for j = 1, #property.zones do
-				zone = property.zones[j]
-				zone.designation = j
+				for j = 1, #property.zones do
+					zone = property.zones[j]
+					zone.designation = j
+					zone.property = property.id
+					zone.id = #Data.Zones + 1
 
-				local dupe
-				for k = 1, #Data.Zones do
+					Data.Zones[#Data.Zones + 1] = zone
 
-					if Data.Zones[k].property == property.id and Data.Zones[k].designation == zone.designation then
-						dupeZone = Data.Zones[k]
-						break
+					exports.oxmysql:insertSync('INSERT INTO dd_zones (property, designation, name, public) VALUES (?, ?, ?, ?)', {zone.property, zone.designation, zone.name, zone.public})
+				end
+			else
+				property.owner = Data.Properties[property.id].owner
+				Data.Properties[property.id] = property
+
+				for j = 1, #property.doors do
+					door = property.doors[j]
+					door.designation = j
+
+					local dupeDoor
+					for k = 1, #Data.Doors do
+						if Data.Doors[k].property == property.id and Data.Doors[k].designation == door.designation then
+							dupeDoor = Data.Doors[k]
+							break
+						end
+					end
+
+					if not dupeDoor then
+						Data.Doors[#Data.Doors + 1] = door
+
+						exports.oxmysql:insertSync('INSERT INTO dd_doors (property, designation, name, distance, onstart) VALUES (?, ?, ?, ?, ?)', {property.id, door.designation, door.name, door.distance, door.onstart})
+					else
+						door.id = dupeDoor.id
+						door.property = dupeDoor.property
+						door.name = dupeDoor.name
+						door.distance = dupeDoor.distance
+						door.onstart = dupeDoor.onstart
+						door.locked = dupeDoor.locked
+
+						Data.Doors[dupeDoor.id] = door
 					end
 				end
 
-				if not dupeZone then
-					Data.Zones[#Data.Zones + 1] = zone
+				for j = 1, #property.zones do
+					zone = property.zones[j]
+					zone.designation = j
 
-					exports.oxmysql:insertSync('INSERT INTO dd_zones (property, designation, name, public) VALUES (?, ?, ?, ?)', {property.id, zone.designation, zone.name, zone.public})
-				else
-					zone.id = dupeZone.id
-					zone.property = dupeZone.property
-					zone.name = dupeZone.name
-					zone.public = dupeZone.public
+					local dupe
+					for k = 1, #Data.Zones do
 
-					Data.Zones[dupeZone.id] = zone
+						if Data.Zones[k].property == property.id and Data.Zones[k].designation == zone.designation then
+							dupeZone = Data.Zones[k]
+							break
+						end
+					end
+
+					if not dupeZone then
+						Data.Zones[#Data.Zones + 1] = zone
+
+						exports.oxmysql:insertSync('INSERT INTO dd_zones (property, designation, name, public) VALUES (?, ?, ?, ?)', {property.id, zone.designation, zone.name, zone.public})
+					else
+						zone.id = dupeZone.id
+						zone.property = dupeZone.property
+						zone.name = dupeZone.name
+						zone.public = dupeZone.public
+
+						Data.Zones[dupeZone.id] = zone
+					end
 				end
 			end
 		end
