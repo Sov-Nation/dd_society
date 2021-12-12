@@ -10,6 +10,9 @@ dependencies {
 	'es_extended',
 	'dd_menus',
 	'PolyZone',
+	'oxmysql',
+	'pe-lualib',
+	'ox_inventory',
 }
 
 shared_scripts {
