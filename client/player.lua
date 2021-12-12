@@ -5,6 +5,9 @@ AddEventHandler('esx:playerLoaded', function(xPlayer)
 	ESX.PlayerData = xPlayer
 	ESX.PlayerLoaded = true
 	TriggerEvent('dd_society:getPlayer', 'self')
+	lib:requestAnimDict('mp_arresting')
+	lib:requestAnimDict('mp_arrest_paired')
+	lib:requestAnimDict('mini@cpr@char_a@cpr_str')
 end)
 
 RegisterNetEvent('esx:onPlayerLogout')
@@ -105,7 +108,6 @@ CreateThread(function()
 				if LocalPlayer.state.cuffed then
 					if not isBusy and not (IsEntityPlayingAnim(ESX.PlayerData.ped, 'mp_arresting', 'idle', 3) or IsEntityPlayingAnim(ESX.PlayerData.ped, 'mp_arrest_paired', 'crook_p2_back_right', 3) or IsEntityPlayingAnim(ESX.PlayerData.ped, 'mp_arresting', 'b_cuff', 3)) or IsPedRagdoll(ESX.PlayerData.ped) then
 						ClearPedTasks(ESX.PlayerData.ped)
-						lib:requestAnimDict('mp_arresting')
 						TaskPlayAnim(ESX.PlayerData.ped, 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0.0, 0, 0, 0)
 					end
 					DisableAllControlActions(0)
