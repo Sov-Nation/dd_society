@@ -8,6 +8,7 @@ RegisterKeyMapping('resuscitate', 'Resuscitate', 'keyboard', 'r')
 RegisterKeyMapping('cuff', 'Cuff', 'keyboard', 'e')
 RegisterKeyMapping('escort', 'Escort', 'keyboard', 'q')
 RegisterKeyMapping('vehicleEscort', 'Vehicle Escort', 'keyboard', 'q')
+RegisterKeyMapping('steal', 'Steal', 'keyboard', 'c')
 RegisterKeyMapping('repair', 'Repair', 'keyboard', 'e')
 
 CreateThread(function()
@@ -22,6 +23,7 @@ CreateThread(function()
 		'resuscitate',
 		'cuff',
 		'escort',
+		'steal',
 		'repair',
 	}
 	for i = 1, #commands do
@@ -55,6 +57,7 @@ local entityTypes = {
 	ped = {
 		{icon = 'fas fa-lock', name = 'cuffPed'},
 		{icon = 'fas fa-medkit', name = 'resuscitatePed'},
+		{icon = 'fas fa-mask', name = 'stealPed'},
 		{icon = 'fas fa-people-arrows', name = 'escortPed'},
 	},
 	player = {
@@ -340,6 +343,15 @@ RegisterNetEvent('dd_society:escort', function(control, escort, vehicle, seat)
 		if vehicle and seat then
 			SetPedIntoVehicle(ESX.PlayerData.ped, NetworkGetEntityFromNetworkId(vehicle), seat)
 		end
+	end
+end)
+
+RegisterCommand('steal', function(source, args, rawCommand)
+	if targetActive and not isBusy and validAction(rawCommand) then
+		SendNUIMessage({response = 'closeTarget'})
+		targetActive = false
+		TriggerEvent('ox_inventory:openInventory', 'player', GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity)))
+		validEntity = nil
 	end
 end)
 
