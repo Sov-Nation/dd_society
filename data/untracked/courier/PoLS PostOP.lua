@@ -1,5 +1,5 @@
 return {
-	blip = vec(-57.3, -1838.2),
+	blip = vec(-412.407, -2798.336),
 	doors = {
 	},
 	zones = {
