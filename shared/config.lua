@@ -37,7 +37,7 @@ Config.PropertyTypes = {
 		bMenu = {},
 		sMenu = {},
 	},
-	garage = {
+	parking = {
 		sprite = 357,
 		pMenu = {},
 		bMenu = {},
