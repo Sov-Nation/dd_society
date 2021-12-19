@@ -1,3 +1,8 @@
+ESX.RegisterCommand('keymaster', 'admin', function(xPlayer, args, showError)
+	TriggerClientEvent('dd_society:keymaster', xPlayer.playerId)
+end, true, {help = 'Open Keymaster', validate = false, arguments = {}
+})
+
 ESX.RegisterCommand('revive', 'admin', function(xPlayer, args, showError)
 	args.playerId = args.playerId or xPlayer.playerId
 	Player(args.playerId).state.dead = false

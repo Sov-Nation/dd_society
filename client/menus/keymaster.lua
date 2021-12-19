@@ -781,3 +781,7 @@ function kmProperty(property)
 		menu.close()
 	end)
 end
+
+RegisterNetEvent('dd_society:keymaster', function()
+	kmOpen()
+end)
