@@ -8,19 +8,31 @@ function has_value(tab, val)
 end
 
 function vectorize(data)
-	if #data == 4 then
-		heading = data[4]
-	end
+	local length = #data
 
-	if #data == 1 then
-		data = vec(data[1])
-	elseif #data == 2 then
-		data = vec(data[1], data[2])
+	if length > 0 then
+		if length == 1 then
+			data = vec(data[1])
+		elseif length == 2 then
+			data = vec(data[1], data[2])
+		elseif length == 3 then
+			data = vec(data[1], data[2], data[3])
+		else
+			data = vec(data[1], data[2], data[3], data[4])
+		end
 	else
-		data = vec(data[1], data[2], data[3])
+		if data.w then
+			data = vec(data.x, data.y, data.z, data.w)
+		elseif data.z then
+			data = vec(data.x, data.y, data.z)
+		elseif data.y then
+			data = vec(data.x, data.y)
+		else
+			data = vec(data.x)
+		end
 	end
 
-	return data, heading
+	return data
 end
 
 function sipairs(Tab)
