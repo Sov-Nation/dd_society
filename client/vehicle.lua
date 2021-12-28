@@ -13,7 +13,7 @@ RegisterNetEvent('dd_society:spawnVehicle', function(vehicle, coords, delete, ow
 end)
 
 function spawnVehicle(vehicle, coords, delete)
-	local model = lib:requestModel(vehicle, 5000)
+	local model = lib.requestModel(vehicle, 5000)
 	if model then
 		local vec = coords and coords.xyz or pedPos
 		local heading = coords and coords.w or GetEntityHeading(ESX.PlayerData.ped)

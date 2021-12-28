@@ -5,9 +5,9 @@ AddEventHandler('esx:playerLoaded', function(xPlayer)
 	ESX.PlayerData = xPlayer
 	ESX.PlayerLoaded = true
 	TriggerEvent('dd_society:getPlayer', 'self')
-	lib:requestAnimDict('mp_arresting')
-	lib:requestAnimDict('mp_arrest_paired')
-	lib:requestAnimDict('mini@cpr@char_a@cpr_str')
+	lib.requestAnimDict('mp_arresting')
+	lib.requestAnimDict('mp_arrest_paired')
+	lib.requestAnimDict('mini@cpr@char_a@cpr_str')
 end)
 
 RegisterNetEvent('esx:onPlayerLogout')
