@@ -1,10 +1,17 @@
+local table = import 'table'
+local PropertyList
+Respawn = {}
+
 Data = {
-	Societies = {},
 	Properties = {},
-	Keys = {},
 	Doors = {},
 	Zones = {},
-	Respawn = {}
+}
+
+Indexed = {
+	Properties = {},
+	Doors = {},
+	Zones = {},
 }
 
 function data(name)
@@ -13,53 +20,102 @@ function data(name)
 	return func()
 end
 
-CreateThread(function()
-	Data.Vehicles = data('vehicles')
-	Indexed = {Vehicles = {}}
-	for i = 1, #Data.Vehicles do
-		local veh = Data.Vehicles[i]
-		veh.hash = joaat(veh.model)
-		Indexed.Vehicles[veh.hash] = veh
-	end
+function createProperty(pType, id)
+	local property = data('properties/' .. pType .. '/' .. id)
 
-	local Societies = exports.oxmysql:executeSync('SELECT * FROM jobs', {})
-	for k, v in pairs(Societies) do
-		v.grades = json.decode(v.grades)
-		v.acc = createAccount(v)
-		Data.Societies[v.label] = v
-	end
+	property.id = id
+	property.type = pType
+	property.owner = Config.Bank
+	property.ownerName = Config.BankName
+	property.keys = {{name = 'Master', id = property.id .. ':0', holders = {}}}
 
-	local Properties = exports.oxmysql:executeSync('SELECT dd_properties.*, users.firstname, users.lastname FROM dd_properties LEFT JOIN users ON dd_properties.owner = users.identifier', {})
-	for k, v in pairs(Properties) do
-		if v.firstname and v.lastname then
-			v.ownername = v.firstname .. ' ' .. v.lastname
-			v.fistname = nil
-			v.lastname = nil
+	SetResourceKvp(id, json.encode(property))
+end
+
+function createTables()
+	for k, v in pairs(PropertyList) do
+		for k2, v2 in pairs(v) do
+			local property = GetResourceKvpString(k2)
+			property = json.decode(property)
+
+			if property.respawn then
+				Respawn[property.id] = property.respawn
+			end
+
+			Data.Properties[#Data.Properties + 1] = property
+
+			for i = 1, #property.doors do
+				property.doors[i].id = ('%s:%s'):format(property.id, i)
+				property.doors[i].locked = property.doors[i].onstart
+				Data.Doors[#Data.Doors + 1] = property.doors[i]
+			end
+
+			for i = 1, #property.zones do
+				property.zones[i].id = ('%s:%s'):format(property.id, i)
+				Data.Zones[#Data.Zones + 1] = property.zones[i]
+			end
+			SetResourceKvp(k2, json.encode(property))
 		end
-
-		Data.Properties[v.id] = v
 	end
 
-	local Keys = exports.oxmysql:executeSync('SELECT * FROM dd_keys', {})
-	for k, v in pairs(Keys) do
-		v.exempt_doors = json.decode(v.exempt_doors)
-		v.exempt_zones = json.decode(v.exempt_zones)
-		Data.Keys[v.id] = v
+	for i = 1, #Data.Properties do
+		Indexed.Properties[Data.Properties[i].id] = Data.Properties[i]
 	end
 
-	local Doors = exports.oxmysql:executeSync('SELECT * FROM dd_doors', {})
-	for k, v in pairs(Doors) do
-		v.locked = v.onstart
-
-		Data.Doors[v.id] = v
+	for i = 1, #Data.Doors do
+		Indexed.Doors[Data.Doors[i].id] = Data.Doors[i]
 	end
 
-	local Zones = exports.oxmysql:executeSync('SELECT * FROM dd_zones', {})
-	for k, v in pairs(Zones) do
-		Data.Zones[v.id] = v
+	for i = 1, #Data.Zones do
+		Indexed.Zones[Data.Zones[i].id] = Data.Zones[i]
 	end
 
-	local Properties = {}
+	for k, v in pairs(Data) do
+		SetResourceKvp('Data:' .. k, json.encode(v))
+		GlobalState['Data_' .. k] = Data[k]
+	end
+
+	for k, v in pairs(Indexed) do
+		SetResourceKvp('Indexed:' .. k, json.encode(v))
+		GlobalState['Indexed_' .. k] = Indexed[k]
+	end
+
+	SetResourceKvp('Respawn', json.encode(Respawn))
+end
+
+function loadTables()
+	for k, v in pairs(Indexed) do
+		Indexed[k] = json.decode(GetResourceKvpString('Indexed:' .. k))
+		GlobalState['Indexed_' .. k] = Indexed[k]
+	end
+
+	for k, v in pairs(Data) do
+		Data[k] = json.decode(GetResourceKvpString('Data:' .. k))
+		GlobalState['Data_' .. k] = Data[k]
+	end
+
+	Respawn = json.decode(GetResourceKvpString('Respawn'))
+end
+
+function saveTables(tab, set, delete)
+	Indexed[tab][set.id] = delete and nil or set
+
+	for i = 1, #Data[tab] do
+		if Data[tab][i].id == set.id then
+			Data[tab][i] = delete and nil or set
+			break
+		end
+	end
+
+	SetResourceKvp('Indexed:'.. tab, json.encode(Indexed[tab]))
+	GlobalState['Indexed_' .. tab] = Indexed[tab]
+
+	SetResourceKvp('Data:'.. tab, json.encode(Data[tab]))
+	GlobalState['Data_' .. tab] = Data[tab]
+end
+
+CreateThread(function()
+	local PropertyData = {}
 	local system = os.getenv('OS')
 	local command = system and system:match('Windows') and 'dir "' or 'ls "'
 	local path = GetResourcePath(GetCurrentResourceName())
@@ -67,286 +123,132 @@ CreateThread(function()
 	local suffix = command == 'dir "' and '/" /b' or '/"'
 	local dir = io.popen(command .. types .. suffix)
 	for line in dir:lines() do
-		Properties[line] = {}
+		PropertyData[line] = {}
 		local properties = io.popen(command .. types .. '/' .. line .. suffix)
 		for filename in properties:lines() do
-			Properties[line][#Properties[line] + 1] = filename:gsub('.lua', '')
+			PropertyData[line][filename:gsub('.lua', '')] = true
 		end
 	end
 	dir:close()
 
-	for k, v in pairs(Properties) do
-		for i = 1, #v do
-			local property = data('properties/' .. k .. '/' .. v[i])
-
-			property.id = v[i]
-			property.type = k
-			property.doors = property.doors or {}
-			property.zones = property.zones or {}
-
-			local Master = {name = 'Master', designation = 0, property = property.id}
-
-			Data.Keys[#Data.Keys + 1] = Master
-
-			if property.respawn then
-				Data.Respawn[property.id] = property.respawn
-			end
-
-			for j = 1, #property.zones do
-				local zone = property.zones[j]
-				if zone.type == 'boss' then
-					exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Boss Stash', 50, 50000, false)
-				elseif zone.type == 'stash' then
-					exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Stash', 50, 50000, false)
-				elseif zone.type == 'locker' then
-					exports.ox_inventory:RegisterStash(string.strconcat(property.id, ':', zone.type, '-', j), 'Personal Locker', 10, 10000, true)
+	PropertyList = GetResourceKvpString('PropertyList')
+	if PropertyList then
+		PropertyList = json.decode(PropertyList)
+		if table.matches(PropertyList, PropertyData) then
+			loadTables()
+		else
+			for k, v in pairs(PropertyData) do
+				for k2, v2 in pairs(v) do
+					if not PropertyList[k]?[k2] then
+						createProperty(k, k2)
+					end
 				end
 			end
-
-			if not Data.Properties[property.id] then
-				Data.Properties[property.id] = property
-
-				exports.oxmysql:insertSync('INSERT INTO dd_properties (id, owner) VALUES (?, ?)', {property.id, Config.Bank})
-
-				for j = 1, #property.doors do
-					door = property.doors[j]
-					door.designation = j
-					door.property = property.id
-					door.id = #Data.Doors + 1
-
-					Data.Doors[#Data.Doors + 1] = door
-
-					exports.oxmysql:insertSync('INSERT INTO dd_doors (property, designation, name, distance, onstart) VALUES (?, ?, ?, ?, ?)', {door.property, door.designation, door.name, door.distance, door.onstart})
-				end
-
-				for j = 1, #property.zones do
-					zone = property.zones[j]
-					zone.designation = j
-					zone.property = property.id
-					zone.id = #Data.Zones + 1
-
-					Data.Zones[#Data.Zones + 1] = zone
-
-					exports.oxmysql:insertSync('INSERT INTO dd_zones (property, designation, name, public) VALUES (?, ?, ?, ?)', {zone.property, zone.designation, zone.name, zone.public})
-				end
-			else
-				property.owner = Data.Properties[property.id].owner
-				Data.Properties[property.id] = property
-
-				for j = 1, #property.doors do
-					door = property.doors[j]
-					door.designation = j
-
-					local dupeDoor
-					for k = 1, #Data.Doors do
-						if Data.Doors[k].property == property.id and Data.Doors[k].designation == door.designation then
-							dupeDoor = Data.Doors[k]
-							break
-						end
-					end
-
-					if not dupeDoor then
-						Data.Doors[#Data.Doors + 1] = door
-
-						exports.oxmysql:insertSync('INSERT INTO dd_doors (property, designation, name, distance, onstart) VALUES (?, ?, ?, ?, ?)', {property.id, door.designation, door.name, door.distance, door.onstart})
-					else
-						door.id = dupeDoor.id
-						door.property = dupeDoor.property
-						door.name = dupeDoor.name
-						door.distance = dupeDoor.distance
-						door.onstart = dupeDoor.onstart
-						door.locked = dupeDoor.locked
-
-						Data.Doors[dupeDoor.id] = door
-					end
-				end
-
-				for j = 1, #property.zones do
-					zone = property.zones[j]
-					zone.designation = j
-
-					local dupe
-					for k = 1, #Data.Zones do
-
-						if Data.Zones[k].property == property.id and Data.Zones[k].designation == zone.designation then
-							dupeZone = Data.Zones[k]
-							break
-						end
-					end
-
-					if not dupeZone then
-						Data.Zones[#Data.Zones + 1] = zone
-
-						exports.oxmysql:insertSync('INSERT INTO dd_zones (property, designation, name, public) VALUES (?, ?, ?, ?)', {property.id, zone.designation, zone.name, zone.public})
-					else
-						zone.id = dupeZone.id
-						zone.property = dupeZone.property
-						zone.name = dupeZone.name
-						zone.public = dupeZone.public
-
-						Data.Zones[dupeZone.id] = zone
-					end
-				end
+			PropertyList = PropertyData
+			SetResourceKvp('PropertyList', json.encode(PropertyList))
+			createTables()
+		end
+	else
+		PropertyList = PropertyData
+		SetResourceKvp('PropertyList', json.encode(PropertyList))
+		for k, v in pairs(PropertyList) do
+			for k2, v2 in pairs(v) do
+				createProperty(k, k2)
 			end
 		end
+		createTables()
 	end
+	GlobalState['PropertyList'] = PropertyList
+
+	for i = 1, #Data.Zones do
+		local zone = Data.Zones[i]
+		if zone.type == 'boss' then
+			exports.ox_inventory:RegisterStash(zone.id, 'Boss Stash', 50, 50000, false)
+		elseif zone.type == 'stash' then
+			exports.ox_inventory:RegisterStash(zone.id, zone.name, 50, 50000, false)
+		elseif zone.type == 'locker' then
+			exports.ox_inventory:RegisterStash(zone.id, 'Personal Locker', 10, 10000, true)
+		end
+	end
+
+	Data.Vehicles = data('vehicles')
+	Indexed.Vehicles = {}
+	for i = 1, #Data.Vehicles do
+		local veh = Data.Vehicles[i]
+		veh.hash = joaat(veh.model)
+		Indexed.Vehicles[veh.hash] = veh
+	end
+
+	local Grades = exports.oxmysql:executeSync('SELECT * FROM job_grades', {})
+
+	Data.Societies = exports.oxmysql:executeSync('SELECT * FROM jobs', {})
+	Indexed.Societies = {}
+	for i = 1, #Data.Societies do
+		local society = Data.Societies[i]
+		society.grades = {}
+		for j = 1, #Grades do
+			if Grades[j].job_name == society.name then
+				society.grades[Grades[j].grade] = Grades[j]
+			end
+		end
+		society.employees = json.decode(society.employees)
+		society.acc = createAccount(society)
+		Indexed.Societies[society.name] = society
+	end
+
+	GlobalState['Indexed_Societies'] = Indexed.Societies
+	GlobalState['Data_Societies'] = Data.Societies
 end)
 
-function setAuth(Player)
-	Player.Auth = {
-		Doors = {},
-		Zones = {}
-	}
-	for k, v in pairs(Player.dd_keys) do
-		if not Data.Properties[k] then
-			Player.dd_keys[k] = nil
-		end
-	end
-	for k, v in pairs(Player.dd_keys) do
-		for k2, v2 in pairs(Data.Properties[k].doors) do
-			for k3, v3 in pairs(v) do
-				local insert = false
-				if v3 == 0 then
-					insert = true
-				else
-					for k4, v4 in pairs(Data.Keys) do
-						if k == v4.property and v3 == v4.designation then
-							if not has_value(v4.exempt_doors, k2) then
-								insert = true
-							end
-							break
-						end
-					end
-				end
-				if insert then
-					if not has_value(Player.Auth.Doors, v2.id) then
-						table.insert(Player.Auth.Doors, v2.id)
-					end
-				end
-			end
-		end
-		for k2, v2 in pairs(Data.Properties[k].zones) do
-			for k3, v3 in pairs(v) do
-				local insert = false
-				if v3 == 0 then
-					insert = true
-				else
-					for k4, v4 in pairs(Data.Keys) do
-						if k == v4.property and v3 == v4.designation then
-							if not has_value(v4.exempt_zones, k2) then
-								insert = true
-							end
-							break
-						end
-					end
-				end
-				if insert then
-					if not has_value(Player.Auth.Zones, v2.id) then
-						table.insert(Player.Auth.Zones, v2.id)
-					end
-				end
-			end
-		end
-	end
-end
-
-ESX.RegisterServerCallback('dd_society:setJob', function(source, cb, society, identifier, grade)
-	local xPlayer = ESX.GetPlayerFromIdentifier(identifier)
+ESX.RegisterServerCallback('dd_society:setJob', function(source, cb, societyId, ident, grade)
+	local xPlayer = ESX.GetPlayerFromIdentifier(ident)
+	local society = Indexed.Societies[societyId]
 	if xPlayer then
 		xPlayer.setJob(society.name, grade)
 	else
-		exports.oxmysql:updateSync('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {society.name, grade, identifier})
+		local oldJob = exports.oxmysql:scalarSync('SELECT job FROM users WHERE identifier = ?', {ident})
+
+		if society.name ~= oldJob then
+			local oldSociety = Indexed.Societies[oldJob]
+			oldSociety.employees[xPlayer.identifier] = nil
+			updateSociety(oldSociety)
+		end
+
+		local society = Indexed.Societies[job.name]
+		society.employees[xPlayer.identifier] = {
+			name = GetResourceKvpInt(('%s:name'):format(ident)),
+			grade = grade
+		}
+		updateSociety(society)
+
+		exports.oxmysql:update('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {job.name, job.grade, ident})
 	end
 
 	cb()
 end)
 
-ESX.RegisterServerCallback('dd_society:modifyGrade', function(source, cb, society, grade, change)
-	if change.label then
-		exports.oxmysql:updateSync('UPDATE job_grades SET label = ? WHERE job_name = ? AND grade = ?', {change.label, society.name, grade})
-	elseif change.salary then
-		exports.oxmysql:updateSync('UPDATE job_grades SET salary = ? WHERE job_name = ? AND grade = ?', {change.salary, society.name, grade})
-	end
+ESX.RegisterServerCallback('dd_society:modifyGrade', function(source, cb, societyId, grade)
+	local society = Indexed.Societies[societyId]
+	society.grades[grade.grade] = grade
 
+	updateSociety(society)
+
+	exports.oxmysql:updateSync('UPDATE job_grades SET label = ?, salary = ? WHERE job_name = ? AND grade = ?', {grade.label, grade.salary, society.name, grade.grade})
 	cb()
 end)
 
-ESX.RegisterServerCallback('dd_society:getPlayer', function(source, cb, ident)
-	if ident == 'self' then
-		xPlayer = nil
-		while not xPlayer do
-			Wait(0)
-			xPlayer = ESX.GetPlayerFromId(source)
+function updateSociety(society)
+	Indexed.Societies[society.name] = society
+
+	for i = 1, #Data.Societies do
+		if Data.Societies[i].name == society.name then
+			Data.Societies[i] = society
+			break
 		end
-		ident = xPlayer.identifier
 	end
 
-	local Player = exports.oxmysql:singleSync('SELECT identifier, dd_keys, firstname, lastname FROM users WHERE identifier = ?', {ident})
+	GlobalState['Indexed_Societies'] = Indexed.Societies
+	GlobalState['Data_Societies'] = Data.Societies
 
-	Player.dd_keys = json.decode(Player.dd_keys)
-	Player.fullname = Player.firstname .. ' ' .. Player.lastname
-
-	setAuth(Player)
-
-	cb(Player)
-end)
-
-ESX.RegisterServerCallback('dd_society:getPlayers', function(source, cb)
-	local Players = exports.oxmysql:executeSync('SELECT identifier, dd_keys, firstname, lastname FROM users', {})
-
-	for k, v in pairs(Players) do
-		v.dd_keys = json.decode(v.dd_keys)
-		v.fullname = v.firstname .. ' ' .. v.lastname
-	end
-
-	cb(Players)
-end)
-
-ESX.RegisterServerCallback('dd_society:getEmployees', function(source, cb, society)
-	local Employees = exports.oxmysql:executeSync('SELECT identifier, dd_keys, firstname, lastname, job_grade FROM users WHERE job = ?', {society.name})
-
-	local Grades = exports.oxmysql:executeSync('SELECT job_grades.grade, job_grades.name, job_grades.label, job_grades.salary FROM job_grades WHERE job_name = ?', {society.name})
-
-	for k, v in pairs(Employees) do
-		for k2, v2 in pairs(Grades) do
-			if v.job_grade == v2.grade then
-				v.grade = v2
-				v.job_grade = nil
-				break
-			end
-		end
-
-		v.dd_keys = json.decode(v.dd_keys)
-		v.fullname = v.firstname .. ' ' .. v.lastname
-	end
-
-	cb(Employees, Grades)
-end)
-
-ESX.RegisterServerCallback('dd_society:getSocieties', function(source, cb)
-	cb(Data.Societies)
-end)
-
-ESX.RegisterServerCallback('dd_society:getProperties', function(source, cb)
-	cb(Data.Properties)
-end)
-
-ESX.RegisterServerCallback('dd_society:getKeys', function(source, cb)
-	cb(Data.Keys)
-end)
-
-ESX.RegisterServerCallback('dd_society:getDoors', function(source, cb)
-	cb(Data.Doors)
-end)
-
-ESX.RegisterServerCallback('dd_society:getZones', function(source, cb)
-	cb(Data.Zones)
-end)
-
-function updateSociety(Society, save)
-	Data.Societies[Society.label] = Society
-	TriggerClientEvent('dd_society:updateSociety', -1, Society)
-	if save then
-		exports.oxmysql:execute('UPDATE jobs SET colour = ?, account = ? WHERE name = ?', {Society.colour, Society.account, Society.name})
-	end
+	exports.oxmysql:execute('UPDATE jobs SET colour = ?, account = ?, employees = ? WHERE name = ?', {society.colour, society.account, json.encode(society.employees), society.name})
 end

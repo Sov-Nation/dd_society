@@ -1,5 +1,5 @@
-local Zone = {}
-local ZoneMenus = {
+local currentZone = {}
+local zoneMenus = {
 	'garage',
 	'boss',
 	'property',
@@ -10,37 +10,40 @@ local ZoneMenus = {
 }
 
 CreateThread(function()
-	dataReady()
-	for k, v in pairs(Data.Zones) do
-		local zone
-		if v.poly then
-			zone = PolyZone:Create((v.poly), {
-				name = v.property .. ' - ' .. v.name,
-				minZ = v.minZ,
-				maxZ = v.maxZ,
-				debugGrid = Config.debugZone or Data.Properties[v.property].debug or v.debug,
+	while not PlayerBags.Player.loaded do Wait(0) end
+	for i = 1, #Data.Zones do
+		local pz, zone = Data.Zones[i]
+		pz.property = string.strsplit(':', pz.id)
+		if pz.poly then
+			zone = PolyZone:Create((pz.poly), {
+				name = ('%s - %s'):format(pz.property, pz.name),
+				minZ = pz.minZ,
+				maxZ = pz.maxZ,
+				debugGrid = Config.debugZone or Indexed.Properties[pz.property].debug or pz.debug,
 				lazyGrid = true,
-				data = v
+				data = pz
 			})
-		elseif v.circle then
-			zone = CircleZone:Create((v.circle), 1.8, {
-				name = v.property .. ' - ' .. v.name,
+		elseif pz.circle then
+			zone = CircleZone:Create((vectorize(pz.circle)), 1.8, {
+				name = ('%s - %s'):format(pz.property, pz.name),
 				useZ = true,
-				debugPoly = Config.debugZone or Data.Properties[v.property].debug or v.debug,
-				data = v
+				debugPoly = Config.debugZone or Indexed.Properties[pz.property].debug or pz.debug,
+				data = pz
 			})
 		end
 		zone:onPlayerInOut(function(isPointInside, point)
-			if Data.Player.Auth and has_value(Data.Player.Auth.Zones, zone.data.id) or Data.Zones[zone.data.id].public then
+			if PlayerBags.Player.auth.zones[zone.data.id] or Indexed.Zones[zone.data.id].public then
 				local insideZone = isPointInside
 				if insideZone then
-					Zone = zone.data
-					exports.ox_inventory:notify({text = zone.data.property .. ' - ' .. zone.data.name, duration = 5000})
+					local name = zone.name
+					currentZone = zone.data
+					exports.ox_inventory:notify({text = name, duration = 5000})
 				else
-					if Zone.id == zone.data.id then
-						Zone = {}
-						for k, v in pairs(ZoneMenus) do
-							if ESX.UI.Menu.IsOpen('default', resName, v) then
+					if currentZone.id == zone.data.id then
+						currentZone = {}
+						for i = 1, #zoneMenus do
+							local menu = zoneMenus[i]
+							if ESX.UI.Menu.IsOpen('default', resName, menu) then
 								ESX.UI.Menu.CloseAll()
 								break
 							end
@@ -53,33 +56,34 @@ CreateThread(function()
 end)
 
 RegisterCommand('interact', function()
-	if next(Zone) then
+	if next(currentZone) then
 		local close
-		for k, v in pairs(ZoneMenus) do
-			if ESX.UI.Menu.IsOpen('default', resName, v) then
+		for i = 1, #zoneMenus do
+			local menu = zoneMenus[i]
+			if ESX.UI.Menu.IsOpen('default', resName, menu) then
 				close = true
 				break
 			end
 		end
 		ESX.UI.Menu.CloseAll()
 
-		if not close and not (LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed) then
-			if Zone.type == 'garage' or Zone.type == 'pad' or Zone.type == 'dock' or Zone.type == 'hangar' then
-				gOpen(Zone)
-			elseif Zone.type == 'boss' then
-				bOpen(Zone)
-			elseif Zone.type == 'property' then
-				pOpen(Zone)
-			elseif Zone.type == 'stash' then
-				TriggerEvent('ox_inventory:openInventory', 'stash', string.strconcat(Zone.property, ':', Zone.type, '-', Zone.designation))
-			elseif Zone.type == 'locker' then
-				TriggerEvent('ox_inventory:openInventory', 'stash', string.strconcat(Zone.property, ':', Zone.type, '-', Zone.designation))
-			elseif Zone.type == 'shop' then
-				TriggerEvent('ox_inventory:openInventory', 'shop', {type = 'Property', id = Zone.property})
-			elseif Zone.type == 'uniform' then
-				uOpen(Zone)
-			elseif Zone.type == 'teleport' then
-				tOpen(Zone)
+		if not close and not (PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed) then
+			if currentZone.type == 'garage' or currentZone.type == 'pad' or currentZone.type == 'dock' or currentZone.type == 'hangar' then
+				gOpen(currentZone)
+			elseif currentZone.type == 'boss' then
+				bOpen(currentZone)
+			elseif currentZone.type == 'property' then
+				pOpen(currentZone)
+			elseif currentZone.type == 'stash' then
+				TriggerEvent('ox_inventory:openInventory', 'stash', currentZone.id)
+			elseif currentZone.type == 'locker' then
+				TriggerEvent('ox_inventory:openInventory', 'stash', currentZone.id)
+			elseif currentZone.type == 'shop' then
+				TriggerEvent('ox_inventory:openInventory', 'shop', {type = 'Property', id = currentZone.property})
+			elseif currentZone.type == 'uniform' then
+				uOpen(currentZone)
+			elseif currentZone.type == 'teleport' then
+				tOpen(currentZone)
 			end
 		end
 	end

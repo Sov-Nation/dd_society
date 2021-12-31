@@ -1,207 +1,224 @@
-ESX.RegisterServerCallback('dd_society:pTransferProperty', function(source, cb, id, target, name)
-	if target == 'bank' then
-		target = 'Doka & Doka'
+ESX.RegisterServerCallback('dd_society:pTransferProperty', function(source, cb, propertyId, target, targetName)
+	local property = json.decode(GetResourceKvpString(propertyId))
+	if property.owner == target then
+		return
 	end
 
-	exports.oxmysql:updateSync('UPDATE dd_properties SET owner = ? WHERE id = ?', {target, id})
+	property.owner = target
+	property.ownerName = targetName
+	SetResourceKvp(property.id, json.encode(property))
 
-	Data.Properties[id].owner = target
-	Data.Properties[id].ownername = name
-
-	TriggerClientEvent('dd_society:getProperties', -1, true)
+	saveTables('Properties', property)
 
 	cb()
 end)
 
-ESX.RegisterServerCallback('dd_society:pRevokeAllKeys', function(source, cb, property, holders)
-	for k, v in pairs(holders) do
-		v.dd_keys[property] = nil
+ESX.RegisterServerCallback('dd_society:pRevokeAllKeys', function(source, cb, propertyId)
+	local property = json.decode(GetResourceKvpString(propertyId))
 
-		local dd_keys = json.encode(v.dd_keys)
-		exports.oxmysql:updateSync('UPDATE users SET dd_keys = ? WHERE identifier = ?', {dd_keys, v.identifier})
+	property.keys = revokeKeys(property.keys, false)
 
-		local xPlayer = ESX.GetPlayerFromIdentifier(v.identifier)
-		if xPlayer then
-			TriggerClientEvent('dd_society:getPlayer', xPlayer.source, 'self')
+	SetResourceKvp(property.id, json.encode(property))
+
+	saveTables('Properties', property)
+
+	cb()
+end)
+
+ESX.RegisterServerCallback('dd_society:pNewKey', function(source, cb, propertyId, name)
+	local property = json.decode(GetResourceKvpString(propertyId))
+
+	property.keys[#property.keys + 1] = {
+		name = name,
+		id = property.id .. ':' .. #property.keys + 1,
+		holders = {},
+		exempt = {
+			doors,
+			zones
+		}
+	}
+	SetResourceKvp(property.id, json.encode(property))
+
+	saveTables('Properties', property)
+
+	cb(property.keys[#property.keys].id)
+end)
+
+ESX.RegisterServerCallback('dd_society:pRenameKey', function(source, cb, keyId, name)
+	local propertyId, id = string.strsplit(':', keyId)
+	local property = json.decode(GetResourceKvpString(propertyId))
+
+	for i = 1, #property.keys do
+		if property.keys[i].id == keyId then
+			property.keys[i].name = name
+			break
 		end
 	end
+	SetResourceKvp(property.id, json.encode(property))
+
+	saveTables('Properties', property)
 
 	cb()
 end)
 
-ESX.RegisterServerCallback('dd_society:pNewKey', function(source, cb, property, name)
-	local insertId = exports.oxmysql:insertSync('INSERT INTO dd_keys (property, name) VALUES (?, ?)', {property, name})
-
-	local NewKey = exports.oxmysql:singleSync('SELECT * FROM dd_keys WHERE id = ?', {insertId})
-
-	NewKey.exempt_doors = {}
-	NewKey.exempt_zones = {}
-	Data.Keys[NewKey.id] = NewKey
-
-	TriggerClientEvent('dd_society:syncKey', -1, NewKey)
-
-	cb(NewKey)
-end)
-
-ESX.RegisterServerCallback('dd_society:pRenameKey', function(source, cb, id, name)
-	exports.oxmysql:updateSync('UPDATE dd_keys SET name = ? WHERE id = ?', {name, id})
-
-	Data.Keys[id].name = name
-
-	TriggerClientEvent('dd_society:syncKey', -1, Data.Keys[id])
-
-	cb()
-end)
-
-ESX.RegisterServerCallback('dd_society:pDeleteKey', function(source, cb, key, holders)
-	if key.designation == 0 then
+ESX.RegisterServerCallback('dd_society:pDeleteKey', function(source, cb, keyId)
+	local propertyId, id = string.strsplit(':', keyId)
+	if id == 0 then
 		cb(false)
 		return
 	end
 
-	exports.oxmysql:executeSync('DELETE FROM dd_keys WHERE id = ?', {key.id})
+	local property = json.decode(GetResourceKvpString(propertyId))
 
-	Data.Keys[key.id] = nil
-
-	for k, v in pairs(holders) do
-		removeKey(key.property, key.designation, v)
+	for i = 1, #property.keys do
+		if property.keys[i].id == keyId then
+			revokeKeys({property.keys[i]}, false)
+			property.keys[i] = false
+			break
+		end
 	end
+	SetResourceKvp(property.id, json.encode(property))
 
-	TriggerClientEvent('dd_society:syncKey', -1, key, true)
+	saveTables('Properties', property)
 
 	cb(true)
 end)
 
-ESX.RegisterServerCallback('dd_society:pAddKey', function(source, cb, property, designation, player)
-	if not player.dd_keys[property] then
-		player.dd_keys[property] = {}
-	elseif has_value(player.dd_keys[property], designation) then
-		cb(false)
-		return
-	end
+ESX.RegisterServerCallback('dd_society:pAddKey', function(source, cb, keyId, target)
+	local propertyId, id = string.strsplit(':', keyId)
+	local property = json.decode(GetResourceKvpString(propertyId))
 
-	table.insert(player.dd_keys[property], designation)
-
-	local dd_keys = json.encode(player.dd_keys)
-	exports.oxmysql:updateSync('UPDATE users SET dd_keys = ? WHERE identifier = ?', {dd_keys, player.identifier})
-
-	local xPlayer = ESX.GetPlayerFromIdentifier(player.identifier)
-	if xPlayer then
-		TriggerClientEvent('dd_society:getPlayer', xPlayer.source, 'self')
-	end
-
-	cb(true)
-end)
-
-ESX.RegisterServerCallback('dd_society:pRemoveKey', function(source, cb, property, designation, player)
-	removeKey(property, designation, player)
-
-	cb()
-end)
-
-ESX.RegisterServerCallback('dd_society:pToggleKeyExemption', function(source, cb, key, id, holders, type)
-	if key.designation == 0 then
-		cb(false)
-		return
-	end
-
-	local removed
-	for k, v in pairs(key[type]) do
-		if v == id then
-			key[type][k] = nil
-			removed = true
+	for i = 1, #property.keys do
+		if property.keys[i].id == keyId then
+			property.keys[i].holders[target] = GetResourceKvpString(('%s:name'):format(target))
 			break
 		end
 	end
 
-	if not removed then
-		table.insert(key[type], id)
-	end
+	local keys = json.decode(GetResourceKvpString(('%s:keys'):format(target))) or {}
 
-	Data.Keys[key.id] = key
+	keys[keyId] = true
 
-	local exempt_doors = json.encode(key.exempt_doors)
-	local exempt_zones = json.encode(key.exempt_zones)
+	updateHolders({[target] = keys})
 
-	exports.oxmysql:updateSync('UPDATE dd_keys SET exempt_doors = ?, exempt_zones = ? WHERE id = ?', {exempt_doors, exempt_zones, key.id})
+	SetResourceKvp(property.id, json.encode(property))
 
-	for k, v in pairs(holders) do
-		local xPlayer = ESX.GetPlayerFromIdentifier(v.identifier)
-		if xPlayer then
-			TriggerClientEvent('dd_society:getPlayer', xPlayer.source, 'self')
-		end
-	end
+	saveTables('Properties', property)
 
-	TriggerClientEvent('dd_society:syncKey', -1, key)
-
-	cb(true)
+	cb()
 end)
 
-function removeKey(property, designation, player)
-	for k, v in pairs(player.dd_keys[property]) do
-		if v == designation then
-			player.dd_keys[property][k] = nil
+ESX.RegisterServerCallback('dd_society:pRemoveKey', function(source, cb, keyId, target)
+	local propertyId, id = string.strsplit(':', keyId)
+	local property = json.decode(GetResourceKvpString(propertyId))
+
+	property.keys = revokeKeys(property.keys, target)
+
+	SetResourceKvp(property.id, json.encode(property))
+
+	saveTables('Properties', property)
+
+	cb()
+end)
+
+ESX.RegisterServerCallback('dd_society:pSwitchKeyExemption', function(source, cb, keyId, itemType, itemId)
+	local propertyId, id = string.strsplit(':', keyId)
+	if id == 0 then
+		cb(false)
+		return
+	end
+
+	local property = json.decode(GetResourceKvpString(propertyId))
+
+	local holders
+	for i = 1, #property.keys do
+		if property.keys[i].id == keyId then
+			holders = property.keys[i].holders
+			if property.keys[i].exempt[itemType][itemId] then
+				property.keys[i].exempt[itemType][itemId] = nil
+			else
+				property.keys[i].exempt[itemType][itemId] = true
+			end
 			break
 		end
 	end
 
-	if #player.dd_keys[property] == 0 then
-		player.dd_keys[property] = nil
-	end
+	updateHolders(holders)
 
-	local dd_keys = json.encode(player.dd_keys)
-	exports.oxmysql:updateSync('UPDATE users SET dd_keys = ? WHERE identifier = ?', {dd_keys, player.identifier})
+	SetResourceKvp(property.id, json.encode(property))
 
-	local xPlayer = ESX.GetPlayerFromIdentifier(player.identifier)
-	if xPlayer then
-		TriggerClientEvent('dd_society:getPlayer', xPlayer.source, 'self')
+	saveTables('Properties', property)
+
+	cb(true)
+end)
+
+function updateHolders(holders)
+	for k, v in pairs(holders) do
+		local keys, auth = setAuth(k, v)
+		local xPlayer = ESX.GetPlayerFromIdentifier(k)
+		if xPlayer then
+			local plyState = Player(xPlayer.source).state
+			plyState.keys = keys
+			plyState.auth = auth
+		end
 	end
 end
 
-ESX.RegisterServerCallback('dd_society:pModifyDoor', function(source, cb, id, change)
-	if change.name then
-		exports.oxmysql:updateSync('UPDATE dd_doors SET name = ? WHERE id = ?', {change.name, id})
-	elseif change.distance then
-		exports.oxmysql:updateSync('UPDATE dd_doors SET distance = ? WHERE id = ?', {change.distance, id})
-	elseif change.locked ~= nil then
-		local locked = 0
-		if change.locked then
-			locked = 1
+function revokeKeys(keys, holder)
+	local holders = {}
+	for i = 1, #keys do
+		local key = keys[i]
+		if holder then
+			if not holders[holder] then
+				holders[holder] = json.decode(GetResourceKvpString(('%s:keys'):format(holder)))
+			end
+			holders[holder][key.id] = nil
+			key.holders[holder] = nil
+		else
+			for k, v in pairs(key.holders) do
+				if not holders[k] then
+					holders[k] = json.decode(GetResourceKvpString(('%s:keys'):format(k)))
+				end
+				holders[k][key.id] = nil
+				key.holders[k] = nil
+			end
 		end
-		exports.oxmysql:updateSync('UPDATE dd_doors SET locked = ? WHERE id = ?', {locked, id})
 	end
+	updateHolders(holders)
 
-	for k, v in pairs(change) do
-		Data.Doors[id][k] = v
+	return keys
+end
+
+RegisterServerEvent('dd_society:pModifyDoor', function(door)
+	local propertyId, id = string.strsplit(':', door.id)
+	local property = json.decode(GetResourceKvpString(propertyId))
+
+	for i = 1, #property.doors do
+		if property.doors[i].id == door.id then
+			property.doors[i] = door
+			break
+		end
 	end
+	SetResourceKvp(property.id, json.encode(property))
 
-	TriggerClientEvent('dd_society:syncDoor', -1, Data.Doors[id])
-
-	cb()
+	saveTables('Properties', property)
+	saveTables('Doors', door)
 end)
 
-ESX.RegisterServerCallback('dd_society:pModifyZone', function(source, cb, id, change)
-	if change.name then
-		exports.oxmysql:updateSync('UPDATE dd_zones SET name = ? WHERE id = ?', {change.name, id})
-	elseif change.public ~= nil then
-		local public = 0
-		if change.public then
-			public = 1
+ESX.RegisterServerCallback('dd_society:pModifyZone', function(source, cb, zone)
+	local propertyId, id = string.strsplit(':', zone.id)
+	local property = json.decode(GetResourceKvpString(propertyId))
+
+	for i = 1, #property.zones do
+		if property.zones[i].id == zone.id then
+			property.zones[i] = zone
+			break
 		end
-		exports.oxmysql:updateSync('UPDATE dd_zones SET public = ? WHERE id = ?', {public, id})
 	end
+	SetResourceKvp(property.id, json.encode(property))
 
-	for k, v in pairs(change) do
-		Data.Zones[id][k] = v
-	end
-
-	TriggerClientEvent('dd_society:syncZone', -1, Data.Zones[id])
+	saveTables('Properties', property)
+	saveTables('Zones', zone)
 
 	cb()
-end)
-
-RegisterServerEvent('dd_society:changeDoorState', function(id, locked)
-	local Door = Data.Doors[id]
-	Door.locked = locked
-	TriggerClientEvent('dd_society:syncDoor', -1, Door)
 end)

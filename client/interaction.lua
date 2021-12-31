@@ -76,7 +76,7 @@ local entityTypes = {
 local validEntity, actions
 
 RegisterCommand('+interactionMenu', function()
-	if not targetActive and not IsPedInAnyVehicle(ESX.PlayerData.ped, false) and not isBusy and not (LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed) and not LocalPlayer.state.invOpen then 
+	if not targetActive and not IsPedInAnyVehicle(ESX.PlayerData.ped, false) and not isBusy and not (PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed) and not PlayerBags.Player.invOpen then
 		targetActive = true
 		local hit, coords, entity, entityType = RaycastCamera(switch())
 		local sleep = 10
@@ -96,8 +96,8 @@ RegisterCommand('+interactionMenu', function()
 					actions = nil
 					SendNUIMessage({response = 'leftTarget'})
 				end
-				if LocalPlayer.state.escorting then
-					validEntity = GetPlayerPed(GetPlayerFromServerId(LocalPlayer.state.escorting))
+				if PlayerBags.Player.escorting then
+					validEntity = GetPlayerPed(GetPlayerFromServerId(PlayerBags.Player.escorting))
 					actions = entityTypes.player
 					SendNUIMessage({response = 'validTarget', actions = actions})
 				end
@@ -155,11 +155,11 @@ RegisterCommand('resuscitate', function(source, args, rawCommand)
 		targetActive = false
 		isBusy = true
 		local targetId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity))
-		if Player(targetId).state.dead then
+		if PlayerBags.targetId.dead then
 			ClearPedTasks(ESX.PlayerData.ped)
 			TaskGoToEntity(ESX.PlayerData.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
 			local count = 0
-			while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not LocalPlayer.state.escorting and count < 20 do
+			while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not PlayerBags.Player.escorting and count < 20 do
 				Wait(100)
 				count += 1
 			end
@@ -176,7 +176,7 @@ RegisterCommand('resuscitate', function(source, args, rawCommand)
 						mouse = false
 					},
 					anim = {
-						dict = 'mini@cpr@char_a@cpr_str', 
+						dict = 'mini@cpr@char_a@cpr_str',
 						clip = 'cpr_pumpchest',
 					},
 				},
@@ -204,7 +204,7 @@ RegisterCommand('cuff', function(source, args, rawCommand)
 		ClearPedTasks(ESX.PlayerData.ped)
 		TaskGoToEntity(ESX.PlayerData.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
 		local count = 0
-		while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not LocalPlayer.state.escorting and count < 20 do
+		while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not PlayerBags.Player.escorting and count < 20 do
 			Wait(100)
 			count += 1
 		end
@@ -231,7 +231,7 @@ RegisterNetEvent('dd_society:restrainer', function(cuff)
 				mouse = false
 			},
 			anim = {
-				dict = 'mp_arrest_paired', 
+				dict = 'mp_arrest_paired',
 				clip = 'cop_p2_back_right',
 			},
 		},
@@ -251,7 +251,7 @@ RegisterNetEvent('dd_society:restrainer', function(cuff)
 				mouse = false
 			},
 			anim = {
-				dict = 'mp_arresting', 
+				dict = 'mp_arresting',
 				clip = 'a_uncuff',
 			},
 		},
@@ -280,7 +280,7 @@ RegisterNetEvent('dd_society:cuff', function(control, cuff)
 				mouse = false
 			},
 			anim = {
-				dict = 'mp_arrest_paired', 
+				dict = 'mp_arrest_paired',
 				clip = 'crook_p2_back_right',
 			},
 		},
@@ -300,7 +300,7 @@ RegisterNetEvent('dd_society:cuff', function(control, cuff)
 				mouse = false
 			},
 			anim = {
-				dict = 'mp_arresting', 
+				dict = 'mp_arresting',
 				clip = 'b_uncuff',
 			},
 		},
@@ -319,7 +319,7 @@ RegisterCommand('escort', function(source, args, rawCommand)
 		ClearPedTasks(ESX.PlayerData.ped)
 		TaskGoToEntity(ESX.PlayerData.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
 		local count = 0
-		while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not LocalPlayer.state.escorting and count < 20 do
+		while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not PlayerBags.Player.escorting and count < 20 do
 			Wait(100)
 			count += 1
 		end
@@ -407,10 +407,10 @@ RegisterCommand('vehicleEscort', function(source, args, rawCommand)
 			validEntity = nil
 			return
 		end
-		if LocalPlayer.state.escorting then
+		if PlayerBags.Player.escorting then
 			for i = 1, backSeats do
 				if IsVehicleSeatFree(validEntity, i) then
-					TriggerServerEvent('dd_society:escort', LocalPlayer.state.escorting, NetworkGetNetworkIdFromEntity(validEntity), i)
+					TriggerServerEvent('dd_society:escort', PlayerBags.Player.escorting, NetworkGetNetworkIdFromEntity(validEntity), i)
 					break
 				end
 			end

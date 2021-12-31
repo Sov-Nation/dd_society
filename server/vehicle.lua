@@ -23,7 +23,7 @@ end, true, {help = 'Spawn a vehicle and give it to a player', validate = false, 
 }})
 
 RegisterServerEvent('dd_society:vCreateVehicle', function(props, name)
-	local xPlayer = ESX.GetPlayerFromId(source)
+	local plyState = Player(source).state
 	local category, type = Indexed.Vehicles[props.model].category
 
 	if category == 'Boat' then
@@ -36,44 +36,51 @@ RegisterServerEvent('dd_society:vCreateVehicle', function(props, name)
 		type = 'car'
 	end
 
-	exports.oxmysql:insertSync('INSERT INTO owned_vehicles (vehicle, owner, name, plate, type) VALUES (?, ?, ?, ?, ?)', {json.encode(props), xPlayer.identifier, name, props.plate, type})
+	exports.oxmysql:insertSync('INSERT INTO owned_vehicles (vehicle, owner, name, plate, type) VALUES (?, ?, ?, ?, ?)', {json.encode(props), plyState.ident, name, props.plate, type})
 end)
 
 ESX.RegisterServerCallback('dd_society:vList', function(source, cb, garage)
-	local xPlayer = ESX.GetPlayerFromId(source)
-	local Vehicles
+	local plyState = Player(source).state
+	local vehicles
 
 	if garage.type == 'boss' then
 		local garages = {}
-		for k, v in pairs(Data.Properties[garage.property].zones) do
-			if v.type == 'garage' then
-				table.insert(garages, v.id)
+		local property = Indexed.Properties[garage.property]
+		for i = 1, #property.zones do
+			local zone = property.zones[i]
+			if zone.type == 'garage' then
+				garages[#garages + 1] = zone.id
 			end
 		end
-		if not next(garages) then
-			garages[1] = 'x'
+		if next(garages) then
+			vehicles = exports.oxmysql:executeSync('SELECT * FROM owned_vehicles WHERE owner IN (?) OR garage IN (?)', {{plyState.ident, property.owner}, garages})
+		else
+			vehicles = exports.oxmysql:executeSync('SELECT * WHERE owner IN ?', {{plyState.ident, property.owner}})
 		end
-		Vehicles = exports.oxmysql:executeSync('SELECT owned_vehicles.*, users.firstname, users.lastname FROM owned_vehicles LEFT JOIN users ON owned_vehicles.owner = users.identifier WHERE (owner = ? OR owner = ? OR garage IN (?))', {xPlayer.identifier, xPlayer.job.label, garages})
+		for i = 1, #vehicles do
+			local vehicle = vehicles[i]
+			vehicle.ownerName = getName(vehicle.owner)
+		end
 	else
-		local type
+		local vType
 		if garage.type == 'garage' then
-			type = 'car'
+			vType = 'car'
 		elseif garage.type == 'dock' then
-			type = 'boat'
+			vType = 'boat'
 		elseif garage.type == 'pad' then
-			type = 'heli'
+			vType = 'heli'
 		elseif garage.type == 'hangar' then
-			type = 'plane'
+			vType = 'plane'
 		end
 
-		Vehicles = exports.oxmysql:executeSync('SELECT * FROM owned_vehicles WHERE (owner = ? OR owner = ?) AND type = ?', {xPlayer.identifier, xPlayer.job.label, type})
+		vehicles = exports.oxmysql:executeSync('SELECT * FROM owned_vehicles WHERE owner IN (?) AND type = ?', {{plyState.ident, plyState.job}, vType})
 	end
 
-	cb(Vehicles)
+	cb(vehicles)
 end)
 
 ESX.RegisterServerCallback('dd_society:vModify',function(source, cb, vehicle, change)
-	local xPlayer = ESX.GetPlayerFromId(source)
+	local plyState = Player(source).state
 
 	local Vehicle = exports.oxmysql:singleSync('SELECT * FROM owned_vehicles WHERE plate = ?', {vehicle.props.plate})
 
@@ -92,31 +99,21 @@ ESX.RegisterServerCallback('dd_society:vModify',function(source, cb, vehicle, ch
 		end
 
 		if change.owner then
-			if Vehicle.owner == xPlayer.identifier or Vehicle.owner == xPlayer.job.label then
-				if change.owner ~= Vehicle.owner then
-					exports.oxmysql:updateSync('UPDATE owned_vehicles SET owner = ? WHERE plate = ?', {change.owner, vehicle.props.plate})
-				end
-			else
-				cb(false)
-				return
+			if change.owner ~= Vehicle.owner then
+				exports.oxmysql:updateSync('UPDATE owned_vehicles SET owner = ? WHERE plate = ?', {change.owner, vehicle.props.plate})
 			end
 		end
 
-		if Vehicle.owner == xPlayer.identifier or Vehicle.owner == xPlayer.job.label then
-			if change.name then
-				if Vehicle.name ~= change.name then
-					exports.oxmysql:updateSync('UPDATE owned_vehicles SET name = ? WHERE plate = ?', {change.name, vehicle.props.plate})
-				end
+		if change.name then
+			if Vehicle.name ~= change.name then
+				exports.oxmysql:updateSync('UPDATE owned_vehicles SET name = ? WHERE plate = ?', {change.name, vehicle.props.plate})
 			end
+		end
 
-			if change.plate then
-				if Vehicle.plate ~= change.plate then
-					exports.oxmysql:updateSync('UPDATE owned_vehicles SET plate = ? WHERE plate = ?', {vehicle.props.plate, vehicle.props.plate})
-				end
+		if change.plate then
+			if Vehicle.plate ~= change.plate then
+				exports.oxmysql:updateSync('UPDATE owned_vehicles SET plate = ? WHERE plate = ?', {vehicle.props.plate, vehicle.props.plate})
 			end
-		elseif change.name or change.plate then
-			cb(false)
-			return
 		end
 
 		cb(true)

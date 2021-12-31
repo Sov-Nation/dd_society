@@ -1,101 +1,26 @@
-Data = {}
 resName = GetCurrentResourceName()
+PlayerBags = {Player = json.decode(GetResourceKvpString('Player')) or {loaded = false}}
+
+Data = {
+	Societies = GlobalState.Data_Societies,
+	Properties = GlobalState.Data_Properties,
+	Doors = GlobalState.Data_Doors,
+	Zones = GlobalState.Data_Zones
+}
+
+Indexed = {
+	Societies = GlobalState.Indexed_Societies,
+	Properties = GlobalState.Indexed_Properties,
+	Doors = GlobalState.Indexed_Doors,
+	Zones = GlobalState.Indexed_Zones
+}
 
 CreateThread(function()
-	TriggerEvent('dd_society:getSocieties')
-	TriggerEvent('dd_society:getPlayer', 'self')
-	TriggerEvent('dd_society:getProperties')
-	TriggerEvent('dd_society:getKeys')
-	TriggerEvent('dd_society:getDoors')
-	TriggerEvent('dd_society:getZones')
-	
-	dataReady()
-
 	showBlips()
 	refreshBussHUD()
 end)
 
-function dataReady()
-	while true do
-		local ready = true
-		if ESX.PlayerLoaded then
-			for k, v in pairs(Data) do
-				if not next(v) then
-					ready = false
-				end
-			end
-			if ready then
-				break
-			end
-		end
-		Wait(100)
-	end
-end
-
-RegisterNetEvent('dd_society:getSocieties', function()
-	Data.Societies = {}
-	ESX.TriggerServerCallback('dd_society:getSocieties', function(Societies)
-		Data.Societies = Societies
-	end)
-end)
-
-RegisterNetEvent('dd_society:getPlayer', function(ident)
-	Data.Player = {}
-	ESX.TriggerServerCallback('dd_society:getPlayer', function(Player)
-		Data.Player = Player
-	end, ident)
-end)
-
-RegisterNetEvent('dd_society:getProperties', function(update)
-	Data.Properties = {}
-	ESX.TriggerServerCallback('dd_society:getProperties', function(Properties)
-		Data.Properties = Properties
-		if update then
-			showBlips()
-		end
-	end)
-end)
-
-RegisterNetEvent('dd_society:getKeys', function()
-	Data.Keys = {}
-	ESX.TriggerServerCallback('dd_society:getKeys', function(Keys)
-		Data.Keys = Keys
-	end)
-end)
-
-RegisterNetEvent('dd_society:getDoors', function()
-	Data.Doors = {}
-	ESX.TriggerServerCallback('dd_society:getDoors', function(Doors)
-		Data.Doors = Doors
-	end)
-end)
-
-RegisterNetEvent('dd_society:getZones', function()
-	Data.Zones = {}
-	ESX.TriggerServerCallback('dd_society:getZones', function(Zones)
-		Data.Zones = Zones
-	end)
-end)
-
-RegisterNetEvent('dd_society:syncKey', function(key, delete)
-	if delete then
-		Data.Keys[key.id] = nil
-	else
-		Data.Keys[key.id] = key
-	end
-end)
-
-RegisterNetEvent('dd_society:syncDoor', function(door)
-	Data.Doors[door.id].locked = door.locked
-	Data.Doors[door.id].name = door.name
-	Data.Doors[door.id].distance = door.distance
-	Data.Doors[door.id].onstart = door.onstart
-end)
-
-RegisterNetEvent('dd_society:syncZone', function(zone)
-	Data.Zones[zone.id] = zone
-end)
-
+local Blips = {}
 function showBlips(target)
 	if Blips then
 		if target == Blips.target then
@@ -106,83 +31,115 @@ function showBlips(target)
 			RemoveBlip(v)
 		end
 	end
+
+	if not PlayerBags.Player.loaded then
+		return
+	end
+
 	Blips = {}
-	for k, v in pairs(Data.Properties) do
-		local blip = AddBlipForCoord(v.blip)
-		SetBlipSprite(blip, Config.PropertyTypes[v.type].sprite)
-		if Data.Societies[v.owner] then
+	for i = 1, #Data.Properties do
+		local property = Data.Properties[i]
+		local blip = AddBlipForCoord(vectorize(property.blip))
+		SetBlipSprite(blip, Config.PropertyTypes[property.type].sprite)
+		if Indexed.Societies[property.owner] then
+			local society = Indexed.Societies[property.owner]
 			SetBlipDisplay(blip, 2)
 			SetBlipCategory(blip, 10)
-			SetBlipColour(blip, Data.Societies[v.owner].colour)
+			SetBlipColour(blip, society.colour)
 			SetBlipShrink(blip, true)
 
-			if v.owner ~= ESX.PlayerData.job.label then
+			if property.owner ~= PlayerBags.Player.job then
 				SetBlipAsShortRange(blip, true)
 			end
 
 			BeginTextCommandSetBlipName('STRING')
-			AddTextComponentString(k .. ' - ' .. Data.Societies[v.owner].label)
+			AddTextComponentString(('%s - %s'):format(property.id, society.label))
 			EndTextCommandSetBlipName(blip)
-		elseif v.owner == ESX.PlayerData.identifier then
+		elseif property.owner == PlayerBags.Player.ident then
 			SetBlipDisplay(blip, 2)
 			SetBlipCategory(blip, 11)
 			SetBlipShrink(blip, true)
 
 			BeginTextCommandSetBlipName('STRING')
-			AddTextComponentString(k)
+			AddTextComponentString(property.id)
 			EndTextCommandSetBlipName(blip)
 		else
 			SetBlipDisplay(blip, 0)
 
 			BeginTextCommandSetBlipName('STRING')
-			AddTextComponentString(k)
+			AddTextComponentString(property.id)
 			EndTextCommandSetBlipName(blip)
 		end
 
-		if v.id == target then
+		if property.id == target then
 			SetBlipDisplay(blip, 2)
 			SetBlipRoute(blip, true)
-			SetBlipAsShortRange(blip, false) --add notification
+			SetBlipAsShortRange(blip, false)
 
 			Blips.target = target
-			-- CreateThread(function() --NFG loops never stop
-			--     T = true
-			--     while T do
-			--         Wait(1000)
-			--         print(target)
-			--         if #(pedPos.xy - Data.Properties[target].blip.xy) < 50 then
-			--             showBlips()
-			--             break
-			--         elseif not T then
-			--             break
-			--         end
-			--     end
-			-- end)
 		end
 
-		Blips[v.id] = blip
+		Blips[property.id] = blip
 	end
 end
 
-RegisterNetEvent('dd_society:updateSociety', function(Society)
-	local OldSociety = Data.Societies[Society.label]
-
-	Data.Societies[Society.label] = Society
-
-	if Society.colour ~= OldSociety.colour then
-		showBlips()
+AddStateBagChangeHandler(nil, 'global', function(bagName, key, value, reserved, replicated)
+	local tab, subTable = string.strsplit('_', key)
+	if tab == 'Data' then
+		Data[subTable] = value
+	elseif tab == 'Indexed' then
+		Indexed[subTable] = value
 	end
 
-	if Society.account ~= OldSociety.account and ESX.PlayerData.job.grade >= 3 and ESX.PlayerData.job.label == Society.label then
-		UpdateSocietyMoneyHUDElement(Society.account)
+	if subTable == 'Properties' then
+		showBlips()
+		kmUpdate = true
+	elseif subTable == 'Societies' then
+		refreshBussHUD()
+		bUpdate = true
+	end
+end)
+
+local Player = GetPlayerServerId(PlayerId())
+AddStateBagChangeHandler(nil, nil, function(bagName, key, value, reserved, replicated)
+	print(bagName, key, value, reserved, replicated)
+	if bagName:find(':') then
+		local _, id = string.strsplit(':', bagName)
+		if tonumber(id) == Player then
+			PlayerBags.Player[key] = value
+			SetResourceKvp('Player', json.encode(PlayerBags.Player))
+			if key == 'loaded' then
+				showBlips()
+			end
+		else
+			if not PlayerBags[tonumber(id)] then
+				PlayerBags[tonumber(id)] = {}
+			end
+			PlayerBags[tonumber(id)][key] = value
+		end
 	end
 end)
 
 function refreshBussHUD()
+	if not PlayerBags.Player.loaded then
+		return
+	end
 	DisableSocietyMoneyHUDElement()
-	if ESX.PlayerData.job.grade >= 3 then
+
+	local society = Indexed.Societies[PlayerBags.Player.job]
+	local gradeNo
+
+	for i = 0, #society.grades do
+		local grade = society.grades[i]
+		if grade.name == PlayerBags.Player.grade then
+			gradeNo = grade.grade
+			break
+		end
+	end
+
+	if gradeNo >= 3 then
 		EnableSocietyMoneyHUDElement()
-		UpdateSocietyMoneyHUDElement(Data.Societies[ESX.PlayerData.job.label].account)
+		UpdateSocietyMoneyHUDElement(society.account)
 	end
 end
 

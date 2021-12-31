@@ -1,31 +1,32 @@
 RegisterCommand('billsMenu', function()
 	local close = ESX.UI.Menu.IsOpen('default', resName, 'playerBills')
 	ESX.UI.Menu.CloseAll()
-	if not close and not (LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed) then
+	if not close and not (PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed) then
 		billsOpen()
 	end
 end)
 
 function billsOpen()
-	ESX.TriggerServerCallback('dd_society:aGetPlayerBills', function(Bills)
+	ESX.TriggerServerCallback('dd_society:aGetPlayerBills', function(bills)
 		local elements = {}
-		for k, v in pairs(Bills) do
+		for i = 1, #bills do
 			local label
-			if v.time > 1 then
-				label = cSpan('green', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due ', v.time, ' days]'), v.target)
-			elseif v.time == 1 then
-				label = cSpan('yellow', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due ', v.time, ' day]'), v.target)
-			elseif v.time == 0 then
-				label = cSpan('orange', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due]'), v.target)
-			elseif v.time == -1 then
-				label = cSpan('red', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [overdue ', math.abs(v.time), ' day]'), v.target)
-			elseif v.time < -1 then
-				label = cSpan('red', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [overdue ', math.abs(v.time), ' days]'), v.target)
+			local bill = bills[i]
+			if bill.time > 1 then
+				label = colour('green', ('%s - $%s [due %s days] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.time, bill.targetName))
+			elseif bill.time == 1 then
+				label = colour('yellow', ('%s - $%s [due 1 day] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.targetName))
+			elseif bill.time == 0 then
+				label = colour('orange', ('%s - $%s [due] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.targetName))
+			elseif bill.time == -1 then
+				label = colour('red', ('%s - $%s [overdue 1 day] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.targetName))
+			elseif bill.time < -1 then
+				label = colour('red', ('%s - $%s [overdue %s days] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), math.abs(bill.time), bill.targetName))
 			end
-			table.insert(elements, {
+			elements[#elements + 1] = {
 				label = label,
-				value = v.id
-			})
+				value = bill.id
+			}
 		end
 		if not next(elements) then
 			elements[1] = {label = 'None'}

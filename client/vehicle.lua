@@ -58,8 +58,9 @@ function storeVehicle(zone)
 			local vehicle = {}
 			vehicle.props = getVehicleProperties(vehicleId)
 			if vehicle.props then
-				ESX.TriggerServerCallback('dd_society:vModify', function(passed)
-					if passed then
+				ESX.TriggerServerCallback('dd_society:vModify', function(valid)
+					if valid then
+						ESX.UI.Menu.CloseAll()
 						for i = -1, GetVehicleMaxNumberOfPassengers(vehicleId) do
 							TaskLeaveVehicle(GetPedInVehicleSeat(vehicleId, i), vehicleId, 4160)
 						end
@@ -69,9 +70,9 @@ function storeVehicle(zone)
 					else
 						ESX.ShowNotification('~r~You cannot store this vehicle')
 					end
-				end, vehicle, {garage = zone.id, props = vehicle.props})
+				end, vehicle, {garage = ('%s-stored'):format(zone.id), props = vehicle.props})
 			else
-				ESX.ShowNotification('Error finding vehicle')
+				ESX.ShowNotification('~r~Error finding vehicle')
 			end
 		else
 			ESX.ShowNotification('~r~You are not the driver')
@@ -81,45 +82,35 @@ function storeVehicle(zone)
 	end
 end
 
-function pickSpawn(vehicle, zone)
+function pickSpot(zone)
+	for i = 1, #zone.spawn*2 do
+		local spot = vectorize(zone.spawn[math.random(1, #zone.spawn)])
+		if ESX.Game.IsSpawnPointClear(spot.xyz, 3.0) then
+			return spot
+		end
+	end
+	return false
+end
+
+function spawnAtSpot(vehicle, spot)
+	local veh = spawnVehicle(vehicle.props.model, spot, false, false)
+
+	setVehicleProperties(veh, vehicle.props)
+
 	if carInstance[vehicle.props.plate] then
 		if DoesEntityExist(carInstance[vehicle.props.plate]) then
 			ESX.Game.DeleteVehicle(carInstance[vehicle.props.plate])
-			carInstance[vehicle.props.plate] = nil
+			carInstance[vehicle.props.plate] = veh
 		end
 	end
 
-	local spot, found
+	ESX.ShowNotification('Your ~y~vehicle ~w~is ~g~ready')
 
-	for i = 1, #zone.spawn*2 do
-		spot = zone.spawn[math.random(1, #zone.spawn)]
-		if ESX.Game.IsSpawnPointClear(spot.xyz, 3.0) then
-			found = true
-			break
-		end
-	end
-
-	if found then
-		local veh = spawnVehicle(vehicle.props.model, spot, false, false)
-
-		setVehicleProperties(veh, vehicle.props)
-		carInstance[vehicle.props.plate] = veh
-
-		ESX.ShowNotification('Your ~y~vehicle ~w~is ~g~ready')
-
-		CreateThread(function()
-			local vehicleBlip = AddBlipForCoord(spot.xyz)
-			Wait(10000)
-			RemoveBlip(vehicleBlip)
-		end)
-	else
-		ESX.ShowNotification('~r~There was no spot found for your vehicle')
-		ESX.TriggerServerCallback('dd_society:vModify', function(passed)
-			if passed then
-				gManage(zone)
-			end
-		end, vehicle, {garage = zone.id})
-	end
+	CreateThread(function()
+		local vehicleBlip = AddBlipForCoord(spot.xy)
+		Wait(10000)
+		RemoveBlip(vehicleBlip)
+	end)
 end
 
 function vehicleInUse(plate)

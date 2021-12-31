@@ -1,19 +1,18 @@
 CreateThread(function()
-	dataReady()
 	while true do
 		Wait(100)
-		if Data.Player.Auth and Data.Doors then
-			for k, v in pairs(Data.Doors) do
-				local distance = #(pedPos - v.coords)
-				if #(pedPos - v.coords) < v.distance then
-					if has_value(Data.Player.Auth.Doors, k) then
-						v.displayText = v.locked and '~r~Locked' or '~g~Unlocked'
-						if Config.debugDoor or v.debug then
-							v.displayText = v.name .. '\n' .. v.displayText
+		if PlayerBags.Player.loaded then
+			for i = 1, #Data.Doors do
+				local door = Data.Doors[i]
+				if #(pedPos - vectorize(door.coords)) < door.distance then
+					if PlayerBags.Player.auth.doors[door.id] then
+						door.displayText = door.locked and '~r~Locked' or '~g~Unlocked'
+						if Config.debugDoor or door.debug then
+							door.displayText = ('%s\n%s'):format(door.name, door.displayText)
 						end
-					end	
+					end
 				else
-					v.displayText = nil
+					door.displayText = nil
 				end
 			end
 		end
@@ -21,15 +20,14 @@ CreateThread(function()
 end)
 
 RegisterCommand('lock/unlock', function()
-	if LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed then
+	if PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed then
 		return
 	end
-	
-	local closeDist = 25
-	local closeDoor = {}
-	for k, v in pairs(Data.Player.Auth.Doors) do
-		local door = Data.Doors[v]
-		local distance = #(pedPos - door.coords)
+
+	local closeDist, closeDoor = 25
+	for k, v in pairs(PlayerBags.Player.auth.doors) do
+		local door = Indexed.Doors[k]
+		local distance = #(pedPos - vectorize(door.coords))
 		if distance < door.distance then
 			if closeDist > distance then
 				closeDist = distance
@@ -38,42 +36,53 @@ RegisterCommand('lock/unlock', function()
 		end
 	end
 
-	if has_value(Data.Player.Auth.Doors, closeDoor.id) then
-		closeDoor.locked = not closeDoor.locked
-		TriggerServerEvent('dd_society:changeDoorState', closeDoor.id, closeDoor.locked)
+	if not closeDoor then
+		return
 	end
+
+	for i = 1, #Data.Doors do
+		if Data.Doors[i].id == closeDoor.id then
+			closeDoor = Data.Doors[i]
+			break
+		end
+	end
+
+	closeDoor.locked = not closeDoor.locked
+	closeDoor.displayText = closeDoor.locked and '~r~Locked' or '~g~Unlocked'
+
+	TriggerServerEvent('dd_society:pModifyDoor', closeDoor)
 end)
 
 CreateThread(function()
-	dataReady()
 	while true do
-		Wait(10)
 		pedPos = GetEntityCoords(ESX.PlayerData.ped)
-		if Data.Doors then
-			for k, v in pairs(Data.Doors) do
-				applyDoorState(v)
-				if v.displayText then
-					if not v.text then
+		Wait(0)
+		if PlayerBags.Player.loaded then
+			for i = 1, #Data.Doors do
+				local door = Data.Doors[i]
+				applyDoorState(door)
+				if door.displayText then
+					if not door.text then
 						local x, y, z
-						local minVec, maxVec = GetModelDimensions(v.hash)
+						local minVec, maxVec = GetModelDimensions(door.hash)
 						local offset = minVec - maxVec
 						if maxVec.x > -0.1 and maxVec.x > 0.1 then
 							offset = maxVec - minVec
 						end
-						if v.type == 'door' then
+						if door.type == 'door' then
 							x = offset.x/2
 							z = math.abs(offset.z)/5
-						elseif v.type == 'gate' then
+						elseif door.type == 'gate' then
 							x = offset.x/2
 							z = math.abs(offset.z)/1.5
-						elseif v.type == 'garage' then
+						elseif door.type == 'garage' then
 							z = offset.z/10
-						elseif v.type == 'lift' then
+						elseif door.type == 'lift' then
 							z = offset.z/2
 						end
-						v.text = GetOffsetFromEntityInWorldCoords(v.object, x or 0, y or 0, z or 0)
+						door.text = GetOffsetFromEntityInWorldCoords(door.object, x or 0, y or 0, z or 0)
 					end
-					ESX.Game.Utils.DrawText3D(v.text, v.displayText, (0.75 + v.distance/10))
+					ESX.Game.Utils.DrawText3D(door.text, door.displayText, (0.75 + door.distance/10))
 				end
 			end
 		end
@@ -82,13 +91,12 @@ end)
 
 
 function applyDoorState(door)
-	dataReady()
-	if #(pedPos - door.coords) > 25 then
+	if #(pedPos - vectorize(door.coords)) > 25 then
 		return
 	end
 
 	if not door.object or door.object == 0 then
-		door.object = GetClosestObjectOfType(door.coords, 1.0, door.hash, false, false, false)
+		door.object = GetClosestObjectOfType(vectorize(door.coords), 1.0, door.hash, false, false, false)
 	else
 		if not IsEntityAtCoord(door.object, door.coords.x, door.coords.y, door.coords.z, 1.0, 1.0, 1.0, 0, 1, 0) then
 			door.object = 0

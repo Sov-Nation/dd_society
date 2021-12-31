@@ -1,35 +1,38 @@
 RegisterCommand('societyMenu', function()
 	local close = ESX.UI.Menu.IsOpen('default', resName, 'society')
 	ESX.UI.Menu.CloseAll()
-	if not close and not (LocalPlayer.state.dead or LocalPlayer.state.ko > 0 or LocalPlayer.state.cuffed) then
+	if not close and not (PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed) then
 		sOpen()
 	end
 end)
 
 function sOpen()
 	local elements = {{label = 'New bill', value = 'newBill'}}
-	if ESX.PlayerData.job.label ~= 'Unemployed' then
-		local SocietyPropertyTypes = {}
+	if PlayerBags.Player.job ~= 'unemployed' then
 		elements[2] = {label = 'View society bills', value = 'societyBills'}
-		for k, v in pairs(Data.Properties) do
-			if ESX.PlayerData.job.label == v.owner then
-				if not has_value(SocietyPropertyTypes, v.type) then
-					table.insert(SocietyPropertyTypes, v.type)
+		local SocietyPropertyTypes = {}
+		for i = 1, #Data.Properties do
+			local property = Data.Properties[i]
+			if property.owner == PlayerBags.Player.job then
+				if not has_value(SocietyPropertyTypes, property.type) then
+					SocietyPropertyTypes[#SocietyPropertyTypes + 1] = property.type
 				end
 			end
 		end
 
-		for k, v in pairs(SocietyPropertyTypes) do
-			for k2, v2 in pairs(Config.PropertyTypes[v].sMenu) do
-				if not has_value(elements, v2) then
-					table.insert(elements, Config.Menus[v2])
+		for i = 1, #SocietyPropertyTypes do
+			local pType = SocietyPropertyTypes[i]
+			for j = 1, #Config.PropertyTypes[pType].sMenu do
+				local menu = Config.PropertyTypes[pType].sMenu[j]
+				if not has_value(elements, menu) then
+					elements[#elements + 1] = Config.Menus[menu]
 				end
 			end
 		end
 	end
 
 	ESX.UI.Menu.Open('default', resName, 'society', {
-		title    = 'Society menu - ' .. ESX.PlayerData.job.label,
+		title    = ('Society menu - %s'):format(PlayerBags.Player.job),
 		align    = 'top-left',
 		elements = elements
 	},
@@ -51,18 +54,18 @@ function sOpen()
 				},
 				function(datad, menud)
 					exports.dd_menus:amount({
-						title = 'Billing ' .. datad.current.name .. ', enter value',
+						title = ('Billing %s, enter value'):format(datad.current.name),
 						min = 1,
 						max = nil
 					},
 					function(datadd, menudd)
 						exports.dd_menus:text({
-							title = 'Billing note for ' .. datad.current.name .. ', enter text (optional)'
+							title = ('Billing note for %s, enter text (optional)'):format(datad.current.name)
 						},
 						function(dataddd, menuddd)
-							menu2.close() 
+							menu2.close()
 							local details = dataddd.value
-							if not details or string.len(details) < 1 then
+							if not details or details:len() < 1 then
 								details = 'Invoice'
 							end
 							local target = ESX.PlayerData.job.label
@@ -77,36 +80,41 @@ function sOpen()
 				menu2.close()
 			end)
 		elseif data.current.value == 'societyBills' then
-			ESX.TriggerServerCallback('dd_society:aGetTargetBills', function(Bills)
+			ESX.TriggerServerCallback('dd_society:aGetTargetBills', function(bills)
 				local elements = {}
-				for k, v in pairs(Bills) do
+				for i = 1, #bills do
 					local label
-					if v.time > 1 then
-						label = ('<span style="color: green;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [due ' .. v.time .. ' days]')
-					elseif v.time == 1 then
-						label = ('<span style="color: yellow;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [due ' .. v.time .. ' day]')
-					elseif v.time == 0 then
-						label = ('<span style="color: orange;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [due]')
-					elseif v.time == -1 then
-						label = ('<span style="color: red;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [overdue ' .. math.abs(v.time) .. ' day]')
-					elseif v.time < -1 then
-						label = ('<span style="color: red;">%s</span>'):format(v.details .. ' - $' .. ESX.Math.GroupDigits(v.amount) .. ' [overdue ' .. math.abs(v.time) .. ' days]')
+					local bill = bills[i]
+					if bill.time > 1 then
+						label = colour('green', ('%s - $%s [due %s days] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.time, bill.playerName))
+					elseif bill.time == 1 then
+						label = colour('yellow', ('%s - $%s [due 1 day] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.playerName))
+					elseif bill.time == 0 then
+						label = colour('orange', ('%s - $%s [due] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.playerName))
+					elseif bill.time == -1 then
+						label = colour('red', ('%s - $%s [overdue 1 day] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.playerName))
+					elseif bill.time < -1 then
+						label = colour('red', ('%s - $%s [overdue %s days] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), math.abs(bill.time), bill.playerName))
 					end
-					table.insert(elements, {label = v.firstname .. ' ' .. v.lastname .. ': ' .. label})
+					elements[#elements + 1] = {
+						label = label,
+						value = bill.id
+					}
 				end
 				if not next(elements) then
 					elements[1] = {label = 'None'}
 				end
 				ESX.UI.Menu.Open('default', resName, 'societyBills', {
-					title    = ESX.PlayerData.job.label .. ' bills',
+					title    = ('%s Bills'):format(Indexed.Societies[PlayerBags.Player.job].label),
 					align    = 'top-left',
 					elements = elements
 				},
 				function(data2, menu2)
-				end, function(data2, menu2)
+				end,
+				function(data2, menu2)
 					menu2.close()
 				end)
-			end, ESX.PlayerData.job.label)
+			end, PlayerBags.Player.job)
 		elseif data.current.value == 'keyMaster' then
 			kmOpen()
 		end

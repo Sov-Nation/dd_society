@@ -1,7 +1,8 @@
 function bOpen(zone)
-	local propertyOwner = Data.Properties[zone.property].owner
+	local property = Indexed.Properties[zone.property]
+	local society = Indexed.Societies[property.owner]
 	ESX.UI.Menu.Open('default', resName, 'boss', {
-		title    = string.strjoin(' - ', zone.property, zone.name),
+		title    = ('%s - %s'):format(zone.property, zone.name),
 		align    = 'top-left',
 		elements = {
 			{label = 'Open stash', value = 'stash'},
@@ -14,112 +15,123 @@ function bOpen(zone)
 	function(data, menu)
 		if data.current.value == 'stash' then
 			menu.close()
-			TriggerEvent('ox_inventory:openInventory', 'stash', string.strconcat(zone.property, ':', zone.type, '-', zone.designation))
+			TriggerEvent('ox_inventory:openInventory', 'stash', zone.id)
 		elseif data.current.value == 'finance' then
 			local elements = {
 				{label = 'Withdraw cash', value = 'withdraw'},
 				{label = 'Deposit cash', value = 'deposit'},
 				{label = 'Bills', value = 'bills'},
 			}
-			for k, v in pairs(Config.PropertyTypes[Data.Properties[zone.property].type].bMenu) do
-				table.insert(elements, v)
+			for i = 1, #Config.PropertyTypes[property.type].bMenu do
+				elements[#elements + 1] = Config.Menus[Config.PropertyTypes[property.type].bMenu[i]]
 			end
 			ESX.UI.Menu.Open('default', resName, 'finance', {
-				title    = 'Manage Finances - ' .. Data.Properties[zone.property].owner,
+				title    = ('Manage Finances - %s'):format(property.ownerName),
 				align    = 'top-left',
 				elements = elements
 			},
 			function(data2, menu2)
 				if data2.current.value == 'withdraw' then
+					society = Indexed.Societies[society.name]
 					exports.dd_menus:amount({
-						title = string.strconcat('Withdraw money from the ', propertyOwner, ' account, enter value (', Data.Societies[propertyOwner].account, ')'),
+						title = ('Withdraw money from the %s account - (%s), enter value'):format(property.ownerName, society.account),
 						min = 1,
-						max = Data.Societies[propertyOwner].account
+						max = society.account
 					},
 					function(datad, menud)
 						ESX.TriggerServerCallback('dd_society:aPaySocietyMoney', function(valid)
 							if valid then
 							end
-						end, datad.value, 'money', false, propertyOwner, false)
+						end, datad.value, 'money', false, property.owner, false)
 					end, false)
 				elseif data2.current.value == 'deposit' then
+					local max
+					for i = 1, 3 do
+						if ESX.PlayerData.accounts[i].name == 'money' then
+							max = ESX.PlayerData.accounts[i].money
+							break
+						end
+					end
 					exports.dd_menus:amount({
-						title = string.strconcat('Deposit money into the ', propertyOwner, ' account, enter value (', ESX.PlayerData.accounts[2].money, ')'),
+						title = ('Deposit money into the %s account, enter value (%s)'):format(property.ownerName, max),
 						min = 1,
-						max = ESX.PlayerData.accounts[2].money --might not be consistently cash
+						max = max
 					},
 					function(datad, menud)
 						ESX.TriggerServerCallback('dd_society:aPayMoney', function(valid)
 							if valid then
 							end
-						end, datad.value, 'money', propertyOwner, false)
+						end, datad.value, 'money', property.owner, false)
 					end, false)
 				elseif data2.current.value == 'bills' then
-					ESX.TriggerServerCallback('dd_society:aGetTargetBills', function(Bills)
+					ESX.TriggerServerCallback('dd_society:aGetTargetBills', function(bills)
 						local elements = {}
-						for k, v in pairs(Bills) do
+						for i = 1, #bills do
 							local label
-							if v.time > 1 then
-								label = cSpan('green', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due ', v.time, ' days]'), v.fullname, '[cancel]')
-							elseif v.time == 1 then
-								label = cSpan('yellow', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due ', v.time, ' day]'), v.fullname, '[cancel]')
-							elseif v.time == 0 then
-								label = cSpan('orange', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [due]'), v.fullname, '[cancel]')
-							elseif v.time == -1 then
-								label = cSpan('red', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [overdue ', math.abs(v.time), ' day]'), v.fullname, '[cancel]')
-							elseif v.time < -1 then
-								label = cSpan('red', string.strconcat(v.details, ' - $', ESX.Math.GroupDigits(v.amount), ' [overdue ', math.abs(v.time), ' days]'), v.fullname, '[cancel]')
+							local bill = bills[i]
+							if bill.time > 1 then
+								label = colour('green', ('%s - $%s [due %s days] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.time, bill.playerName))
+							elseif bill.time == 1 then
+								label = colour('yellow', ('%s - $%s [due 1 day] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.playerName))
+							elseif bill.time == 0 then
+								label = colour('orange', ('%s - $%s [due] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.playerName))
+							elseif bill.time == -1 then
+								label = colour('red', ('%s - $%s [overdue 1 day] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), bill.playerName))
+							elseif bill.time < -1 then
+								label = colour('red', ('%s - $%s [overdue %s days] - %s'):format(bill.details, ESX.Math.GroupDigits(bill.amount), math.abs(bill.time), bill.playerName))
 							end
-							table.insert(elements, {
+							elements[#elements + 1] = {
 								label = label,
-								value = v.id
-							})
+								value = bill.id
+							}
 						end
 						if not next(elements) then
 							elements[1] = {label = 'None'}
 						end
-						ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'societybills', {
-							title    = 'Cancel ' .. Data.Properties[zone.property].owner .. ' bills',
+						ESX.UI.Menu.Open('default', resName, 'societyBills', {
+							title    = ('Cancel %s Bills'):format(property.ownerName),
 							align    = 'top-left',
 							elements = elements
 						},
 						function(data3, menu3)
-							menu3.close()
+							ESX.UI.Menu.CloseAll()
 							if data3.current.value then
 								ESX.TriggerServerCallback('dd_society:aPayBill', function()
+									bOpen(zone)
 								end, data3.current.value, true)
 							end
 						end,
 						function(data3, menu3)
 							menu3.close()
 						end)
-					end, ESX.PlayerData.job.label)
+					end, property.owner)
 				elseif data2.current.value == 'washedMoney' then
-					ESX.TriggerServerCallback('dd_society:aGetWashedMoney', function(WashedMoney, Ready)
+					ESX.TriggerServerCallback('dd_society:aGetWashedMoney', function(WashedMoney, ready)
 						local elements = {}
 						if Ready.amount == 0 then
 							elements[1] = {label = 'No money ready to collect'}
 						else
 							elements[1] = {
-								label = cSpan('green', string.strconcat('There is $', ESX.Math.GroupDigits(Ready.amount), ' ready to collect')),
+								label = colour('green', ('There is $%S ready to collect'):format(ESX.Math.GroupDigits(ready))),
 								value = 'collect'
 							}
 						end
-						for k, v in pairs(WashedMoney) do
-							if v.time ~= 0 then
-								local colour = 'red'
+						for i = 1, #washedMoney do
+							local item = washedMoney[i]
+							if item.time ~= 0 then
+								local clr = 'red'
 								if v.time < 6 then
-									colour = 'yellow'
+									clr = 'yellow'
 								elseif v.time < 12 then
-									colour = 'orange'
+									clr = 'orange'
 								end
-								table.insert(elements, {
-									label = cSpan(colour, string.strconcat('$', ESX.Math.GroupDigits(v.amount), ' will be ready in ', v.time, ' hours'))
-								})
+								elements[#elements + 1] = {
+									label = colour(clr, ('$%s will be ready in %s hours'):format(ESX.Math.GroupDigits(item.amount), item.time))
+								}
 							end
 						end
 						ESX.UI.Menu.Open('default', resName, 'washedMoney', {
-							title    = 'Collect Washed Money From ' .. zone.property,
+							title    = ('Collect Washed Money From %s'):format(property.id),
 							align    = 'top-left',
 							elements = elements
 						},
@@ -128,26 +140,34 @@ function bOpen(zone)
 								menu3.close()
 								if data3.current.value == 'collect' then
 									ESX.TriggerServerCallback('dd_society:aCollectWashedMoney', function(valid)
-									end, zone.property, WashedMoney)
+									end, property.id, washedMoney)
 								end
 							end
 						end,
 						function(data3, menu3)
 							menu3.close()
 						end)
-					end, zone.property)
+					end, property.id)
 				elseif data2.current.value == 'washMoney' then
+					local max
+					for i = 1, 3 do
+						if ESX.PlayerData.accounts[i].name == 'black_money' then
+							max = ESX.PlayerData.accounts[i].money
+							break
+						end
+					end
 					exports.dd_menus:amount({
-						title = 'Wash money here, at ' .. zone.property .. ', enter value',
+						title = ('Wash money at %s, enter value'):format(property.id),
 						min = 1,
-						max = nil
+						max = max
 					},
 					function(datad, menud)
+						menu2.close()
 						ESX.TriggerServerCallback('dd_society:aWashMoney', function(valid)
 							if valid then
-								ESX.ShowNotification('Your ~g~$' .. datad.value .. ' ~w~will be washed in 24 hours')
+								ESX.ShowNotification(('Your ~g~$%s ~w~will be washed in 24 hours'):format(datad.value))
 							end
-						end, datad.value, zone.property)
+						end, datad.value, property.id)
 					end, false)
 				end
 			end,
@@ -156,16 +176,16 @@ function bOpen(zone)
 			end)
 		elseif data.current.value == 'properties' then
 			local elements = {}
-			for k, v in pairs(Data.Properties) do
-				if v.owner == propertyOwner then
-					table.insert(elements, {
-						label = v.id,
-						value = v
-					})
+			for i = 1, #Data.Properties do
+				if Data.Properties[i].owner == property.owner then
+					elements[#elements + 1] = {
+						label = Data.Properties[i].id,
+						value = Data.Properties[i].id
+					}
 				end
 			end
 			ESX.UI.Menu.Open('default', resName, 'manageProperties', {
-				title    = 'Manage Properties - ' .. propertyOwner,
+				title    = ('Manage Properties - %s'):format(property.owner),
 				align    = 'top-left',
 				elements = elements
 			},
@@ -180,9 +200,8 @@ function bOpen(zone)
 				title    = 'Manage Vehicles',
 				align    = 'top-left',
 				elements = {
-					{label = 'Society vehicles', value = 'society'},
-					{label = 'Personal vehicles', value = 'personal'},
-					{label = 'Vehicles stored at this property', value = 'local'},
+					{label = 'Transfer vehicles', value = 'transfer'},
+					{label = 'Vehicles stored or impounded at this property', value = 'property'},
 				}
 			},
 			function(data2, menu2)
@@ -192,152 +211,162 @@ function bOpen(zone)
 				menu2.close()
 			end)
 		elseif data.current.value == 'employees' then
-			ESX.TriggerServerCallback('dd_society:getEmployees', function(Employees, Grades)
-				local elements = {
-					{label = 'Recruit nearby player', value = 'recruit'},
-					{label = 'Manage grades', value = 'grades'},
-				}
-				for k, v in pairs(Employees) do
-					table.insert(elements, {
-						label = v.fullname .. ' - ' .. v.grade.label .. ' (' .. v.grade.grade .. ')',
-						value = v
-					})
+			society = Indexed.Societies[society.name]
+			local elements = {
+				{label = 'Recruit nearby player', value = 'recruit'},
+				{label = 'Manage grades', value = 'grades'},
+			}
+			if next(society.employees) then
+				for k, v in pairs(society.employees) do
+					elements[#elements + 1] = {
+						label = ('%s - %s (%s)'):format(v.name, society.grades[v.grade].label, v.grade),
+						value = v,
+						ident = k
+					}
 				end
-				ESX.UI.Menu.Open('default', resName, 'manageEmployees', {
-					title    = 'Manage Employees - ' .. propertyOwner,
-					align    = 'top-left',
-					elements = elements
-				},
-				function(data2, menu2)
-					if data2.current.value == 'recruit' then
-						exports.dd_menus:nearbyPlayers({
-							title = nil, 
-							self = nil,
-							distance = nil
-						},
-						function(datad, menud)
-							ESX.TriggerServerCallback('dd_society:setJob', function()
-								menu2.close()
-								ESX.ShowNotification('~y~' .. datad.current.name .. ' ~w~has been ~g~hired')
-							end, Data.Societies[propertyOwner], datad.current.identifier, 0)
-						end, false)
-					elseif data2.current.value == 'grades' then
-						local elements = {}
-						for k, v in pairs(Grades) do
-							table.insert(elements, {
-								label = v.label .. ' (' .. v.grade .. ') - $' .. v.salary .. ' [edit]',
-								value = v
-							})
-						end
-						ESX.UI.Menu.Open('default', resName, 'manageGrades', {
-							title    = 'Manage Grades - ' .. propertyOwner,
+			else
+				elements[3] = {label = 'No employees'}
+			end
+			ESX.UI.Menu.Open('default', resName, 'manageEmployees', {
+				title    = ('Manage Employees - %s'):format(property.ownerName),
+				align    = 'top-left',
+				elements = elements
+			},
+			function(data2, menu2)
+				if data2.current.value == 'recruit' then
+					exports.dd_menus:nearbyPlayers({
+						title = nil,
+						self = true,
+						distance = nil
+					},
+					function(datad, menud)
+						ESX.UI.Menu.CloseAll()
+						ESX.TriggerServerCallback('dd_society:setJob', function()
+							ESX.ShowNotification(('~y~%s ~w~has been ~g~hired'):format(datad.current.name))
+							bOpenAfterUpdate(zone)
+						end, society.name, datad.current.identifier, 0)
+					end, false)
+				elseif data2.current.value == 'grades' then
+					local elements = {}
+					for i = 0, #society.grades do
+						local grade = society.grades[i]
+						elements[#elements + 1] = {
+							label = ('%s (%s) - $%s [edit]'):format(grade.label, grade.grade, grade.salary),
+							value = grade
+						}
+					end
+					ESX.UI.Menu.Open('default', resName, 'manageGrades', {
+						title    = ('Manage Grades - %s'):format(property.ownerName),
+						align    = 'top-left',
+						elements = elements
+					},
+					function(data3, menu3)
+						local grade = data3.current.value
+						ESX.UI.Menu.Open('default', resName, 'editGrade', {
+							title    = ('Manage Grade - %s'):format(grade.label),
 							align    = 'top-left',
-							elements = elements
+							elements = {
+								{label = 'Change label', value = 'label'},
+								{label = 'Change salary', value = 'salary'},
+							}
 						},
-						function(data3, menu3)
-							local grade = data3.current.value
-							ESX.UI.Menu.Open('default', resName, 'editGrade', {
-								title    = 'Manage Grade - ' .. grade.label,
+						function(data4, menu4)
+							if data4.current.value == 'label' then
+								exports.dd_menus:text({
+									title = 'New grade label, enter text'
+								},
+								function(datad, menud)
+									if datad.value and datad.value:len() > 1 then
+										grade.label = datad.value
+										ESX.UI.Menu.CloseAll()
+										ESX.TriggerServerCallback('dd_society:modifyGrade', function()
+											ESX.ShowNotification(('Grade ~Y~%s ~w~relabeled to ~g~%s'):format(grade.grade, datad.value))
+											bOpenAfterUpdate(zone)
+										end, society.name, grade)
+									else
+										ESX.ShowNotification('~r~Grade label cannot be empty')
+									end
+								end, false)
+							elseif data4.current.value == 'salary' then
+								exports.dd_menus:text({
+									title = 'New grade salary, enter amount'
+								},
+								function(datad, menud)
+									if datad.value then
+										grade.salary = datad.value
+										ESX.UI.Menu.CloseAll()
+										ESX.TriggerServerCallback('dd_society:modifyGrade', function()
+											ESX.ShowNotification(('~Y~%s ~w~salary is now ~g~$%s'):format(grade.label, datad.value))
+											bOpenAfterUpdate(zone)
+										end, society.name, grade)
+									else
+										ESX.ShowNotification('~r~Grade salary cannot be empty')
+									end
+								end, false)
+							end
+						end,
+						function(data4, menu4)
+							menu4.close()
+						end)
+					end,
+					function(data3, menu3)
+						menu3.close()
+					end)
+				elseif data2.current.value then
+					local employee = data2.current.value
+					employee.ident = data2.current.ident
+					ESX.UI.Menu.Open('default', resName, 'manageEmployee', {
+						title    = ('Manage Employee - %s'):format(employee.name),
+						align    = 'top-left',
+						elements = {
+							{label = 'Change grade', value = 'changeGrade'},
+							{label = 'Fire', value = 'fire'},
+						}
+					},
+					function(data3, menu3)
+						if data3.current.value == 'changeGrade' then
+							local elements = {}
+							for i = 0, #society.grades do
+								local grade = society.grades[i]
+								if grade.grade ~= employee.grade then
+									elements[#elements + 1] = {
+										label = ('%s (%s) - $%s [set]'):format(grade.label, grade.grade, grade.salary),
+										value = grade
+									}
+								end
+							end
+							ESX.UI.Menu.Open('default', resName, 'setEmployeeGrade', {
+								title    = ('Set Grade - %s'):format(employee.name),
 								align    = 'top-left',
-								elements = {
-									{label = 'Change label', value = 'label'},
-									{label = 'Change salary', value = 'salary'},
-								}
+								elements = elements
 							},
 							function(data4, menu4)
-								if data4.current.value == 'label' then
-									exports.dd_menus:text({
-										title = 'New grade label, enter text'
-									},
-									function(datad, menud)
-										if datad.value and string.len(datad.value) > 1 then
-											ESX.TriggerServerCallback('dd_society:modifyGrade', function()
-												menu4.close()
-												menu3.close()
-												menu2.close()
-												ESX.ShowNotification('Grade ~Y~' .. grade.grade .. ' ~w~now labeled to ~g~' .. datad.value)
-											end, Data.Societies[propertyOwner], grade.grade, {label = datad.value})
-										else
-											ESX.ShowNotification('~r~Grade label cannot be empty')
-										end
-									end, false)
-								elseif data4.current.value == 'salary' then
-									exports.dd_menus:text({
-										title = 'New grade salary, enter amount'
-									},
-									function(datad, menud)
-										if datad.value then
-											ESX.TriggerServerCallback('dd_society:modifyGrade', function()
-												menu4.close()
-												menu3.close()
-												menu2.close()
-												ESX.ShowNotification('~Y~' .. grade.label .. ' ~w~salary is now ~g~$' .. datad.value)
-											end, Data.Societies[propertyOwner], grade.grade, {salary = datad.value})
-										else
-											ESX.ShowNotification('~r~Grade salary cannot be empty')
-										end
-									end, false)
-								end
+								local grade = data4.current.value
+								ESX.UI.Menu.CloseAll()
+								ESX.TriggerServerCallback('dd_society:setJob', function()
+									ESX.ShowNotification(('~y~%s ~w~is now ~g~%s'):format(employee.name, grade.label))
+									bOpenAfterUpdate(zone)
+								end, society.name, employee.ident, grade.grade)
 							end,
 							function(data4, menu4)
 								menu4.close()
 							end)
-						end,
-						function(data3, menu3)
-							menu3.close()
-						end)
-					else
-						local employee = data2.current.value
-						ESX.UI.Menu.Open('default', resName, 'manageEmployee', {
-							title    = 'Manage Employee - ' .. employee.fullname,
-							align    = 'top-left',
-							elements = {
-								{label = 'Change grade', value = 'changeGrade'},
-								{label = 'Fire', value = 'fire'},
-							}
-						},
-						function(data3, menu3)
-							if data3.current.value == 'changeGrade' then
-								local elements = {}
-								for k, v in pairs(Grades) do
-									table.insert(elements, {
-										label = v.label .. ' (' .. v.grade .. ') - $' .. v.salary .. ' [set]',
-										value = v
-									})
-								end
-								ESX.UI.Menu.Open('default', resName, 'setEmployeeGrade', {
-									title    = 'Set Grade - ' .. employee.fullname,
-									align    = 'top-left',
-									elements = elements
-								},
-								function(data4, menu4)
-									ESX.TriggerServerCallback('dd_society:setJob', function()
-										menu4.close()
-										menu3.close()
-										menu2.close()
-										ESX.ShowNotification('~y~' .. employee.fullname .. ' ~w~is now ~g~' .. data4.current.value.label)
-									end, Data.Societies[propertyOwner], employee.identifier, data4.current.value.grade)
-								end,
-								function(data4, menu4)
-									menu4.close()
-								end)
-							elseif data3.current.value == 'fire' then
-								ESX.TriggerServerCallback('dd_society:setJob', function()
-									menu3.close()
-									menu2.close()
-									ESX.ShowNotification('~y~' .. employee.fullname .. ' ~w~has been ~r~fired')
-								end, {name = 'unemployed'}, employee.identifier, 0)
-							end
-						end,
-						function(data3, menu3)
-							menu3.close()
-						end)
-					end
-				end,
-				function(data2, menu2)
-					menu2.close()
-				end)
-			end, Data.Societies[propertyOwner])
+						elseif data3.current.value == 'fire' then
+							ESX.UI.Menu.CloseAll()
+							ESX.TriggerServerCallback('dd_society:setJob', function()
+								ESX.ShowNotification(('~y~%s ~w~has been ~r~fired'):format(employee.name))
+								bOpenAfterUpdate(zone)
+							end, 'unemployed', employee.ident, 0)
+						end
+					end,
+					function(data3, menu3)
+						menu3.close()
+					end)
+				end
+			end,
+			function(data2, menu2)
+				menu2.close()
+			end)
 		end
 	end,
 	function(data, menu)
@@ -346,98 +375,94 @@ function bOpen(zone)
 end
 
 function bManageGarage(zone, view)
-	local elements = {}
 	ESX.TriggerServerCallback('dd_society:vList', function(vehicles)
-		if next(vehicles) then
-			local title
-			if view == 'society' then
-				title = 'Society vehicles - transfer to personal'
-			elseif view == 'personal' then
-				title = 'Personal vehicles - transfer to society'
-			elseif view == 'local' then
-				title =  zone.property .. ' Local vehicles'
-			end
-			for k, v in pairs(vehicles) do
-				local label
-				if v.garage == 0 then
-					label = ('<span style="color: orange;">%s</span>'):format(v.name .. ' is not stored')
-				elseif v.garage > 0 then
-					if Data.Zones[v.garage].property == zone.property then
-						label = ('<span style="color: green;">%s</span>'):format(v.name .. ' is stored here in ' .. Data.Zones[v.garage].name)
-					else
-						label = ('<span style="color: yellow;">%s</span>'):format(v.name .. ' is stored in ' .. Data.Zones[v.garage].property .. ' - ' .. Data.Zones[v.garage].name)
-					end
-				elseif v.garage < 0 then
-					if Data.Zones[math.abs(v.garage)].property == zone.property then
-						label = ('<span style="color: red;">%s</span>'):format(v.name .. ' is impounded here in ' .. Data.Zones[math.abs(v.garage)].name)
-					else
-						label = ('<span style="color: red;">%s</span>'):format(v.name .. ' is impounded in ' .. Data.Zones[math.abs(v.garage)].property .. ' - ' .. Data.Zones[math.abs(v.garage)].name)
-					end
-				end
-
-				local props = json.decode(v.vehicle)
-				if view == 'local' then
-					if v.garage ~= 0 and Data.Zones[math.abs(v.garage)].property == c then
-						if Data.Societies[v.owner] then
-							label = v.owner .. ': ' .. label
-						else
-							label = v.firstname .. ' ' .. v.lastname .. ': ' .. label
-						end
-						table.insert(elements, {
-							label = label,
-							name = v.name,
-							garage = v.garage,
-							props = props
-						})
-					end
-				elseif view == 'society' and Data.Societies[v.owner] then
-					label = v.owner .. ': ' .. label
-					table.insert(elements, {
-						label = label .. ' [transfer]',
-						owner = v.owner,
-						name = v.name,
-						garage = v.garage,
-						props = props
-					})
-				elseif view == 'personal' and not Data.Societies[v.owner] then
-					table.insert(elements, {
-						label = label .. ' [transfer]',
-						owner = v.owner,
-						name = v.name,
-						garage = v.garage,
-						props = props
-					})
-				end
-			end
-			if not next(elements) then
-				elements[1] = {label = 'None'}
-			end
-			ESX.UI.Menu.Open('default', resName, 'bossManageGarage',{
-				title    = title,
-				align    = 'top-left',
-				elements = elements,
-			},
-			function(data, menu)
-				menu.close()
-				if view == 'society' then
-					local change = {
-						owner = ESX.PlayerData.identifier
-					}
-					ESX.TriggerServerCallback('dd_society:vModify', function()
-					end, data.current, change)
-				elseif view == 'personal' then
-					local change = {
-						owner = propertyOwner
-					}
-					ESX.TriggerServerCallback('dd_society:vModify', function()
-					end, data.current, change)
-				end
-			end,
-			function(data, menu)
-				menu.close()
-			end)
-		else
-			ESX.ShowNotification("~r~You don't have access to any vehicles")
+		local title
+		if view == 'transfer' then
+			title = 'Transfer Vehicles'
+		elseif view == 'property' then
+			title = ('%s - Local Vehicles'):format(zone.property)
 		end
+		local elements = {}
+		for i = 1, #vehicles do
+			local label, action, price
+			local vehicle = vehicles[i]
+			local garageId, status = string.strsplit('-', vehicle.garage)
+			local garage = Indexed.Zones[garageId]
+			local garagePropertyId
+			if garage then
+				garagePropertyId = string.strsplit(':', garage.id)
+			end
+
+			if status == 'stored' then
+				if garagePropertyId == zone.property then
+					label = colour('green', ('%s is stored here in %s'):format(vehicle.name, garage.name))
+				else
+					label = colour('yellow', ('%s is stored in %s - %s'):format(vehicle.name, garagePropertyId, garage.name))
+				end
+			elseif status == 'impounded' then
+				if garagePropertyId == zone.property then
+					label = colour('red', ('%s is impounded here in %s'):format(vehicle.name, garage.name))
+				else
+					label = colour('red', ('%s is impounded in %s - %s'):format(vehicle.name, garagePropertyId, garage.name))
+				end
+			else
+				label = colour('orange', ('%s is not stored'):format(vehicle.name))
+			end
+			label = ('%s [%s]'):format(label, vehicle.ownerName)
+			vehicle.props = json.decode(vehicle.vehicle)
+
+			if view == 'transfer' then
+				if vehicle.owner == Indexed.Properties[zone.property].owner or vehicle.owner == PlayerBags.Player.ident then
+					elements[#elements + 1] = {
+						label = label,
+						value = vehicle,
+						property = garagePropertyId == zone.property,
+						status = status
+					}
+				end
+			elseif view == 'property' then
+				if garagePropertyId == zone.property then
+					elements[#elements + 1] = {
+						label = label
+					}
+				end
+			end
+		end
+		if not next(elements) then
+			elements[1] = {label = 'None'}
+		end
+		ESX.UI.Menu.Open('default', resName, 'bossManageGarage',{
+			title    = title,
+			align    = 'top-left',
+			elements = elements,
+		},
+		function(data, menu)
+			if view == 'transfer' then
+				if data.current.property and data.current.status == 'stored' then
+					ESX.UI.Menu.CloseAll()
+					local society = Indexed.Societies[data.current.value.owner]
+					local owner
+					if society then
+						owner = PlayerBags.Player.ident
+					else
+						owner = Indexed.Properties[string.strsplit(':', zone.id)].owner
+					end
+					ESX.TriggerServerCallback('dd_society:vModify', function(valid)
+						bManageGarage(zone, view)
+					end, data.current.value, {owner = owner})
+				else
+					ESX.ShowNotification('~r~You can only transfer vehicles stored at the current property')
+				end
+			end
+		end,
+		function(data, menu)
+			menu.close()
+		end)
 	end, zone)
+end
+
+function bOpenAfterUpdate(zone)
+	bUpdate = false
+	repeat Wait(0) until bUpdate
+	bOpen(zone)
 end

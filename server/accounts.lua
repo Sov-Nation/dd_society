@@ -1,7 +1,7 @@
 function createAccount(society)
 	local self = {}
 
-	self.label  = society.label
+	self.name  = society.name
 	self.account = society.account
 
 	self.addMoney = function(m)
@@ -20,27 +20,27 @@ function createAccount(society)
 	end
 
 	self.save = function()
-		Data.Societies[self.label].account = self.account
-		updateSociety(Data.Societies[self.label], true)
+		Indexed.Societies[self.name].account = self.account
+		updateSociety(Indexed.Societies[self.label])
 	end
 
 	return self
 end
 
-ESX.RegisterServerCallback('dd_society:aPayMoney', function(source, cb, amount, account, target, details, cut) -- add cut functionality
+ESX.RegisterServerCallback('dd_society:aPayMoney', function(source, cb, amount, account, target, details, cut)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local acc = xPlayer.getAccount(account)
 
 	if acc.money >= amount then
 		if target then
-			local Society = Data.Societies[target]
+			local Society = Indexed.Societies[target]
 			if Society then
 				Society.acc.addMoney(amount)
-				xPlayer.showNotification('Paid ~g~$' .. amount .. ' ~w~from ' .. account .. ' account to ~y~' .. target) --fix up so it makes more sense with different accounts
+				xPlayer.showNotification('Paid ~g~$' .. amount .. ' ~w~from ' .. account .. ' account to ~y~' .. target)
 			else
 				local xTarget = ESX.GetPlayerFromId(target)
 				xTarget.addAccountMoney('bank', amount)
-				xPlayer.showNotification('Paid ~g~$' .. amount .. ' ~w~from ' .. account .. ' account to ~y~' .. target) --fix up so it makes more sense with different accounts and player name
+				xPlayer.showNotification('Paid ~g~$' .. amount .. ' ~w~from ' .. account .. ' account to ~y~' .. target)
 			end
 		else
 			xPlayer.showNotification('Paid ~g~$' .. amount .. ' ~w~from ' .. account .. ' account into the void')
@@ -59,11 +59,11 @@ end)
 
 ESX.RegisterServerCallback('dd_society:aPaySocietyMoney', function(source, cb, amount, account, target, society)
 	local xPlayer = ESX.GetPlayerFromId(source)
-	local Soc = Data.Societies[society]
+	local Soc = Indexed.Societies[society]
 
 	if Soc.account >= amount then
 		if target then
-			local tSoc = Data.Societies[target]
+			local tSoc = Indexed.Societies[target]
 			if tSoc then
 				tSoc.acc.addMoney(amount)
 				xPlayer.showNotification('~y~' .. target .. ' ~w~received ~g~$' .. amount .. ' ~w~from ~y~' .. society)
@@ -86,137 +86,132 @@ end)
 
 RegisterServerEvent('dd_society:aCreateBill', function(id, amount, target, details)
 	local xPlayer = ESX.GetPlayerFromId(id)
-	local Society = Data.Societies[target]
+	local society = Indexed.Societies[target]
 
-	if not Society then
-		xTarget = ESX.GetPlayerFromId(target)
+	if not society then
+		xTarget = ESX.GetPlayerFromIdentifier(target)
 		target = xTarget.identifier
 	end
 
 	if xPlayer then
-		exports.oxmysql:insert('INSERT INTO dd_bills (player, target, amount, details, timestamp) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, target, amount, details, os.time() + Config.Time.bill},
-		function(insertId)
-			xPlayer.showNotification('You have received an invoice')
-		end)
+		exports.oxmysql:insertSync('INSERT INTO dd_bills (player, target, amount, details, timestamp) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, target, amount, details, os.time() + Config.time.bill})
+		xPlayer.showNotification(('You have received an invoice for ~g~$%s'):format(amount))
 	end
 end)
 
 ESX.RegisterServerCallback('dd_society:aGetPlayerBills', function(source, cb, target)
-	local xPlayer = ESX.GetPlayerFromId(source)
+	local ident
 
 	if target then
-		xPlayer = ESX.GetPlayerFromId(target)
+		ident = ESX.GetPlayerFromId(target)
+	else
+		ident = Player(source).state.ident
 	end
 
-	exports.oxmysql:execute('SELECT id, target, amount, details, timestamp FROM dd_bills WHERE player = ? ORDER BY timestamp', {xPlayer.identifier},
-	function(result)
-		for k, v in pairs(result) do
-			v.time = math.ceil((v.timestamp - os.time())/Config.Time.day)
-		end
-		cb(result)
-	end)
+	local bills = exports.oxmysql:executeSync('SELECT id, target, amount, details, timestamp FROM dd_bills WHERE player = ? ORDER BY timestamp', {ident})
+
+	for i = 1, #bills do
+		local bill = bills[i]
+		bill.time = math.ceil((bill.timestamp - os.time())/Config.time.day)
+		bill.targetName = getName(bill.target)
+	end
+
+	cb(bills)
 end)
 
 ESX.RegisterServerCallback('dd_society:aGetTargetBills', function(source, cb, target)
-	local Society = Data.Societies[target]
+	local society = Indexed.Societies[target]
 
-	if not Society then
+	if not society then
 		xTarget = ESX.GetPlayerFromId(target)
 		target = xTarget.identifier
 	end
 
-	exports.oxmysql:execute('SELECT dd_bills.id, dd_bills.player, dd_bills.amount, dd_bills.details, dd_bills.timestamp, users.firstname, users.lastname FROM dd_bills INNER JOIN users ON dd_bills.player = users.identifier WHERE target = ? ORDER BY timestamp', {target},
-	function(result)
-		for k, v in pairs(result) do
-			v.time = math.ceil((v.timestamp - os.time())/Config.Time.day)
-			v.fullname = v.firstname .. ' ' .. v.lastname
-			v.firstname = nil
-			v.lastname = nil
-		end
-		cb(result)
-	end)
+	local bills = exports.oxmysql:executeSync('SELECT * FROM dd_bills WHERE target = ? ORDER BY timestamp', {target})
+
+	for i = 1, #bills do
+		local bill = bills[i]
+		bill.time = math.ceil((bill.timestamp - os.time())/Config.time.day)
+		bill.playerName = getName(bill.player)
+	end
+
+	cb(bills)
 end)
 
-ESX.RegisterServerCallback('dd_society:aPayBill', function(source, cb, id, cancel)
-	local xPlayer = ESX.GetPlayerFromId(source)
+ESX.RegisterServerCallback('dd_society:aPayBill', function(source, cb, billId, cancel)
+	local bill = exports.oxmysql:singleSync('SELECT id, player, target, amount FROM dd_bills WHERE id = ?', {billId})
+
+	local xPlayer = ESX.GetPlayerFromIdentifier(bill.player)
 	local account = xPlayer.getAccount('bank')
 
-	local Bill = exports.oxmysql:singleSync('SELECT id, target, amount, details, timestamp FROM dd_bills WHERE player = ? AND id = ?', {xPlayer.identifier, id})
-
-	if account.money >= Bill.amount or cancel then
+	if account.money >= bill.amount or cancel then
 		if not cancel then
-			local Society = Data.Societies[Bill.target]
-			if Society then
-				Society.acc.addMoney(Bill.amount)
-				xPlayer.showNotification('Paid bill of ~g~$' .. Bill.amount .. ' ~w~from bank account to ~y~' .. Bill.target)
+			local society = Indexed.Societies[bill.target]
+			if society then
+				society.acc.addMoney(bill.amount)
+				xPlayer.showNotification('Paid bill of ~g~$%s ~w~from bank account to ~y~%s'):format(bill.amount, bill.target)
 			else
-				local xTarget = ESX.GetPlayerFromIdentifier(Bill.target)
-				xTarget.addAccountMoney('bank', Bill.amount)
-				xPlayer.showNotification('Paid bill of ~g~$' .. Bill.amount .. ' ~w~from bank account to ~y~' .. Bill.target) --handle for player name
+				local xTarget = ESX.GetPlayerFromIdentifier(bill.target)
+				xTarget.addAccountMoney('bank', bill.amount)
+				xPlayer.showNotification('Paid bill of ~g~$%s ~w~from bank account to ~y~%s'):format(bill.amount, bill.target)
 			end
-			xPlayer.removeAccountMoney(account, Bill.amount)
+			xPlayer.removeAccountMoney(account, bill.amount)
 		end
 
-		exports.oxmysql:execute('DELETE FROM dd_bills WHERE player = ? AND id = ?', {xPlayer.identifier, id},
-		function(result)
-			cb(true)
-		end)
+		exports.oxmysql:executeSync('DELETE FROM dd_bills WHERE id = ?', {bill.id})
+
+		cb(true)
 	else
 		cb(false)
 	end
 end)
 
-ESX.RegisterServerCallback('dd_society:aWashMoney', function(source, cb, amount, property)
+ESX.RegisterServerCallback('dd_society:aWashMoney', function(source, cb, amount, propertyId)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local acc = xPlayer.getAccount('black_money')
 
 	if acc.money >= amount then
 		xPlayer.removeAccountMoney('black_money', amount)
-		exports.oxmysql:insert('INSERT INTO dd_moneywash (property, amount, timestamp) VALUES (?, ?, ?)', {property, amount, os.time() + Config.Time.moneywash},
-		function(insertId)
-			cb(true)
-		end)
+		exports.oxmysql:insertSync('INSERT INTO dd_moneywash (property, amount, timestamp) VALUES (?, ?, ?)', {propertyId, amount, os.time() + Config.time.moneywash})
+		cb(true)
 	else
 		cb(false)
 	end
 end)
 
-ESX.RegisterServerCallback('dd_society:aGetWashedMoney', function(source, cb, property)
-	exports.oxmysql:execute('SELECT id, property, amount, timestamp FROM dd_moneywash WHERE property = ?', {property},
-	function(result)
-		local Ready = {
-			amount = 0,
-		}
+ESX.RegisterServerCallback('dd_society:aGetWashedMoney', function(source, cb, propertyId)
+	local money = exports.oxmysql:executeSync('SELECT id, property, amount, timestamp FROM dd_moneywash WHERE property = ?', {propertyId})
+	local ready = 0
 
-		for k, v in pairs(result) do
-			if v.timestamp < os.time() then
-				Ready.amount += v.amount
-				v.time = 0
-			else
-				v.time = math.ceil((v.timestamp - os.time())/Config.Time.hour)
-			end
+	for i = 1, #money do
+		local wash = money[i]
+		if wash.timestamp < os.time() then
+			ready += wash.amount
+			wash.time = 0
+		else
+			wash.time = math.ceil((wash.timestamp - os.time())/Config.time.hour)
 		end
+	end
 
-		cb(result, Ready)
-	end)
+	cb(money, ready)
 end)
 
-ESX.RegisterServerCallback('dd_society:aCollectWashedMoney', function(source, cb, property, Money)
+ESX.RegisterServerCallback('dd_society:aCollectWashedMoney', function(source, cb, propertyId, money)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local amount = 0
 	local ids = {}
 
-	for k, v in pairs(Money) do
-		if v.time == 0 then
-			table.insert(ids, v.id)
-			amount += v.amount
+	for i = 1, #money do
+		local wash = money[i]
+		if wash.time == 0 then
+			ids[#ids + 1] = wash.id
+			amount += wash.amount
 		end
 	end
 
 	xPlayer.addAccountMoney('money', amount)
 
-	exports.oxmysql:execute('DELETE FROM dd_moneywash WHERE property = ? AND id IN (?)', {property, ids},
-	function(result)
-		cb(true)
-	end)
+	exports.oxmysql:executeSync('DELETE FROM dd_moneywash WHERE property = ? AND id IN (?)', {propertyId, ids})
+
+	cb(true)
 end)

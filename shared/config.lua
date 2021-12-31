@@ -1,5 +1,6 @@
 Config = {}
-Config.Bank = 'Doka & Doka'
+Config.Bank = 'doka&doka'
+Config.BankName = 'Doka & Doka'
 Config.debugZone = false
 Config.debugDoor = false
 Config.defaultPlate = '...  ...'

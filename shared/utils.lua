@@ -35,35 +35,10 @@ function vectorize(data)
 	return data
 end
 
-function sipairs(Tab)
-	local TempTab = {}
-	local i, _ = next(Tab)
-	while i do
-		TempTab[#TempTab+1] = i
-		i, _ = next(Tab, i)
-	end
-	table.sort(TempTab)
-	local j = 1
-
-	return function()
-	local i = TempTab[j]
-		j = j + 1
-		if i then
-		   return i, Tab[i]
-		end
-	end
+function colour(colour, str)
+	return ('<span style="color: %s;">%s</span>'):format(colour, str)
 end
 
-function cSpan(colour, b, a, c)
-	local str = string.strconcat('<span style="color: ', colour, ';">', b, '</span>')
-
-	if a then
-		str = string.strconcat(a, ': ', str)
-	end
-
-	if c then
-		str = string.strconcat(str, ' ', c)
-	end
-
-	return str
+function getName(target)
+	return Indexed.Societies[target]?.label or GetResourceKvpString(('%s:name'):format(target))
 end

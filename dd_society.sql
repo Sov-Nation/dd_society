@@ -1,12 +1,10 @@
-ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `dd_keys` TEXT DEFAULT '[]';
-ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `state` TEXT DEFAULT '[]';
-
 DROP TABLE IF EXISTS `jobs`;
 CREATE TABLE `jobs` (
 	`name` VARCHAR(100) NOT NULL,
 	`label` VARCHAR(100) NOT NULL,
 	`colour` TINYINT NOT NULL DEFAULT 0,
 	`account` INT NOT NULL DEFAULT 0,
+	`employees` TEXT NOT NULL DEFAULT '[]',
 
 	PRIMARY KEY (`name`)
 );
@@ -111,57 +109,6 @@ CREATE TABLE `dd_moneywash` (
 	`property` VARCHAR(100) NOT NULL,
 	`amount` INT NOT NULL,
 	`timestamp` INT NOT NULL,
-
-	PRIMARY KEY (`id`)
-);
-
-DROP TABLE IF EXISTS `dd_properties`;
-CREATE TABLE `dd_properties` (
-	`id` VARCHAR(100) NOT NULL,
-	`owner` VARCHAR(100) NOT NULL,
-
-	PRIMARY KEY (`id`)
-);
-
-DROP TABLE IF EXISTS `dd_keys`;
-CREATE TABLE `dd_keys` (
-	`id` INT NOT NULL AUTO_INCREMENT,
-	`name` VARCHAR(100) NOT NULL,
-	`property` VARCHAR(100) NOT NULL,
-	`designation` SMALLINT NOT NULL,
-	`exempt_doors` TEXT DEFAULT '[]',
-	`exempt_zones` TEXT DEFAULT '[]',
-
-	PRIMARY KEY (`id`)
-);
-
-DELIMITER $$
-CREATE TRIGGER dd_keys_trigger
-BEFORE INSERT ON dd_keys
-FOR EACH ROW BEGIN
-   SET NEW.`designation` = IFNULL((SELECT MAX(designation) + 1 FROM dd_keys WHERE property = NEW.property), 1);
-END $$
-DELIMITER ;
-
-DROP TABLE IF EXISTS `dd_doors`;
-CREATE TABLE `dd_doors` (
-	`id` INT NOT NULL AUTO_INCREMENT,
-	`property` VARCHAR(100) NOT NULL,
-	`designation` SMALLINT NOT NULL,
-	`name` VARCHAR(100) NULL DEFAULT NULL,
-	`onstart` BIT DEFAULT 1,
-	`distance` FLOAT NOT NULL,
-
-	PRIMARY KEY (`id`)
-);
-
-DROP TABLE IF EXISTS `dd_zones`;
-CREATE TABLE `dd_zones` (
-	`id` INT NOT NULL AUTO_INCREMENT,
-	`property` VARCHAR(100) NOT NULL,
-	`designation` SMALLINT NOT NULL,
-	`name` VARCHAR(100) NOT NULL,
-	`public`BIT NOT NULL,
 
 	PRIMARY KEY (`id`)
 );
