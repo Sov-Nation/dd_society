@@ -1,3 +1,5 @@
+local ServerCallback = import 'callbacks'
+
 carInstance = {}
 SetDefaultVehicleNumberPlateTextPattern(-1, Config.defaultPlate)
 
@@ -58,7 +60,7 @@ function storeVehicle(zone)
 			local vehicle = {}
 			vehicle.props = getVehicleProperties(vehicleId)
 			if vehicle.props then
-				ESX.TriggerServerCallback('dd_society:vModify', function(valid)
+				ServerCallback.Async('dd_society', 'vModify', 100, function(valid)
 					if valid then
 						ESX.UI.Menu.CloseAll()
 						for i = -1, GetVehicleMaxNumberOfPassengers(vehicleId) do

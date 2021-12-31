@@ -1,3 +1,5 @@
+local ServerCallback = import 'callbacks'
+
 function bOpen(zone)
 	local property = Indexed.Properties[zone.property]
 	local society = Indexed.Societies[property.owner]
@@ -39,7 +41,7 @@ function bOpen(zone)
 						max = society.account
 					},
 					function(datad, menud)
-						ESX.TriggerServerCallback('dd_society:aPaySocietyMoney', function(valid)
+						ServerCallback.Async('dd_society', 'aPaySocietyMoney', 100, function(valid)
 							if valid then
 							end
 						end, datad.value, 'money', false, property.owner, false)
@@ -58,13 +60,13 @@ function bOpen(zone)
 						max = max
 					},
 					function(datad, menud)
-						ESX.TriggerServerCallback('dd_society:aPayMoney', function(valid)
+						ServerCallback.Async('dd_society', 'aPayMoney', 100, function(valid)
 							if valid then
 							end
 						end, datad.value, 'money', property.owner, false)
 					end, false)
 				elseif data2.current.value == 'bills' then
-					ESX.TriggerServerCallback('dd_society:aGetTargetBills', function(bills)
+					ServerCallback.Async('dd_society', 'aGetTargetBills', 100, function(bills)
 						local elements = {}
 						for i = 1, #bills do
 							local label
@@ -96,7 +98,7 @@ function bOpen(zone)
 						function(data3, menu3)
 							ESX.UI.Menu.CloseAll()
 							if data3.current.value then
-								ESX.TriggerServerCallback('dd_society:aPayBill', function()
+								ServerCallback.Async('dd_society', 'aPayBill', 100, function()
 									bOpen(zone)
 								end, data3.current.value, true)
 							end
@@ -106,7 +108,7 @@ function bOpen(zone)
 						end)
 					end, property.owner)
 				elseif data2.current.value == 'washedMoney' then
-					ESX.TriggerServerCallback('dd_society:aGetWashedMoney', function(WashedMoney, ready)
+					ServerCallback.Async('dd_society', 'aGetWashedMoney', 100, function(WashedMoney, ready)
 						local elements = {}
 						if Ready.amount == 0 then
 							elements[1] = {label = 'No money ready to collect'}
@@ -139,7 +141,7 @@ function bOpen(zone)
 							if data3.current.value then
 								menu3.close()
 								if data3.current.value == 'collect' then
-									ESX.TriggerServerCallback('dd_society:aCollectWashedMoney', function(valid)
+									ServerCallback.Async('dd_society', 'aCollectWashedMoney', 100, function(valid)
 									end, property.id, washedMoney)
 								end
 							end
@@ -163,7 +165,7 @@ function bOpen(zone)
 					},
 					function(datad, menud)
 						menu2.close()
-						ESX.TriggerServerCallback('dd_society:aWashMoney', function(valid)
+						ServerCallback.Async('dd_society', 'aWashMoney', 100, function(valid)
 							if valid then
 								ESX.ShowNotification(('Your ~g~$%s ~w~will be washed in 24 hours'):format(datad.value))
 							end
@@ -241,7 +243,7 @@ function bOpen(zone)
 					},
 					function(datad, menud)
 						ESX.UI.Menu.CloseAll()
-						ESX.TriggerServerCallback('dd_society:setJob', function()
+						ServerCallback.Async('dd_society', 'setJob', 100, function()
 							ESX.ShowNotification(('~y~%s ~w~has been ~g~hired'):format(datad.current.name))
 							bOpenAfterUpdate(zone)
 						end, society.name, datad.current.identifier, 0)
@@ -279,7 +281,7 @@ function bOpen(zone)
 									if datad.value and datad.value:len() > 1 then
 										grade.label = datad.value
 										ESX.UI.Menu.CloseAll()
-										ESX.TriggerServerCallback('dd_society:modifyGrade', function()
+										ServerCallback.Async('dd_society', 'modifyGrade', 100, function()
 											ESX.ShowNotification(('Grade ~Y~%s ~w~relabeled to ~g~%s'):format(grade.grade, datad.value))
 											bOpenAfterUpdate(zone)
 										end, society.name, grade)
@@ -295,7 +297,7 @@ function bOpen(zone)
 									if datad.value then
 										grade.salary = datad.value
 										ESX.UI.Menu.CloseAll()
-										ESX.TriggerServerCallback('dd_society:modifyGrade', function()
+										ServerCallback.Async('dd_society', 'modifyGrade', 100, function()
 											ESX.ShowNotification(('~Y~%s ~w~salary is now ~g~$%s'):format(grade.label, datad.value))
 											bOpenAfterUpdate(zone)
 										end, society.name, grade)
@@ -343,7 +345,7 @@ function bOpen(zone)
 							function(data4, menu4)
 								local grade = data4.current.value
 								ESX.UI.Menu.CloseAll()
-								ESX.TriggerServerCallback('dd_society:setJob', function()
+								ServerCallback.Async('dd_society', 'setJob', 100, function()
 									ESX.ShowNotification(('~y~%s ~w~is now ~g~%s'):format(employee.name, grade.label))
 									bOpenAfterUpdate(zone)
 								end, society.name, employee.ident, grade.grade)
@@ -353,7 +355,7 @@ function bOpen(zone)
 							end)
 						elseif data3.current.value == 'fire' then
 							ESX.UI.Menu.CloseAll()
-							ESX.TriggerServerCallback('dd_society:setJob', function()
+							ServerCallback.Async('dd_society', 'setJob', 100, function()
 								ESX.ShowNotification(('~y~%s ~w~has been ~r~fired'):format(employee.name))
 								bOpenAfterUpdate(zone)
 							end, 'unemployed', employee.ident, 0)
@@ -375,7 +377,7 @@ function bOpen(zone)
 end
 
 function bManageGarage(zone, view)
-	ESX.TriggerServerCallback('dd_society:vList', function(vehicles)
+	ServerCallback.Async('dd_society', 'vList', 100, function(vehicles)
 		local title
 		if view == 'transfer' then
 			title = 'Transfer Vehicles'
@@ -447,7 +449,7 @@ function bManageGarage(zone, view)
 					else
 						owner = Indexed.Properties[string.strsplit(':', zone.id)].owner
 					end
-					ESX.TriggerServerCallback('dd_society:vModify', function(valid)
+					ServerCallback.Async('dd_society', 'vModify', 100, function(valid)
 						bManageGarage(zone, view)
 					end, data.current.value, {owner = owner})
 				else

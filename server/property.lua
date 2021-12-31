@@ -1,4 +1,6 @@
-ESX.RegisterServerCallback('dd_society:pTransferProperty', function(source, cb, propertyId, target, targetName)
+local ServerCallback = import 'callbacks'
+
+ServerCallback.Register('pTransferProperty', function(source, cb, propertyId, target, targetName)
 	local property = json.decode(GetResourceKvpString(propertyId))
 	if property.owner == target then
 		return
@@ -13,7 +15,7 @@ ESX.RegisterServerCallback('dd_society:pTransferProperty', function(source, cb, 
 	cb()
 end)
 
-ESX.RegisterServerCallback('dd_society:pRevokeAllKeys', function(source, cb, propertyId)
+ServerCallback.Register('pRevokeAllKeys', function(source, cb, propertyId)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
 	property.keys = revokeKeys(property.keys, false)
@@ -25,7 +27,7 @@ ESX.RegisterServerCallback('dd_society:pRevokeAllKeys', function(source, cb, pro
 	cb()
 end)
 
-ESX.RegisterServerCallback('dd_society:pNewKey', function(source, cb, propertyId, name)
+ServerCallback.Register('pNewKey', function(source, cb, propertyId, name)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
 	property.keys[#property.keys + 1] = {
@@ -44,7 +46,7 @@ ESX.RegisterServerCallback('dd_society:pNewKey', function(source, cb, propertyId
 	cb(property.keys[#property.keys].id)
 end)
 
-ESX.RegisterServerCallback('dd_society:pRenameKey', function(source, cb, keyId, name)
+ServerCallback.Register('pRenameKey', function(source, cb, keyId, name)
 	local propertyId, id = string.strsplit(':', keyId)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
@@ -61,7 +63,7 @@ ESX.RegisterServerCallback('dd_society:pRenameKey', function(source, cb, keyId, 
 	cb()
 end)
 
-ESX.RegisterServerCallback('dd_society:pDeleteKey', function(source, cb, keyId)
+ServerCallback.Register('pDeleteKey', function(source, cb, keyId)
 	local propertyId, id = string.strsplit(':', keyId)
 	if id == 0 then
 		cb(false)
@@ -84,7 +86,7 @@ ESX.RegisterServerCallback('dd_society:pDeleteKey', function(source, cb, keyId)
 	cb(true)
 end)
 
-ESX.RegisterServerCallback('dd_society:pAddKey', function(source, cb, keyId, target)
+ServerCallback.Register('pAddKey', function(source, cb, keyId, target)
 	local propertyId, id = string.strsplit(':', keyId)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
@@ -108,7 +110,7 @@ ESX.RegisterServerCallback('dd_society:pAddKey', function(source, cb, keyId, tar
 	cb()
 end)
 
-ESX.RegisterServerCallback('dd_society:pRemoveKey', function(source, cb, keyId, target)
+ServerCallback.Register('pRemoveKey', function(source, cb, keyId, target)
 	local propertyId, id = string.strsplit(':', keyId)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
@@ -121,7 +123,7 @@ ESX.RegisterServerCallback('dd_society:pRemoveKey', function(source, cb, keyId, 
 	cb()
 end)
 
-ESX.RegisterServerCallback('dd_society:pSwitchKeyExemption', function(source, cb, keyId, itemType, itemId)
+ServerCallback.Register('pSwitchKeyExemption', function(source, cb, keyId, itemType, itemId)
 	local propertyId, id = string.strsplit(':', keyId)
 	if id == 0 then
 		cb(false)
@@ -205,7 +207,7 @@ RegisterServerEvent('dd_society:pModifyDoor', function(door)
 	saveTables('Doors', door)
 end)
 
-ESX.RegisterServerCallback('dd_society:pModifyZone', function(source, cb, zone)
+ServerCallback.Register('pModifyZone', function(source, cb, zone)
 	local propertyId, id = string.strsplit(':', zone.id)
 	local property = json.decode(GetResourceKvpString(propertyId))
 

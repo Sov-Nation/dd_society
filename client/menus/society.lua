@@ -1,3 +1,5 @@
+local ServerCallback = import 'callbacks'
+
 RegisterCommand('societyMenu', function()
 	local close = ESX.UI.Menu.IsOpen('default', resName, 'society')
 	ESX.UI.Menu.CloseAll()
@@ -80,7 +82,7 @@ function sOpen()
 				menu2.close()
 			end)
 		elseif data.current.value == 'societyBills' then
-			ESX.TriggerServerCallback('dd_society:aGetTargetBills', function(bills)
+			ServerCallback.Async('dd_society', 'aGetTargetBills', 100, function(bills)
 				local elements = {}
 				for i = 1, #bills do
 					local label

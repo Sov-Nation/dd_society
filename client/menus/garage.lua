@@ -1,3 +1,5 @@
+local ServerCallback = import 'callbacks'
+
 function gOpen(zone)
 	ESX.UI.Menu.Open('default', resName, 'garage', {
 		title    = ('%s - %s'):format(zone.property, zone.name),
@@ -19,7 +21,7 @@ function gOpen(zone)
 end
 
 function gManage(zone)
-	ESX.TriggerServerCallback('dd_society:vList', function(vehicles)
+	ServerCallback.Async('dd_society', 'vList', 100, function(vehicles)
 		local elements = {}
 		for i = 1, #vehicles do
 			local label, action, price
@@ -87,7 +89,7 @@ function gManage(zone)
 					ESX.UI.Menu.CloseAll()
 					local spot = pickSpot(zone)
 					if spot then
-						ESX.TriggerServerCallback('dd_society:vModify', function()
+						ServerCallback.Async('dd_society', 'vModify', 100, function()
 							spawnAtSpot(vehicle, spot)
 						end, vehicle, {garage = ''})
 					else
@@ -100,7 +102,7 @@ function gManage(zone)
 					function(datad, menud)
 						if datad.value and datad.value:len() > 1 then
 							ESX.UI.Menu.CloseAll()
-							ESX.TriggerServerCallback('dd_society:vModify', function()
+							ServerCallback.Async('dd_society', 'vModify', 100, function()
 								ESX.ShowNotification(('Vehicle renamed to ~y~%s'):format(datad.value))
 								gOpen(zone)
 							end, vehicle, {name = datad.value})
@@ -128,9 +130,9 @@ function gManage(zone)
 						details = 'Vehicle Impound Fee'
 					end
 					ESX.UI.Menu.CloseAll()
-					ESX.TriggerServerCallback('dd_society:aPayMoney', function(valid)
+					ServerCallback.Async('dd_society', 'aPayMoney', 100, function(valid)
 						if valid then
-							ESX.TriggerServerCallback('dd_society:vModify', function()
+							ServerCallback.Async('dd_society', 'vModify', 100, function()
 							end, vehicle, {garage = garage})
 						end
 					end, data.current.price, 'bank', owner, details)

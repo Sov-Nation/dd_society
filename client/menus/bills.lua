@@ -1,3 +1,5 @@
+local ServerCallback = import 'callbacks'
+
 RegisterCommand('billsMenu', function()
 	local close = ESX.UI.Menu.IsOpen('default', resName, 'playerBills')
 	ESX.UI.Menu.CloseAll()
@@ -7,7 +9,7 @@ RegisterCommand('billsMenu', function()
 end)
 
 function billsOpen()
-	ESX.TriggerServerCallback('dd_society:aGetPlayerBills', function(bills)
+	ServerCallback.Async('dd_society', 'aGetPlayerBills', 100, function(bills)
 		local elements = {}
 		for i = 1, #bills do
 			local label
@@ -39,7 +41,7 @@ function billsOpen()
 		function(data, menu)
 			menu.close()
 			if data.current.value then
-				ESX.TriggerServerCallback('dd_society:aPayBill', function(cb)
+				ServerCallback.Async('dd_society', 'aPayBill', 100, function(cb)
 					if cb then
 						billsOpen()
 					end

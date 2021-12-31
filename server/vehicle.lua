@@ -1,3 +1,5 @@
+local ServerCallback = import 'callbacks'
+
 ESX.RegisterCommand({'car', 'veh'}, 'admin', function(xPlayer, args, showError)
 	if not args.car then
 		args.car = 'elegy'
@@ -39,7 +41,7 @@ RegisterServerEvent('dd_society:vCreateVehicle', function(props, name)
 	exports.oxmysql:insertSync('INSERT INTO owned_vehicles (vehicle, owner, name, plate, type) VALUES (?, ?, ?, ?, ?)', {json.encode(props), plyState.ident, name, props.plate, type})
 end)
 
-ESX.RegisterServerCallback('dd_society:vList', function(source, cb, garage)
+ServerCallback.Register('vList', function(source, cb, garage)
 	local plyState = Player(source).state
 	local vehicles
 
@@ -79,7 +81,7 @@ ESX.RegisterServerCallback('dd_society:vList', function(source, cb, garage)
 	cb(vehicles)
 end)
 
-ESX.RegisterServerCallback('dd_society:vModify',function(source, cb, vehicle, change)
+ServerCallback.Register('vModify',function(source, cb, vehicle, change)
 	local plyState = Player(source).state
 
 	local Vehicle = exports.oxmysql:singleSync('SELECT * FROM owned_vehicles WHERE plate = ?', {vehicle.props.plate})

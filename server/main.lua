@@ -1,3 +1,4 @@
+local ServerCallback = import 'callbacks'
 local table = import 'table'
 local PropertyList
 Respawn = {}
@@ -200,7 +201,7 @@ CreateThread(function()
 	GlobalState['Data_Societies'] = Data.Societies
 end)
 
-ESX.RegisterServerCallback('dd_society:setJob', function(source, cb, societyId, ident, grade)
+ServerCallback.Register('setJob', function(source, cb, societyId, ident, grade)
 	local xPlayer = ESX.GetPlayerFromIdentifier(ident)
 	local society = Indexed.Societies[societyId]
 	if xPlayer then
@@ -227,7 +228,7 @@ ESX.RegisterServerCallback('dd_society:setJob', function(source, cb, societyId, 
 	cb()
 end)
 
-ESX.RegisterServerCallback('dd_society:modifyGrade', function(source, cb, societyId, grade)
+ServerCallback.Register('modifyGrade', function(source, cb, societyId, grade)
 	local society = Indexed.Societies[societyId]
 	society.grades[grade.grade] = grade
 

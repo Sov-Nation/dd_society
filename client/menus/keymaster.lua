@@ -1,3 +1,5 @@
+local ServerCallback = import 'callbacks'
+
 function kmOpen()
 	ESX.UI.Menu.Open('default', resName, 'keyMaster',{
 		title    = 'Keymaster',
@@ -244,7 +246,7 @@ function kmProperty(propertyId)
 							},
 							function(datad, menud)
 								ESX.UI.Menu.CloseAll()
-								ESX.TriggerServerCallback('dd_society:pTransferProperty', function()
+								ServerCallback.Async('dd_society', 'pTransferProperty', 100, function()
 									ESX.ShowNotification(('~y~%s ~w~transferred from ~g~%s ~w~to ~y~%s'):format(property.id, property.ownerName, data3.current.label))
 									kmOpenAfterUpdate(property.id)
 								end, property.id, Config.Bank, Config.BankName)
@@ -279,7 +281,7 @@ function kmProperty(propertyId)
 								},
 								function(datad, menud)
 									ESX.UI.Menu.CloseAll()
-									ESX.TriggerServerCallback('dd_society:pTransferProperty', function()
+									ServerCallback.Async('dd_society', 'pTransferProperty', 100, function()
 										ESX.ShowNotification(('~y~%s ~w~transferred from ~g~%s ~w~to ~y~%s'):format(property.id, property.ownerName, data4.current.society))
 										kmOpenAfterUpdate(property.id)
 									end, property.id, data4.current.value.owner, data4.current.society)
@@ -326,7 +328,7 @@ function kmProperty(propertyId)
 										},
 										function(datadd, menudd)
 											ESX.UI.Menu.CloseAll()
-											ESX.TriggerServerCallback('dd_society:pTransferProperty', function()
+											ServerCallback.Async('dd_society', 'pTransferProperty', 100, function()
 												ESX.ShowNotification(('~y~%s ~w~transferred from ~g~%s ~w~to ~y~%s'):format(property.id, property.ownerName, datad.current.name))
 												kmOpenAfterUpdate(property.id)
 											end, property.id, datad.current.identifier, datad.current.name)
@@ -338,7 +340,7 @@ function kmProperty(propertyId)
 									},
 									function(datad, menud)
 										ESX.UI.Menu.CloseAll()
-										ESX.TriggerServerCallback('dd_society:pTransferProperty', function()
+										ServerCallback.Async('dd_society', 'pTransferProperty', 100, function()
 											ESX.ShowNotification(('~y~%s ~w~transferred from ~g~%s ~w~to ~y~%s'):format(property.id, property.ownerName, data4.current.player))
 											kmOpenAfterUpdate(property.id)
 										end, property.id, data4.current.value.owner, data4.current.player)
@@ -359,7 +361,7 @@ function kmProperty(propertyId)
 					},
 					function(datad, menud)
 						ESX.UI.Menu.CloseAll()
-						ESX.TriggerServerCallback('dd_society:pRevokeAllKeys', function()
+						ServerCallback.Async('dd_society', 'pRevokeAllKeys', 100, function()
 							ESX.ShowNotification(('All keys for ~y~%s ~w~have been ~r~revoked'):format(property.id))
 							kmOpenAfterUpdate(property.id)
 						end, property.id)
@@ -477,7 +479,7 @@ function kmProperty(propertyId)
 							if datad.value and datad.value:len() > 1 then
 								zone.name = datad.value
 								ESX.UI.Menu.CloseAll()
-								ESX.TriggerServerCallback('dd_society:pModifyZone', function()
+								ServerCallback.Async('dd_society', 'pModifyZone', 100, function()
 									ESX.ShowNotification(('Zone renamed to ~g~%s'):format(datad.value))
 									kmOpenAfterUpdate(property.id)
 								end, zone)
@@ -488,7 +490,7 @@ function kmProperty(propertyId)
 					elseif data3.current.value == 'public' then
 						zone.public = not zone.public
 						ESX.UI.Menu.CloseAll()
-						ESX.TriggerServerCallback('dd_society:pModifyZone', function()
+						ServerCallback.Async('dd_society', 'pModifyZone', 100, function()
 							local switch = public == 'public' and 'private' or 'public'
 							ESX.ShowNotification('Zone is now ~y~%s'):format(switch)
 							kmOpenAfterUpdate(property.id)
@@ -511,7 +513,7 @@ function kmProperty(propertyId)
 					ESX.ShowNotification(('~r~Pick a name other than "%s"'):format(datad.value))
 				else
 					ESX.UI.Menu.CloseAll()
-					ESX.TriggerServerCallback('dd_society:pNewKey', function(newKey)
+					ServerCallback.Async('dd_society', 'pNewKey', 100, function(newKey)
 						ESX.ShowNotification(('New key - ~y~%s ~w~- ~g~%s'):format(newKey.id, newKey.name))
 						kmOpenAfterUpdate(property.id)
 					end, property.id, datad.value)
@@ -560,7 +562,7 @@ function kmProperty(propertyId)
 							},
 							function(datad, menud)
 								ESX.UI.Menu.CloseAll()
-								ESX.TriggerServerCallback('dd_society:pAddKey', function()
+								ServerCallback.Async('dd_society', 'pAddKey', 100, function()
 									ESX.ShowNotification(('~y~%s ~g~added ~w~to ~y~%s'):format(data.current.label, datad.current.name))
 									kmOpenAfterUpdate(property.id)
 								end, key.id, datad.current.identifier)
@@ -571,7 +573,7 @@ function kmProperty(propertyId)
 							},
 							function(datad, menud)
 								ESX.UI.Menu.CloseAll()
-								ESX.TriggerServerCallback('dd_society:pRemoveKey', function()
+								ServerCallback.Async('dd_society', 'pRemoveKey', 100, function()
 									ESX.ShowNotification(('~y~%s ~r~removed ~w~from ~y~%s'):format(data.current.label, data3.current.fullName))
 									kmOpenAfterUpdate(property.id)
 								end, key.id, data3.current.ident)
@@ -613,7 +615,7 @@ function kmProperty(propertyId)
 							print('tbd')
 						else
 							ESX.UI.Menu.CloseAll()
-							ESX.TriggerServerCallback('dd_society:pSwitchKeyExemption', function(valid)
+							ServerCallback.Async('dd_society', 'pSwitchKeyExemption', 100, function(valid)
 								if valid then
 									if data3.current.action == 'add' then
 										ESX.ShowNotification('~y~Door ~g~added ~w~to ~y~%s'):format(key.id, key.name)
@@ -662,7 +664,7 @@ function kmProperty(propertyId)
 							print('tbd')
 						else
 							ESX.UI.Menu.CloseAll()
-							ESX.TriggerServerCallback('dd_society:pSwitchKeyExemption', function(valid)
+							ServerCallback.Async('dd_society', 'pSwitchKeyExemption', 100, function(valid)
 								if valid then
 									if data3.current.action == 'add' then
 										ESX.ShowNotification('~y~Zone ~g~added ~w~to ~y~%s'):format(key.id, key.name)
@@ -686,7 +688,7 @@ function kmProperty(propertyId)
 					function(datad, menud)
 						if datad.value and datad.value:len() > 1 then
 							ESX.UI.Menu.CloseAll()
-							ESX.TriggerServerCallback('dd_society:pRenameKey', function()
+							ServerCallback.Async('dd_society', 'pRenameKey', 100, function()
 								ESX.ShowNotification(('Key renamed to ~g~%s'):format(datad.value))
 								kmOpenAfterUpdate(property.id)
 							end, key.id, datad.value)
@@ -700,7 +702,7 @@ function kmProperty(propertyId)
 					},
 					function(datad, menud)
 						ESX.UI.Menu.CloseAll()
-						ESX.TriggerServerCallback('dd_society:pDeleteKey', function(valid)
+						ServerCallback.Async('dd_society', 'pDeleteKey', 100, function(valid)
 							if valid then
 								ESX.ShowNotification('~y~%s has been ~r~deleted'):format(data.current.label)
 							else

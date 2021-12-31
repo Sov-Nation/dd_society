@@ -1,3 +1,5 @@
+local ServerCallback = import 'callbacks'
+
 function createAccount(society)
 	local self = {}
 
@@ -27,7 +29,7 @@ function createAccount(society)
 	return self
 end
 
-ESX.RegisterServerCallback('dd_society:aPayMoney', function(source, cb, amount, account, target, details, cut)
+ServerCallback.Register('aPayMoney', function(source, cb, amount, account, target, details, cut)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local acc = xPlayer.getAccount(account)
 
@@ -57,7 +59,7 @@ ESX.RegisterServerCallback('dd_society:aPayMoney', function(source, cb, amount, 
 	end
 end)
 
-ESX.RegisterServerCallback('dd_society:aPaySocietyMoney', function(source, cb, amount, account, target, society)
+ServerCallback.Register('aPaySocietyMoney', function(source, cb, amount, account, target, society)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local Soc = Indexed.Societies[society]
 
@@ -99,7 +101,7 @@ RegisterServerEvent('dd_society:aCreateBill', function(id, amount, target, detai
 	end
 end)
 
-ESX.RegisterServerCallback('dd_society:aGetPlayerBills', function(source, cb, target)
+ServerCallback.Register('aGetPlayerBills', function(source, cb, target)
 	local ident
 
 	if target then
@@ -119,7 +121,7 @@ ESX.RegisterServerCallback('dd_society:aGetPlayerBills', function(source, cb, ta
 	cb(bills)
 end)
 
-ESX.RegisterServerCallback('dd_society:aGetTargetBills', function(source, cb, target)
+ServerCallback.Register('aGetTargetBills', function(source, cb, target)
 	local society = Indexed.Societies[target]
 
 	if not society then
@@ -138,7 +140,7 @@ ESX.RegisterServerCallback('dd_society:aGetTargetBills', function(source, cb, ta
 	cb(bills)
 end)
 
-ESX.RegisterServerCallback('dd_society:aPayBill', function(source, cb, billId, cancel)
+ServerCallback.Register('aPayBill', function(source, cb, billId, cancel)
 	local bill = exports.oxmysql:singleSync('SELECT id, player, target, amount FROM dd_bills WHERE id = ?', {billId})
 
 	local xPlayer = ESX.GetPlayerFromIdentifier(bill.player)
@@ -166,7 +168,7 @@ ESX.RegisterServerCallback('dd_society:aPayBill', function(source, cb, billId, c
 	end
 end)
 
-ESX.RegisterServerCallback('dd_society:aWashMoney', function(source, cb, amount, propertyId)
+ServerCallback.Register('aWashMoney', function(source, cb, amount, propertyId)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local acc = xPlayer.getAccount('black_money')
 
@@ -179,7 +181,7 @@ ESX.RegisterServerCallback('dd_society:aWashMoney', function(source, cb, amount,
 	end
 end)
 
-ESX.RegisterServerCallback('dd_society:aGetWashedMoney', function(source, cb, propertyId)
+ServerCallback.Register('aGetWashedMoney', function(source, cb, propertyId)
 	local money = exports.oxmysql:executeSync('SELECT id, property, amount, timestamp FROM dd_moneywash WHERE property = ?', {propertyId})
 	local ready = 0
 
@@ -196,7 +198,7 @@ ESX.RegisterServerCallback('dd_society:aGetWashedMoney', function(source, cb, pr
 	cb(money, ready)
 end)
 
-ESX.RegisterServerCallback('dd_society:aCollectWashedMoney', function(source, cb, propertyId, money)
+ServerCallback.Register('aCollectWashedMoney', function(source, cb, propertyId, money)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local amount = 0
 	local ids = {}
