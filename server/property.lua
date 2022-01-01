@@ -35,8 +35,8 @@ ServerCallback.Register('pNewKey', function(source, cb, propertyId, name)
 		id = property.id .. ':' .. #property.keys + 1,
 		holders = {},
 		exempt = {
-			doors,
-			zones
+			doors = {},
+			zones = {}
 		}
 	}
 	SetResourceKvp(property.id, json.encode(property))
