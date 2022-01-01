@@ -1,3 +1,5 @@
+local AddCommand = import 'commands'
+
 function setAuth(ident, keys)
 	local keys = keys or json.decode(GetResourceKvpString(('%s:keys'):format(ident)))
 	local auth = json.decode(GetResourceKvpString(('%s:auth'):format(ident))) or {doors = {}, zones = {}}
@@ -32,36 +34,25 @@ function setAuth(ident, keys)
 	return keys, auth
 end
 
-ESX.RegisterCommand('keymaster', 'admin', function(xPlayer, args, showError)
-	TriggerClientEvent('dd_society:keymaster', xPlayer.playerId)
-end, true, {help = 'Open Keymaster', validate = false, arguments = {}
-})
+AddCommand('admin', 'keymaster', function(source, args)
+	TriggerClientEvent('dd_society:keymaster', source)
+end)
 
-ESX.RegisterCommand('revive', 'admin', function(xPlayer, args, showError)
-	TriggerClientEvent('dd_society:revive', args.playerId or xPlayer.playerId, false)
-end, true, {help = 'Revive a player', validate = false, arguments = {
-	{name = 'playerId', help = 'The player id', type = 'any'}
-}})
+AddCommand('admin', 'revive', function(source, args)
+	TriggerClientEvent('dd_society:revive', args.target or source, false)
+end, {'target:?number'})
 
-ESX.RegisterCommand('ko', 'admin', function(xPlayer, args, showError)
-	Player(args.playerId or xPlayer.playerId).state.ko = tonumber(args.time) or 30
-end, true, {help = 'Knock a player out', validate = false, arguments = {
-	{name = 'playerId', help = 'The player id', type = 'any'},
-	{name = 'time', help = 'Seconds to knock out for', type = 'any'},
-}})
+AddCommand('admin', 'ko', function(source, args)
+	Player(args.target or source).state.ko = args.time or 30
+end, {'target:?number', 'time:?number'})
 
-ESX.RegisterCommand('unko', 'admin', function(xPlayer, args, showError)
-	Player(args.playerId or xPlayer.playerId).state.ko = tonumber(args.time) or 0
-end, true, {help = 'Wake a player up', validate = false, arguments = {
-	{name = 'playerId', help = 'The player id', type = 'any'},
-	{name = 'time', help = 'Seconds to wait before the player is woken up', type = 'any'},
-}})
+AddCommand('admin', 'unko', function(source, args)
+	Player(args.target or source).state.ko = args.time or 0
+end, {'target:?number', 'time:?number'})
 
-ESX.RegisterCommand({'fr', 'fullrevive'}, 'admin', function(xPlayer, args, showError)
-	TriggerClientEvent('dd_society:revive', args.playerId or xPlayer.playerId, true)
-end, true, {help = 'Fully revive and reset a player', validate = false, arguments = {
-	{name = 'playerId', help = 'The player id', type = 'any'}
-}})
+AddCommand('admin', {'fr', 'fullrevive'}, function(source, args)
+	TriggerClientEvent('dd_society:revive', args.target or source, true)
+end, {'target:?number'})
 
 RegisterServerEvent('esx:playerLoaded', function(playerId)
 	local xPlayer = ESX.GetPlayerFromId(playerId)

@@ -1,28 +1,18 @@
+local AddCommand = import 'commands'
 local ServerCallback = import 'callbacks'
 
-ESX.RegisterCommand({'car', 'veh'}, 'admin', function(xPlayer, args, showError)
-	if not args.car then
-		args.car = 'elegy'
-	elseif args.car == 'random' then
-		args.car = Data.Vehicles[math.random(#Data.Vehicles)].model
+AddCommand('admin', {'car', 'veh'}, function(source, args)
+	if not args.vehicle then
+		args.vehicle = 'elegy'
+	elseif args.vehicle == 'random' then
+		args.vehicle = Data.Vehicles[math.random(#Data.Vehicles)].model
 	end
-	TriggerClientEvent('dd_society:spawnVehicle', xPlayer.source, args.car, false, true)
-end, false, {help = 'Spawn a vehicle', validate = false, arguments = {
-	{name = 'car', help = 'vehicle', type = 'any'}
-}})
+	TriggerClientEvent('dd_society:spawnVehicle', source, args.vehicle, false, true, false)
+end, {'vehicle:?string'})
 
-ESX.RegisterCommand({'givecar', 'giveveh'}, 'admin', function(xPlayer, args, showError)
-	if not args.vehicle then return end
-	if not args.playerId then
-		args.playerId = xPlayer
-	else
-		args.playerId = ESX.GetPlayerFromId(args.playerId)
-	end
-	TriggerClientEvent('dd_society:spawnVehicle', args.playerId.playerId, args.vehicle, false, true, true)
-end, true, {help = 'Spawn a vehicle and give it to a player', validate = false, arguments = {
-	{name = 'vehicle', help = 'Vehicle', type = 'string'},
-	{name = 'playerId', help = 'The player id', type = 'any'}
-}})
+AddCommand('admin', {'givecar', 'giveveh'}, function(source, args)
+	TriggerClientEvent('dd_society:spawnVehicle', args.target or source, args.vehicle, false, true, true)
+end, {'vehicle:string', 'target:?number'})
 
 RegisterServerEvent('dd_society:vCreateVehicle', function(props, name)
 	local plyState = Player(source).state
