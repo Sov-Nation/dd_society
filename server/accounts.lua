@@ -40,7 +40,7 @@ ServerCallback.Register('aPayMoney', function(source, cb, amount, account, targe
 				Society.acc.addMoney(amount)
 				xPlayer.showNotification('Paid ~g~$' .. amount .. ' ~w~from ' .. account .. ' account to ~y~' .. target)
 			else
-				local xTarget = ESX.GetPlayerFromId(target)
+				local xTarget = ESX.GetPlayerFromIdentifier(target)
 				xTarget.addAccountMoney('bank', amount)
 				xPlayer.showNotification('Paid ~g~$' .. amount .. ' ~w~from ' .. account .. ' account to ~y~' .. target)
 			end
@@ -70,7 +70,7 @@ ServerCallback.Register('aPaySocietyMoney', function(source, cb, amount, account
 				tSoc.acc.addMoney(amount)
 				xPlayer.showNotification('~y~' .. target .. ' ~w~received ~g~$' .. amount .. ' ~w~from ~y~' .. society)
 			else
-				local xTarget = ESX.GetPlayerFromId(target)
+				local xTarget = ESX.GetPlayerFromIdentifier(target)
 				xTarget.addAccountMoney(account, amount)
 				xPlayer.showNotification('~y~' .. target .. ' ~w~received ~g~$' .. amount .. ' ~w~from ~y~' .. society)
 			end
