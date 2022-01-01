@@ -29,7 +29,7 @@ function createAccount(society)
 	return self
 end
 
-ServerCallback.Register('aPayMoney', function(source, cb, amount, account, target, details, cut)
+ServerCallback.Register('aPayMoney', function(source, amount, account, target, details, cut)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local acc = xPlayer.getAccount(account)
 
@@ -48,18 +48,17 @@ ServerCallback.Register('aPayMoney', function(source, cb, amount, account, targe
 			xPlayer.showNotification('Paid ~g~$' .. amount .. ' ~w~from ' .. account .. ' account into the void')
 		end
 		xPlayer.removeAccountMoney(account, amount)
-		cb(true)
 	elseif account == 'bank' and amount <= Config.MaxCredit and target then
 		TriggerEvent('dd_society:aCreateBill', source, amount, target, details)
 		xPlayer.showNotification('~r~There is not enough money in your bank account, bill added instead')
-		cb(true)
 	else
 		xPlayer.showNotification("~r~You don't have enough money")
-		cb(false)
+		return false
 	end
+	return true
 end)
 
-ServerCallback.Register('aPaySocietyMoney', function(source, cb, amount, account, target, society)
+ServerCallback.Register('aPaySocietyMoney', function(source, amount, account, target, society)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local Soc = Indexed.Societies[society]
 
@@ -79,11 +78,11 @@ ServerCallback.Register('aPaySocietyMoney', function(source, cb, amount, account
 			xPlayer.showNotification('You ~w~received ~g~$' .. amount .. ' ~w~from ~y~' .. society)
 		end
 		Soc.acc.removeMoney(amount)
-		cb(true)
 	else
 		xPlayer.showNotification("~r~You don't have enough money")
-		cb(false)
+		return false
 	end
+	return true
 end)
 
 RegisterServerEvent('dd_society:aCreateBill', function(id, amount, target, details)
@@ -101,7 +100,7 @@ RegisterServerEvent('dd_society:aCreateBill', function(id, amount, target, detai
 	end
 end)
 
-ServerCallback.Register('aGetPlayerBills', function(source, cb, target)
+ServerCallback.Register('aGetPlayerBills', function(source, target)
 	local ident
 
 	if target then
@@ -118,10 +117,10 @@ ServerCallback.Register('aGetPlayerBills', function(source, cb, target)
 		bill.targetName = getName(bill.target)
 	end
 
-	cb(bills)
+	return bills
 end)
 
-ServerCallback.Register('aGetTargetBills', function(source, cb, target)
+ServerCallback.Register('aGetTargetBills', function(source, target)
 	local society = Indexed.Societies[target]
 
 	if not society then
@@ -137,10 +136,10 @@ ServerCallback.Register('aGetTargetBills', function(source, cb, target)
 		bill.playerName = getName(bill.player)
 	end
 
-	cb(bills)
+	return bills
 end)
 
-ServerCallback.Register('aPayBill', function(source, cb, billId, cancel)
+ServerCallback.Register('aPayBill', function(source, billId, cancel)
 	local bill = MySQL.single.await('SELECT id, player, target, amount FROM dd_bills WHERE id = ?', {billId})
 
 	local xPlayer = ESX.GetPlayerFromIdentifier(bill.player)
@@ -161,27 +160,26 @@ ServerCallback.Register('aPayBill', function(source, cb, billId, cancel)
 		end
 
 		MySQL.query.await('DELETE FROM dd_bills WHERE id = ?', {bill.id})
-
-		cb(true)
 	else
-		cb(false)
+		return false
 	end
+	return true
 end)
 
-ServerCallback.Register('aWashMoney', function(source, cb, amount, propertyId)
+ServerCallback.Register('aWashMoney', function(source, amount, propertyId)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local acc = xPlayer.getAccount('black_money')
 
 	if acc.money >= amount then
 		xPlayer.removeAccountMoney('black_money', amount)
 		MySQL.insert.await('INSERT INTO dd_moneywash (property, amount, timestamp) VALUES (?, ?, ?)', {propertyId, amount, os.time() + Config.time.moneywash})
-		cb(true)
 	else
-		cb(false)
+		return false
 	end
+	return true
 end)
 
-ServerCallback.Register('aGetWashedMoney', function(source, cb, propertyId)
+ServerCallback.Register('aGetWashedMoney', function(source, propertyId)
 	local money = MySQL.query.await('SELECT id, property, amount, timestamp FROM dd_moneywash WHERE property = ?', {propertyId})
 	local ready = 0
 
@@ -195,10 +193,10 @@ ServerCallback.Register('aGetWashedMoney', function(source, cb, propertyId)
 		end
 	end
 
-	cb(money, ready)
+	return money, ready
 end)
 
-ServerCallback.Register('aCollectWashedMoney', function(source, cb, propertyId, money)
+ServerCallback.Register('aCollectWashedMoney', function(source, propertyId, money)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local amount = 0
 	local ids = {}
@@ -215,5 +213,5 @@ ServerCallback.Register('aCollectWashedMoney', function(source, cb, propertyId, 
 
 	MySQL.query.await('DELETE FROM dd_moneywash WHERE property = ? AND id IN (?)', {propertyId, ids})
 
-	cb(true)
+	return true
 end)

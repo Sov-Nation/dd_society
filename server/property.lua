@@ -1,6 +1,6 @@
 local ServerCallback = import 'callbacks'
 
-ServerCallback.Register('pTransferProperty', function(source, cb, propertyId, target, targetName)
+ServerCallback.Register('pTransferProperty', function(source, propertyId, target, targetName)
 	local property = json.decode(GetResourceKvpString(propertyId))
 	if property.owner == target then
 		return
@@ -12,10 +12,10 @@ ServerCallback.Register('pTransferProperty', function(source, cb, propertyId, ta
 
 	saveTables('Properties', property)
 
-	cb()
+	return
 end)
 
-ServerCallback.Register('pRevokeAllKeys', function(source, cb, propertyId)
+ServerCallback.Register('pRevokeAllKeys', function(source, propertyId)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
 	property.keys = revokeKeys(property.keys, false)
@@ -24,10 +24,10 @@ ServerCallback.Register('pRevokeAllKeys', function(source, cb, propertyId)
 
 	saveTables('Properties', property)
 
-	cb()
+	return
 end)
 
-ServerCallback.Register('pNewKey', function(source, cb, propertyId, name)
+ServerCallback.Register('pNewKey', function(source, propertyId, name)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
 	property.keys[#property.keys + 1] = {
@@ -43,10 +43,10 @@ ServerCallback.Register('pNewKey', function(source, cb, propertyId, name)
 
 	saveTables('Properties', property)
 
-	cb(property.keys[#property.keys].id)
+	return property.keys[#property.keys].id
 end)
 
-ServerCallback.Register('pRenameKey', function(source, cb, keyId, name)
+ServerCallback.Register('pRenameKey', function(source, keyId, name)
 	local propertyId, id = string.strsplit(':', keyId)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
@@ -60,14 +60,13 @@ ServerCallback.Register('pRenameKey', function(source, cb, keyId, name)
 
 	saveTables('Properties', property)
 
-	cb()
+	return
 end)
 
-ServerCallback.Register('pDeleteKey', function(source, cb, keyId)
+ServerCallback.Register('pDeleteKey', function(source, keyId)
 	local propertyId, id = string.strsplit(':', keyId)
 	if id == 0 then
-		cb(false)
-		return
+		return false
 	end
 
 	local property = json.decode(GetResourceKvpString(propertyId))
@@ -83,10 +82,10 @@ ServerCallback.Register('pDeleteKey', function(source, cb, keyId)
 
 	saveTables('Properties', property)
 
-	cb(true)
+	return true
 end)
 
-ServerCallback.Register('pAddKey', function(source, cb, keyId, target)
+ServerCallback.Register('pAddKey', function(source, keyId, target)
 	local propertyId, id = string.strsplit(':', keyId)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
@@ -107,10 +106,10 @@ ServerCallback.Register('pAddKey', function(source, cb, keyId, target)
 
 	saveTables('Properties', property)
 
-	cb()
+	return
 end)
 
-ServerCallback.Register('pRemoveKey', function(source, cb, keyId, target)
+ServerCallback.Register('pRemoveKey', function(source, keyId, target)
 	local propertyId, id = string.strsplit(':', keyId)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
@@ -120,14 +119,13 @@ ServerCallback.Register('pRemoveKey', function(source, cb, keyId, target)
 
 	saveTables('Properties', property)
 
-	cb()
+	return
 end)
 
-ServerCallback.Register('pSwitchKeyExemption', function(source, cb, keyId, itemType, itemId)
+ServerCallback.Register('pSwitchKeyExemption', function(source, keyId, itemType, itemId)
 	local propertyId, id = string.strsplit(':', keyId)
 	if id == 0 then
-		cb(false)
-		return
+		return false
 	end
 
 	local property = json.decode(GetResourceKvpString(propertyId))
@@ -151,7 +149,7 @@ ServerCallback.Register('pSwitchKeyExemption', function(source, cb, keyId, itemT
 
 	saveTables('Properties', property)
 
-	cb(true)
+	return true
 end)
 
 function updateHolders(holders)
@@ -207,7 +205,7 @@ RegisterServerEvent('dd_society:pModifyDoor', function(door)
 	saveTables('Doors', door)
 end)
 
-ServerCallback.Register('pModifyZone', function(source, cb, zone)
+ServerCallback.Register('pModifyZone', function(source, zone)
 	local propertyId, id = string.strsplit(':', zone.id)
 	local property = json.decode(GetResourceKvpString(propertyId))
 
@@ -222,5 +220,5 @@ ServerCallback.Register('pModifyZone', function(source, cb, zone)
 	saveTables('Properties', property)
 	saveTables('Zones', zone)
 
-	cb()
+	return
 end)

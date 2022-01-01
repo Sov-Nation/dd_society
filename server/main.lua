@@ -201,7 +201,7 @@ CreateThread(function()
 	GlobalState['Data_Societies'] = Data.Societies
 end)
 
-ServerCallback.Register('setJob', function(source, cb, societyId, ident, grade)
+ServerCallback.Register('setJob', function(source, societyId, ident, grade)
 	local xPlayer = ESX.GetPlayerFromIdentifier(ident)
 	local society = Indexed.Societies[societyId]
 	if xPlayer then
@@ -224,18 +224,17 @@ ServerCallback.Register('setJob', function(source, cb, societyId, ident, grade)
 
 		MySQL.update.await('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {job.name, job.grade, ident})
 	end
-
-	cb()
+	return
 end)
 
-ServerCallback.Register('modifyGrade', function(source, cb, societyId, grade)
+ServerCallback.Register('modifyGrade', function(source, societyId, grade)
 	local society = Indexed.Societies[societyId]
 	society.grades[grade.grade] = grade
 
 	updateSociety(society)
 
 	MySQL.update.await('UPDATE job_grades SET label = ?, salary = ? WHERE job_name = ? AND grade = ?', {grade.label, grade.salary, society.name, grade.grade})
-	cb()
+	return
 end)
 
 function updateSociety(society)

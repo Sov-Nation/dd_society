@@ -31,7 +31,7 @@ RegisterServerEvent('dd_society:vCreateVehicle', function(props, name)
 	MySQL.insert.await('INSERT INTO owned_vehicles (vehicle, owner, name, plate, type) VALUES (?, ?, ?, ?, ?)', {json.encode(props), plyState.ident, name, props.plate, type})
 end)
 
-ServerCallback.Register('vList', function(source, cb, garage)
+ServerCallback.Register('vList', function(source, garage)
 	local plyState = Player(source).state
 	local vehicles
 
@@ -68,10 +68,10 @@ ServerCallback.Register('vList', function(source, cb, garage)
 		vehicles = MySQL.query.await('SELECT * FROM owned_vehicles WHERE owner IN (?) AND type = ?', {{plyState.ident, plyState.job}, vType})
 	end
 
-	cb(vehicles)
+	return vehicles
 end)
 
-ServerCallback.Register('vModify',function(source, cb, vehicle, change)
+ServerCallback.Register('vModify',function(source, vehicle, change)
 	local plyState = Player(source).state
 
 	local Vehicle = MySQL.single.await('SELECT * FROM owned_vehicles WHERE plate = ?', {vehicle.props.plate})
@@ -108,8 +108,8 @@ ServerCallback.Register('vModify',function(source, cb, vehicle, change)
 			end
 		end
 
-		cb(true)
 	else
-		cb(false)
+		return false
 	end
+	return true
 end)
