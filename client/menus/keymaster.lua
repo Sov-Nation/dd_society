@@ -206,10 +206,12 @@ function kmProperty(propertyId)
 	}
 	for i = 1, #property.keys do
 		local key = property.keys[i]
-		elements[#elements + 1] = {
-			label = ('%s - %s'):format(key.id, key.name),
-			value = key,
-		}
+		if key then
+			elements[#elements + 1] = {
+				label = ('%s - %s'):format(key.id, key.name),
+				value = key,
+			}
+		end	
 	end
 	ESX.UI.Menu.Open('default', resName, 'keymasterProperty',{
 		title    = ('Manage Property - %s'):format(property.id),

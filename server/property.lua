@@ -32,7 +32,7 @@ ServerCallback.Register('pNewKey', function(source, cb, propertyId, name)
 
 	property.keys[#property.keys + 1] = {
 		name = name,
-		id = property.id .. ':' .. #property.keys + 1,
+		id = property.id .. ':' .. #property.keys,
 		holders = {},
 		exempt = {
 			doors = {},
