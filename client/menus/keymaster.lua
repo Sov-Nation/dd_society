@@ -726,7 +726,11 @@ function kmProperty(propertyId)
 end
 
 RegisterNetEvent('dd_society:keymaster', function()
-	kmOpen()
+	local close = ESX.UI.Menu.IsOpen('default', resName, 'keyMaster')
+	ESX.UI.Menu.CloseAll()
+	if not close then
+		kmOpen()
+	end
 end)
 
 function kmOpenAfterUpdate(propertyId)
