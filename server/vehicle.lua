@@ -38,7 +38,7 @@ RegisterServerEvent('dd_society:vCreateVehicle', function(props, name)
 		type = 'car'
 	end
 
-	exports.oxmysql:insertSync('INSERT INTO owned_vehicles (vehicle, owner, name, plate, type) VALUES (?, ?, ?, ?, ?)', {json.encode(props), plyState.ident, name, props.plate, type})
+	MySQL.insert.await('INSERT INTO owned_vehicles (vehicle, owner, name, plate, type) VALUES (?, ?, ?, ?, ?)', {json.encode(props), plyState.ident, name, props.plate, type})
 end)
 
 ServerCallback.Register('vList', function(source, cb, garage)
@@ -55,9 +55,9 @@ ServerCallback.Register('vList', function(source, cb, garage)
 			end
 		end
 		if next(garages) then
-			vehicles = exports.oxmysql:executeSync('SELECT * FROM owned_vehicles WHERE owner IN (?) OR garage IN (?)', {{plyState.ident, property.owner}, garages})
+			vehicles = MySQL.query.await('SELECT * FROM owned_vehicles WHERE owner IN (?) OR garage IN (?)', {{plyState.ident, property.owner}, garages})
 		else
-			vehicles = exports.oxmysql:executeSync('SELECT * WHERE owner IN ?', {{plyState.ident, property.owner}})
+			vehicles = MySQL.query.await('SELECT * WHERE owner IN ?', {{plyState.ident, property.owner}})
 		end
 		for i = 1, #vehicles do
 			local vehicle = vehicles[i]
@@ -75,7 +75,7 @@ ServerCallback.Register('vList', function(source, cb, garage)
 			vType = 'plane'
 		end
 
-		vehicles = exports.oxmysql:executeSync('SELECT * FROM owned_vehicles WHERE owner IN (?) AND type = ?', {{plyState.ident, plyState.job}, vType})
+		vehicles = MySQL.query.await('SELECT * FROM owned_vehicles WHERE owner IN (?) AND type = ?', {{plyState.ident, plyState.job}, vType})
 	end
 
 	cb(vehicles)
@@ -84,37 +84,37 @@ end)
 ServerCallback.Register('vModify',function(source, cb, vehicle, change)
 	local plyState = Player(source).state
 
-	local Vehicle = exports.oxmysql:singleSync('SELECT * FROM owned_vehicles WHERE plate = ?', {vehicle.props.plate})
+	local Vehicle = MySQL.single.await('SELECT * FROM owned_vehicles WHERE plate = ?', {vehicle.props.plate})
 
 	if Vehicle then
 		if change.garage then
 			if change.garage ~= Vehicle.garage then
-				exports.oxmysql:updateSync('UPDATE owned_vehicles SET garage = ? WHERE plate = ?', {change.garage, vehicle.props.plate})
+				MySQL.update.await('UPDATE owned_vehicles SET garage = ? WHERE plate = ?', {change.garage, vehicle.props.plate})
 			end
 		end
 
 		if change.props then
 			local props = json.encode(change.props)
 			if props ~= Vehicle.vehicle then
-				exports.oxmysql:updateSync('UPDATE owned_vehicles SET vehicle = ? WHERE plate = ?', {props, vehicle.props.plate})
+				MySQL.update.await('UPDATE owned_vehicles SET vehicle = ? WHERE plate = ?', {props, vehicle.props.plate})
 			end
 		end
 
 		if change.owner then
 			if change.owner ~= Vehicle.owner then
-				exports.oxmysql:updateSync('UPDATE owned_vehicles SET owner = ? WHERE plate = ?', {change.owner, vehicle.props.plate})
+				MySQL.update.await('UPDATE owned_vehicles SET owner = ? WHERE plate = ?', {change.owner, vehicle.props.plate})
 			end
 		end
 
 		if change.name then
 			if Vehicle.name ~= change.name then
-				exports.oxmysql:updateSync('UPDATE owned_vehicles SET name = ? WHERE plate = ?', {change.name, vehicle.props.plate})
+				MySQL.update.await('UPDATE owned_vehicles SET name = ? WHERE plate = ?', {change.name, vehicle.props.plate})
 			end
 		end
 
 		if change.plate then
 			if Vehicle.plate ~= change.plate then
-				exports.oxmysql:updateSync('UPDATE owned_vehicles SET plate = ? WHERE plate = ?', {vehicle.props.plate, vehicle.props.plate})
+				MySQL.update.await('UPDATE owned_vehicles SET plate = ? WHERE plate = ?', {vehicle.props.plate, vehicle.props.plate})
 			end
 		end
 

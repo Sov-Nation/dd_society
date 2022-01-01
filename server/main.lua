@@ -180,9 +180,9 @@ CreateThread(function()
 		Indexed.Vehicles[veh.hash] = veh
 	end
 
-	local Grades = exports.oxmysql:executeSync('SELECT * FROM job_grades', {})
+	local Grades = MySQL.query.await('SELECT * FROM job_grades', {})
 
-	Data.Societies = exports.oxmysql:executeSync('SELECT * FROM jobs', {})
+	Data.Societies = MySQL.query.await('SELECT * FROM jobs', {})
 	Indexed.Societies = {}
 	for i = 1, #Data.Societies do
 		local society = Data.Societies[i]
@@ -207,7 +207,7 @@ ServerCallback.Register('setJob', function(source, cb, societyId, ident, grade)
 	if xPlayer then
 		xPlayer.setJob(society.name, grade)
 	else
-		local oldJob = exports.oxmysql:scalarSync('SELECT job FROM users WHERE identifier = ?', {ident})
+		local oldJob = MySQL.scalar.await('SELECT job FROM users WHERE identifier = ?', {ident})
 
 		if society.name ~= oldJob then
 			local oldSociety = Indexed.Societies[oldJob]
@@ -222,7 +222,7 @@ ServerCallback.Register('setJob', function(source, cb, societyId, ident, grade)
 		}
 		updateSociety(society)
 
-		exports.oxmysql:update('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {job.name, job.grade, ident})
+		MySQL.update.await('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {job.name, job.grade, ident})
 	end
 
 	cb()
@@ -234,7 +234,7 @@ ServerCallback.Register('modifyGrade', function(source, cb, societyId, grade)
 
 	updateSociety(society)
 
-	exports.oxmysql:updateSync('UPDATE job_grades SET label = ?, salary = ? WHERE job_name = ? AND grade = ?', {grade.label, grade.salary, society.name, grade.grade})
+	MySQL.update.await('UPDATE job_grades SET label = ?, salary = ? WHERE job_name = ? AND grade = ?', {grade.label, grade.salary, society.name, grade.grade})
 	cb()
 end)
 
@@ -251,5 +251,5 @@ function updateSociety(society)
 	GlobalState['Indexed_Societies'] = Indexed.Societies
 	GlobalState['Data_Societies'] = Data.Societies
 
-	exports.oxmysql:execute('UPDATE jobs SET colour = ?, account = ?, employees = ? WHERE name = ?', {society.colour, society.account, json.encode(society.employees), society.name})
+	MySQL.update.await('UPDATE jobs SET colour = ?, account = ?, employees = ? WHERE name = ?', {society.colour, society.account, json.encode(society.employees), society.name})
 end

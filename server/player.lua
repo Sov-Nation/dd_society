@@ -139,7 +139,7 @@ end)
 
 RegisterServerEvent('dd_society:saveJob', function(job)
 	local xPlayer = ESX.GetPlayerFromId(source)
-	local oldJob = exports.oxmysql:singleSync('SELECT job, job_grade FROM users WHERE identifier = ?', {xPlayer.identifier})
+	local oldJob = MySQL.single.await('SELECT job, job_grade FROM users WHERE identifier = ?', {xPlayer.identifier})
 
 	if job.name ~= oldJob.job then
 		local oldSociety = Indexed.Societies[oldJob.job]
@@ -154,7 +154,7 @@ RegisterServerEvent('dd_society:saveJob', function(job)
 	}
 	updateSociety(society)
 
-	exports.oxmysql:update('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {job.name, job.grade, xPlayer.identifier})
+	MySQL.update('UPDATE users SET job = ?, job_grade = ? WHERE identifier = ?', {job.name, job.grade, xPlayer.identifier})
 end)
 
 function nearestRespawn(coords)

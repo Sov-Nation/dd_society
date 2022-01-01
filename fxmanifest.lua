@@ -17,6 +17,7 @@ dependencies {
 
 shared_scripts {
 	'@pe-lualib/init.lua',
+	'@oxmysql/lib/MySQL.lua',
 	'@es_extended/imports.lua',
 	'shared/*.lua',
 }

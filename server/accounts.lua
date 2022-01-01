@@ -96,7 +96,7 @@ RegisterServerEvent('dd_society:aCreateBill', function(id, amount, target, detai
 	end
 
 	if xPlayer then
-		exports.oxmysql:insertSync('INSERT INTO dd_bills (player, target, amount, details, timestamp) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, target, amount, details, os.time() + Config.time.bill})
+		MySQL.insert('INSERT INTO dd_bills (player, target, amount, details, timestamp) VALUES (?, ?, ?, ?, ?)', {xPlayer.identifier, target, amount, details, os.time() + Config.time.bill})
 		xPlayer.showNotification(('You have received an invoice for ~g~$%s'):format(amount))
 	end
 end)
@@ -110,7 +110,7 @@ ServerCallback.Register('aGetPlayerBills', function(source, cb, target)
 		ident = Player(source).state.ident
 	end
 
-	local bills = exports.oxmysql:executeSync('SELECT id, target, amount, details, timestamp FROM dd_bills WHERE player = ? ORDER BY timestamp', {ident})
+	local bills = MySQL.query.await('SELECT id, target, amount, details, timestamp FROM dd_bills WHERE player = ? ORDER BY timestamp', {ident})
 
 	for i = 1, #bills do
 		local bill = bills[i]
@@ -129,7 +129,7 @@ ServerCallback.Register('aGetTargetBills', function(source, cb, target)
 		target = xTarget.identifier
 	end
 
-	local bills = exports.oxmysql:executeSync('SELECT * FROM dd_bills WHERE target = ? ORDER BY timestamp', {target})
+	local bills = MySQL.query.await('SELECT * FROM dd_bills WHERE target = ? ORDER BY timestamp', {target})
 
 	for i = 1, #bills do
 		local bill = bills[i]
@@ -141,7 +141,7 @@ ServerCallback.Register('aGetTargetBills', function(source, cb, target)
 end)
 
 ServerCallback.Register('aPayBill', function(source, cb, billId, cancel)
-	local bill = exports.oxmysql:singleSync('SELECT id, player, target, amount FROM dd_bills WHERE id = ?', {billId})
+	local bill = MySQL.single.await('SELECT id, player, target, amount FROM dd_bills WHERE id = ?', {billId})
 
 	local xPlayer = ESX.GetPlayerFromIdentifier(bill.player)
 	local account = xPlayer.getAccount('bank')
@@ -160,7 +160,7 @@ ServerCallback.Register('aPayBill', function(source, cb, billId, cancel)
 			xPlayer.removeAccountMoney(account, bill.amount)
 		end
 
-		exports.oxmysql:executeSync('DELETE FROM dd_bills WHERE id = ?', {bill.id})
+		MySQL.query.await('DELETE FROM dd_bills WHERE id = ?', {bill.id})
 
 		cb(true)
 	else
@@ -174,7 +174,7 @@ ServerCallback.Register('aWashMoney', function(source, cb, amount, propertyId)
 
 	if acc.money >= amount then
 		xPlayer.removeAccountMoney('black_money', amount)
-		exports.oxmysql:insertSync('INSERT INTO dd_moneywash (property, amount, timestamp) VALUES (?, ?, ?)', {propertyId, amount, os.time() + Config.time.moneywash})
+		MySQL.insert.await('INSERT INTO dd_moneywash (property, amount, timestamp) VALUES (?, ?, ?)', {propertyId, amount, os.time() + Config.time.moneywash})
 		cb(true)
 	else
 		cb(false)
@@ -182,7 +182,7 @@ ServerCallback.Register('aWashMoney', function(source, cb, amount, propertyId)
 end)
 
 ServerCallback.Register('aGetWashedMoney', function(source, cb, propertyId)
-	local money = exports.oxmysql:executeSync('SELECT id, property, amount, timestamp FROM dd_moneywash WHERE property = ?', {propertyId})
+	local money = MySQL.query.await('SELECT id, property, amount, timestamp FROM dd_moneywash WHERE property = ?', {propertyId})
 	local ready = 0
 
 	for i = 1, #money do
@@ -213,7 +213,7 @@ ServerCallback.Register('aCollectWashedMoney', function(source, cb, propertyId, 
 
 	xPlayer.addAccountMoney('money', amount)
 
-	exports.oxmysql:executeSync('DELETE FROM dd_moneywash WHERE property = ? AND id IN (?)', {propertyId, ids})
+	MySQL.query.await('DELETE FROM dd_moneywash WHERE property = ? AND id IN (?)', {propertyId, ids})
 
 	cb(true)
 end)
