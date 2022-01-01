@@ -20,7 +20,7 @@ CreateThread(function()
 end)
 
 RegisterCommand('lock/unlock', function()
-	if PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed then
+	if not canInteract() then
 		return
 	end
 

@@ -3,7 +3,7 @@ local ServerCallback = import 'callbacks'
 RegisterCommand('societyMenu', function()
 	local close = ESX.UI.Menu.IsOpen('default', resName, 'society')
 	ESX.UI.Menu.CloseAll()
-	if not close and not (PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed) then
+	if not close and canInteract() then
 		sOpen()
 	end
 end)

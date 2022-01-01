@@ -76,7 +76,7 @@ local entityTypes = {
 local validEntity, actions
 
 RegisterCommand('+interactionMenu', function()
-	if not targetActive and not IsPedInAnyVehicle(ESX.PlayerData.ped, false) and not isBusy and not (PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed) and not PlayerBags.Player.invOpen then
+	if not targetActive and not IsPedInAnyVehicle(ESX.PlayerData.ped, false) and not isBusy and canInteract() and not PlayerBags.Player.invOpen then
 		targetActive = true
 		local hit, coords, entity, entityType = RaycastCamera(switch())
 		local sleep = 10

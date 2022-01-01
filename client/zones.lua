@@ -67,7 +67,7 @@ RegisterCommand('interact', function()
 		end
 		ESX.UI.Menu.CloseAll()
 
-		if not close and not (PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed) then
+		if not close and canInteract() then
 			if currentZone.type == 'garage' or currentZone.type == 'pad' or currentZone.type == 'dock' or currentZone.type == 'hangar' then
 				gOpen(currentZone)
 			elseif currentZone.type == 'boss' then

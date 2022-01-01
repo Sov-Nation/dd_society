@@ -1,5 +1,12 @@
 local playingDead
 
+function canInteract()
+	if not PlayerBags.Player.loaded or PlayerBags.Player.invOpen or PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed then
+		return false
+	end
+	return true
+end
+
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
 	ESX.PlayerData = xPlayer
