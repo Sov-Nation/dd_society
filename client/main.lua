@@ -1,5 +1,5 @@
 resName = GetCurrentResourceName()
-PlayerBags = {Player = json.decode(GetResourceKvpString('Player')) or {loaded = false}}
+PlayerBags = {Player = json.decode(GetResourceKvpString('Player')) or {loaded = false, ko = 0}}
 
 Data = {
 	Societies = GlobalState.Data_Societies,
