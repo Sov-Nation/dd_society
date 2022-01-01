@@ -55,7 +55,7 @@ end)
 
 CreateThread(function()
 	while true do
-		pedPos = GetEntityCoords(ESX.PlayerData.ped)
+		pedPos = GetEntityCoords(PlayerBags.Player.ped)
 		Wait(0)
 		if PlayerBags.Player.loaded then
 			for i = 1, #Data.Doors do

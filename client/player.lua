@@ -13,6 +13,8 @@ AddEventHandler('esx:playerLoaded', function(xPlayer)
 	lib.requestAnimDict('mp_arresting')
 	lib.requestAnimDict('mp_arrest_paired')
 	lib.requestAnimDict('mini@cpr@char_a@cpr_str')
+	repeat Wait(0) until ESX.PlayerData.ped
+	LocalPlayer.state:set('ped', ESX.PlayerData.ped, false)
 end)
 
 RegisterNetEvent('esx:onPlayerLogout')
@@ -36,12 +38,12 @@ RegisterNetEvent('dd_society:revive', function(full, coords)
 		Wait(50)
 	end
 
-	coords = coords or vec(pedPos, GetEntityHeading(ESX.PlayerData.ped))
+	coords = coords or vec(pedPos, GetEntityHeading(PlayerBags.Player.ped))
 
-	SetEntityCoordsNoOffset(ESX.PlayerData.ped, coords.xyz, coords.w, false, false, false, true)
+	SetEntityCoordsNoOffset(PlayerBags.Player.ped, coords.xyz, coords.w, false, false, false, true)
 	NetworkResurrectLocalPlayer(coords.xyz, coords.w, true, false)
-	SetPlayerInvincible(ESX.PlayerData.ped, false)
-	ClearPedBloodDamage(ESX.PlayerData.ped)
+	SetPlayerInvincible(PlayerBags.Player.ped, false)
+	ClearPedBloodDamage(PlayerBags.Player.ped)
 
 	TriggerServerEvent('esx:onPlayerSpawn')
 	TriggerEvent('esx:onPlayerSpawn')
@@ -54,7 +56,7 @@ RegisterNetEvent('dd_society:revive', function(full, coords)
 	if full then
 		LocalPlayer.state:set('ko', 0, true)
 		LocalPlayer.state:set('cuffed', false, true)
-		SetPedConfigFlag(ESX.PlayerData.ped, 146, false)
+		SetPedConfigFlag(PlayerBags.Player.ped, 146, false)
 	else
 		Wait(2000)
 	end
@@ -95,7 +97,7 @@ CreateThread(function()
 				EnableControlAction(2, 199, true) -- esc
 				EnableControlAction(0, 245, true) -- t
 				if not playingDead and PlayerBags.Player.dead then
-					SetEntityHealth(ESX.PlayerData.ped, 0)
+					SetEntityHealth(PlayerBags.Player.ped, 0)
 					AnimpostfxPlay('DeathFailOut', 0, true)
 					playingDead = true
 					SendNUIMessage({response = 'openDead'})
@@ -107,9 +109,9 @@ CreateThread(function()
 				end
 
 				if PlayerBags.Player.cuffed then
-					if not isBusy and not (IsEntityPlayingAnim(ESX.PlayerData.ped, 'mp_arresting', 'idle', 3) or IsEntityPlayingAnim(ESX.PlayerData.ped, 'mp_arrest_paired', 'crook_p2_back_right', 3) or IsEntityPlayingAnim(ESX.PlayerData.ped, 'mp_arresting', 'b_cuff', 3)) or IsPedRagdoll(ESX.PlayerData.ped) then
-						ClearPedTasks(ESX.PlayerData.ped)
-						TaskPlayAnim(ESX.PlayerData.ped, 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0.0, 0, 0, 0)
+					if not isBusy and not (IsEntityPlayingAnim(PlayerBags.Player.ped, 'mp_arresting', 'idle', 3) or IsEntityPlayingAnim(PlayerBags.Player.ped, 'mp_arrest_paired', 'crook_p2_back_right', 3) or IsEntityPlayingAnim(PlayerBags.Player.ped, 'mp_arresting', 'b_cuff', 3)) or IsPedRagdoll(PlayerBags.Player.ped) then
+						ClearPedTasks(PlayerBags.Player.ped)
+						TaskPlayAnim(PlayerBags.Player.ped, 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0.0, 0, 0, 0)
 					end
 					DisableAllControlActions(0)
 					EnableControlAction(0, 0, true) -- v
@@ -141,9 +143,9 @@ end)
 CreateThread(function()
 	while true do
 		Wait(1000)
-		if PlayerBags.Player.loaded and ESX.PlayerData.ped then
-			local health = GetEntityHealth(ESX.PlayerData.ped)
-			if health < 125 or IsPedBeingStunned(ESX.PlayerData.ped, 0) then
+		if PlayerBags.Player.loaded and PlayerBags.Player.ped then
+			local health = GetEntityHealth(PlayerBags.Player.ped)
+			if health < 125 or IsPedBeingStunned(PlayerBags.Player.ped, 0) then
 				if PlayerBags.Player.ko < 30 then
 					LocalPlayer.state:set('ko', 30, true)
 				end
@@ -156,16 +158,16 @@ CreateThread(function()
 			end
 
 			if PlayerBags.Player.ko > 0 then
-				local vehicle = GetVehiclePedIsIn(ESX.PlayerData.ped, false)
+				local vehicle = GetVehiclePedIsIn(PlayerBags.Player.ped, false)
 				if vehicle ~= 0 then
-					if GetPedInVehicleSeat(vehicle, -1) == ESX.PlayerData.ped then
-						TaskLeaveVehicle(ESX.PlayerData.ped, vehicle, 4160)
+					if GetPedInVehicleSeat(vehicle, -1) == PlayerBags.Player.ped then
+						TaskLeaveVehicle(PlayerBags.Player.ped, vehicle, 4160)
 					end
 				end
 
-				SetPlayerHealthRechargeMultiplier((ESX.PlayerData.ped), 1.0)
-				SetPedToRagdoll(ESX.PlayerData.ped, 2000, 2000, 0, 0, 0, 0)
-				ResetPedRagdollTimer(ESX.PlayerData.ped)
+				SetPlayerHealthRechargeMultiplier((PlayerBags.Player.ped), 1.0)
+				SetPedToRagdoll(PlayerBags.Player.ped, 2000, 2000, 0, 0, 0, 0)
+				ResetPedRagdollTimer(PlayerBags.Player.ped)
 			end
 		end
 	end

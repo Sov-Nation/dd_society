@@ -37,7 +37,7 @@ local RaycastCamera = function(flag)
 	direction = vec2(math.rad(direction.x), math.rad(direction.z))
 	local num = math.abs(math.cos(direction.x))
 	direction = vec3((-math.sin(direction.y) * num), (math.cos(direction.y) * num), math.sin(direction.x))
-	local rayHandle = StartShapeTestLosProbe(cam.x, cam.y, cam.z, cam.x + direction.x * 30, cam.y + direction.y * 30, cam.z + direction.z * 30, flag or -1, ESX.PlayerData.ped or PlayerPedId(), 0)
+	local rayHandle = StartShapeTestLosProbe(cam.x, cam.y, cam.z, cam.x + direction.x * 30, cam.y + direction.y * 30, cam.z + direction.z * 30, flag or -1, PlayerBags.Player.ped or PlayerPedId(), 0)
 	while true do
 		Wait(0)
 		local result, _, endCoords, _, materialHash, entityHit = GetShapeTestResultIncludingMaterial(rayHandle)
@@ -76,13 +76,13 @@ local entityTypes = {
 local validEntity, actions
 
 RegisterCommand('+interactionMenu', function()
-	if not targetActive and not IsPedInAnyVehicle(ESX.PlayerData.ped, false) and not isBusy and canInteract() and not PlayerBags.Player.invOpen then
+	if not targetActive and not IsPedInAnyVehicle(PlayerBags.Player.ped, false) and not isBusy and canInteract() and not PlayerBags.Player.invOpen then
 		targetActive = true
 		local hit, coords, entity, entityType = RaycastCamera(switch())
 		local sleep = 10
 		SendNUIMessage({response = 'openTarget'})
 		while targetActive do
-			if IsPedInAnyVehicle(ESX.PlayerData.ped, false) then
+			if IsPedInAnyVehicle(PlayerBags.Player.ped, false) then
 				SendNUIMessage({response = 'closeTarget'})
 				targetActive = false
 				validEntity = nil
@@ -156,8 +156,8 @@ RegisterCommand('resuscitate', function(source, args, rawCommand)
 		isBusy = true
 		local targetId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity))
 		if PlayerBags.targetId.dead then
-			ClearPedTasks(ESX.PlayerData.ped)
-			TaskGoToEntity(ESX.PlayerData.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
+			ClearPedTasks(PlayerBags.Player.ped)
+			TaskGoToEntity(PlayerBags.Player.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
 			local count = 0
 			while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not PlayerBags.Player.escorting and count < 20 do
 				Wait(100)
@@ -201,8 +201,8 @@ RegisterCommand('cuff', function(source, args, rawCommand)
 		SendNUIMessage({response = 'closeTarget'})
 		targetActive = false
 		isBusy = true
-		ClearPedTasks(ESX.PlayerData.ped)
-		TaskGoToEntity(ESX.PlayerData.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
+		ClearPedTasks(PlayerBags.Player.ped)
+		TaskGoToEntity(PlayerBags.Player.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
 		local count = 0
 		while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not PlayerBags.Player.escorting and count < 20 do
 			Wait(100)
@@ -263,9 +263,9 @@ end)
 
 RegisterNetEvent('dd_society:cuff', function(control, cuff)
 	isBusy = true
-	ClearPedTasks(ESX.PlayerData.ped)
-	SetPedConfigFlag(ESX.PlayerData.ped, 146, cuff)
-	AttachEntityToEntity(ESX.PlayerData.ped, GetPlayerPed(GetPlayerFromServerId(control)), 11816, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, true, true, false, false, 2, true)
+	ClearPedTasks(PlayerBags.Player.ped)
+	SetPedConfigFlag(PlayerBags.Player.ped, 146, cuff)
+	AttachEntityToEntity(PlayerBags.Player.ped, GetPlayerPed(GetPlayerFromServerId(control)), 11816, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, true, true, false, false, 2, true)
 	if cuff then
 		TriggerEvent('ox_inventory:disarm')
 		exports.ox_inventory:Progress({
@@ -305,7 +305,7 @@ RegisterNetEvent('dd_society:cuff', function(control, cuff)
 			},
 		},
 		function(cancel)
-			DetachEntity(ESX.PlayerData.ped, true, false)
+			DetachEntity(PlayerBags.Player.ped, true, false)
 			isBusy = false
 		end)
 	end
@@ -316,8 +316,8 @@ RegisterCommand('escort', function(source, args, rawCommand)
 		SendNUIMessage({response = 'closeTarget'})
 		targetActive = false
 		isBusy = true
-		ClearPedTasks(ESX.PlayerData.ped)
-		TaskGoToEntity(ESX.PlayerData.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
+		ClearPedTasks(PlayerBags.Player.ped)
+		TaskGoToEntity(PlayerBags.Player.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
 		local count = 0
 		while #(pedPos - GetEntityCoords(validEntity)) > 1.5 and not PlayerBags.Player.escorting and count < 20 do
 			Wait(100)
@@ -334,14 +334,14 @@ end)
 RegisterNetEvent('dd_society:escort', function(control, escort, vehicle, seat)
 	if escort then
 		if vehicle and seat then
-			TaskLeaveVehicle(ESX.PlayerData.ped, NetworkGetEntityFromNetworkId(vehicle), 16)
+			TaskLeaveVehicle(PlayerBags.Player.ped, NetworkGetEntityFromNetworkId(vehicle), 16)
 			Wait(10)
 		end
-		AttachEntityToEntity(ESX.PlayerData.ped, GetPlayerPed(GetPlayerFromServerId(control)), 11816, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, true, true, false, false, 2, true)
+		AttachEntityToEntity(PlayerBags.Player.ped, GetPlayerPed(GetPlayerFromServerId(control)), 11816, 0.0, 0.75, 0.0, 0.0, 0.0, 0.0, true, true, false, false, 2, true)
 	else
-		DetachEntity(ESX.PlayerData.ped, true, false)
+		DetachEntity(PlayerBags.Player.ped, true, false)
 		if vehicle and seat then
-			SetPedIntoVehicle(ESX.PlayerData.ped, NetworkGetEntityFromNetworkId(vehicle), seat)
+			SetPedIntoVehicle(PlayerBags.Player.ped, NetworkGetEntityFromNetworkId(vehicle), seat)
 		end
 	end
 end)
@@ -360,8 +360,8 @@ RegisterCommand('repair', function(source, args, rawCommand)
 		SendNUIMessage({response = 'closeTarget'})
 		targetActive = false
 		isBusy = true
-		ClearPedTasks(ESX.PlayerData.ped)
-		TaskTurnPedToFaceEntity(ESX.PlayerData.ped, validEntity, 1000)
+		ClearPedTasks(PlayerBags.Player.ped)
+		TaskTurnPedToFaceEntity(PlayerBags.Player.ped, validEntity, 1000)
 		SetVehicleDoorOpen(validEntity, 4, false, false)
 		Wait(1000)
 		SetVehicleUndriveable(validEntity, true)
@@ -382,7 +382,7 @@ RegisterCommand('repair', function(source, args, rawCommand)
 		},
 		function(cancel)
 			if not cancel then
-				ClearPedTasks(ESX.PlayerData.ped)
+				ClearPedTasks(PlayerBags.Player.ped)
 				Wait(2000)
 				SetVehicleDoorShut(validEntity, 4, false)
 				Wait(450)

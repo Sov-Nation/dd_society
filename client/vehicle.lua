@@ -18,9 +18,9 @@ function spawnVehicle(vehicle, coords, delete)
 	local model = lib.requestModel(vehicle, 5000)
 	if model then
 		local vec = coords and coords.xyz or pedPos
-		local heading = coords and coords.w or GetEntityHeading(ESX.PlayerData.ped)
+		local heading = coords and coords.w or GetEntityHeading(PlayerBags.Player.ped)
 
-		local oldVeh = GetVehiclePedIsIn(ESX.PlayerData.ped)
+		local oldVeh = GetVehiclePedIsIn(PlayerBags.Player.ped)
 		local vehicle = CreateVehicle(model, vec, heading, true, false)
 		SetModelAsNoLongerNeeded(model)
 
@@ -45,7 +45,7 @@ function spawnVehicle(vehicle, coords, delete)
 			SetVehicleNeedsToBeHotwired(vehicle, false)
 			SetVehRadioStation(vehicle, 'OFF')
 			SetVehicleEngineOn(vehicle, true, true, true)
-			SetPedIntoVehicle(ESX.PlayerData.ped, vehicle, -1)
+			SetPedIntoVehicle(PlayerBags.Player.ped, vehicle, -1)
 		end
 		return vehicle
 	else
@@ -54,9 +54,9 @@ function spawnVehicle(vehicle, coords, delete)
 end
 
 function storeVehicle(zone)
-	if IsPedInAnyVehicle(ESX.PlayerData.ped, false) then
-		local vehicleId = GetVehiclePedIsIn(ESX.PlayerData.ped, false)
-		if GetPedInVehicleSeat(vehicleId, -1) == ESX.PlayerData.ped then
+	if IsPedInAnyVehicle(PlayerBags.Player.ped, false) then
+		local vehicleId = GetVehiclePedIsIn(PlayerBags.Player.ped, false)
+		if GetPedInVehicleSeat(vehicleId, -1) == PlayerBags.Player.ped then
 			local vehicle = {}
 			vehicle.props = getVehicleProperties(vehicleId)
 			if vehicle.props then
