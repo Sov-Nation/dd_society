@@ -10,7 +10,7 @@ local zoneMenus = {
 }
 
 CreateThread(function()
-	while not PlayerBags.Player.loaded do Wait(0) end
+	while not PlayerBags.Player.ped do Wait(0) end
 	for i = 1, #Data.Zones do
 		local pz, zone = Data.Zones[i]
 		pz.property = string.strsplit(':', pz.id)

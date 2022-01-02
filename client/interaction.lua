@@ -37,7 +37,7 @@ local RaycastCamera = function(flag)
 	direction = vec2(math.rad(direction.x), math.rad(direction.z))
 	local num = math.abs(math.cos(direction.x))
 	direction = vec3((-math.sin(direction.y) * num), (math.cos(direction.y) * num), math.sin(direction.x))
-	local rayHandle = StartShapeTestLosProbe(cam.x, cam.y, cam.z, cam.x + direction.x * 30, cam.y + direction.y * 30, cam.z + direction.z * 30, flag or -1, PlayerBags.Player.ped or PlayerPedId(), 0)
+	local rayHandle = StartShapeTestLosProbe(cam.x, cam.y, cam.z, cam.x + direction.x * 30, cam.y + direction.y * 30, cam.z + direction.z * 30, flag or -1, PlayerBags.Player.ped, 0)
 	while true do
 		Wait(0)
 		local result, _, endCoords, _, materialHash, entityHit = GetShapeTestResultIncludingMaterial(rayHandle)

@@ -1,7 +1,7 @@
 local playingDead
 
 function canInteract()
-	if not PlayerBags.Player.loaded or PlayerBags.Player.invOpen or PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed then
+	if not PlayerBags.Player.ped or PlayerBags.Player.invOpen or PlayerBags.Player.dead or PlayerBags.Player.ko > 0 or PlayerBags.Player.cuffed then
 		return false
 	end
 	return true
@@ -10,20 +10,15 @@ end
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
 	ESX.PlayerData = xPlayer
+	LocalPlayer.state:set('ped', PlayerPedId(), true)
 	lib.requestAnimDict('mp_arresting')
 	lib.requestAnimDict('mp_arrest_paired')
 	lib.requestAnimDict('mini@cpr@char_a@cpr_str')
-	repeat Wait(0) until ESX.PlayerData.ped
-	LocalPlayer.state:set('ped', ESX.PlayerData.ped, false)
 end)
 
 RegisterNetEvent('esx:onPlayerLogout')
 AddEventHandler('esx:onPlayerLogout', function()
-	TriggerServerEvent('dd_society:saveState')
 	ESX.PlayerData = {}
-	playingDead = false
-	SendNUIMessage({response = 'closeDead'})
-	AnimpostfxStop('DeathFailOut')
 end)
 
 RegisterNetEvent('esx:setJob')
@@ -69,7 +64,7 @@ CreateThread(function()
 	local sharp = 0.5
 	while true do
 		Wait(0)
-		if PlayerBags.Player.loaded then
+		if PlayerBags.Player.ped then
 			SetWeaponDamageModifier(`WEAPON_UNARMED`, unarmed)
 			SetWeaponDamageModifier(`WEAPON_FLASHLIGHT`, blunt)
 			SetWeaponDamageModifier(`WEAPON_KNUCKLE`, blunt)
@@ -98,16 +93,11 @@ CreateThread(function()
 				EnableControlAction(0, 245, true) -- t
 				if not playingDead and PlayerBags.Player.dead then
 					SetEntityHealth(PlayerBags.Player.ped, 0)
-					AnimpostfxPlay('DeathFailOut', 0, true)
 					playingDead = true
 					SendNUIMessage({response = 'openDead'})
+					AnimpostfxPlay('DeathFailOut', 0, true)
 				end
 			else
-				if playingDead then
-					playingDead = false
-					SendNUIMessage({response = 'closeDead'})
-				end
-
 				if PlayerBags.Player.cuffed then
 					if not isBusy and not (IsEntityPlayingAnim(PlayerBags.Player.ped, 'mp_arresting', 'idle', 3) or IsEntityPlayingAnim(PlayerBags.Player.ped, 'mp_arrest_paired', 'crook_p2_back_right', 3) or IsEntityPlayingAnim(PlayerBags.Player.ped, 'mp_arresting', 'b_cuff', 3)) or IsPedRagdoll(PlayerBags.Player.ped) then
 						ClearPedTasks(PlayerBags.Player.ped)
@@ -136,6 +126,10 @@ CreateThread(function()
 					EnableControlAction(0, 142, true) -- melee attack
 				end
 			end
+		elseif playingDead then
+			playingDead = false
+			SendNUIMessage({response = 'closeDead'})
+			AnimpostfxStop('DeathFailOut')
 		end
 	end
 end)
@@ -143,31 +137,35 @@ end)
 CreateThread(function()
 	while true do
 		Wait(1000)
-		if PlayerBags.Player.loaded and PlayerBags.Player.ped then
-			local health = GetEntityHealth(PlayerBags.Player.ped)
-			if health < 125 or IsPedBeingStunned(PlayerBags.Player.ped, 0) then
-				if PlayerBags.Player.ko < 30 then
-					LocalPlayer.state:set('ko', 30, true)
-				end
-
-				if not PlayerBags.Player.dead and health == 0 then
-					LocalPlayer.state:set('dead', true, true)
-				end
-			elseif PlayerBags.Player.ko > 0 then
-				LocalPlayer.state:set('ko', PlayerBags.Player.ko - 1, true)
-			end
-
-			if PlayerBags.Player.ko > 0 then
-				local vehicle = GetVehiclePedIsIn(PlayerBags.Player.ped, false)
-				if vehicle ~= 0 then
-					if GetPedInVehicleSeat(vehicle, -1) == PlayerBags.Player.ped then
-						TaskLeaveVehicle(PlayerBags.Player.ped, vehicle, 4160)
+		if PlayerBags.Player.ped then
+			if GetEntityType(PlayerBags.Player.ped) == 1 then
+				local health = GetEntityHealth(PlayerBags.Player.ped)
+				if health < 125 or IsPedBeingStunned(PlayerBags.Player.ped, 0) then
+					if PlayerBags.Player.ko < 30 then
+						LocalPlayer.state:set('ko', 30, true)
 					end
+
+					if not PlayerBags.Player.dead and health == 0 then
+						LocalPlayer.state:set('dead', true, true)
+					end
+				elseif PlayerBags.Player.ko > 0 then
+					LocalPlayer.state:set('ko', PlayerBags.Player.ko - 1, true)
 				end
 
-				SetPlayerHealthRechargeMultiplier((PlayerBags.Player.ped), 1.0)
-				SetPedToRagdoll(PlayerBags.Player.ped, 2000, 2000, 0, 0, 0, 0)
-				ResetPedRagdollTimer(PlayerBags.Player.ped)
+				if PlayerBags.Player.ko > 0 then
+					local vehicle = GetVehiclePedIsIn(PlayerBags.Player.ped, false)
+					if vehicle ~= 0 then
+						if GetPedInVehicleSeat(vehicle, -1) == PlayerBags.Player.ped then
+							TaskLeaveVehicle(PlayerBags.Player.ped, vehicle, 4160)
+						end
+					end
+
+					SetPlayerHealthRechargeMultiplier((PlayerBags.Player.ped), 1.0)
+					SetPedToRagdoll(PlayerBags.Player.ped, 2000, 2000, 0, 0, 0, 0)
+					ResetPedRagdollTimer(PlayerBags.Player.ped)
+				end
+			else
+				LocalPlayer.state:set('ped', false, true)
 			end
 		end
 	end

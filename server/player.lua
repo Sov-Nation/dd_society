@@ -54,6 +54,23 @@ AddCommand('admin', {'fr', 'fullrevive'}, function(source, args)
 	TriggerClientEvent('dd_society:revive', args.target or source, true)
 end, {'target:?number'})
 
+function saveState(playerId, unload)
+	local plyState = Player(playerId).state
+
+	if unload then
+		plyState.ped = false
+	end
+
+	SetResourceKvp(('%s:name'):format(plyState.ident), plyState.name)
+	SetResourceKvp(('%s:job'):format(plyState.ident), plyState.job)
+	SetResourceKvp(('%s:grade'):format(plyState.ident), plyState.grade)
+	SetResourceKvpInt(('%s:dead'):format(plyState.ident), plyState.dead and 1 or 0)
+	SetResourceKvpInt(('%s:ko'):format(plyState.ident), plyState.ko)
+	SetResourceKvpInt(('%s:cuffed'):format(plyState.ident), plyState.cuffed and 1 or 0)
+	SetResourceKvp(('%s:keys'):format(plyState.ident), json.encode(plyState.keys))
+	SetResourceKvp(('%s:auth'):format(plyState.ident), json.encode(plyState.auth))
+end
+
 RegisterServerEvent('esx:playerLoaded', function(playerId)
 	local xPlayer = ESX.GetPlayerFromId(playerId)
 	local plyState = Player(playerId).state
@@ -69,22 +86,12 @@ RegisterServerEvent('esx:playerLoaded', function(playerId)
 	plyState.escorted = false
 	plyState.escorting = false
 	plyState.handsUp = false
-	plyState.loaded = true
+
+	saveState(playerId, false)
 end)
 
-RegisterServerEvent('dd_society:saveState', function()
-	local plyState = Player(source).state
-
-	plyState.loaded = false
-
-	SetResourceKvp(('%s:name'):format(plyState.ident), plyState.name)
-	SetResourceKvp(('%s:job'):format(plyState.ident), plyState.job)
-	SetResourceKvp(('%s:grade'):format(plyState.ident), plyState.grade)
-	SetResourceKvpInt(('%s:dead'):format(plyState.ident), plyState.dead and 1 or 0)
-	SetResourceKvpInt(('%s:ko'):format(plyState.ident), plyState.ko)
-	SetResourceKvpInt(('%s:cuffed'):format(plyState.ident), plyState.cuffed and 1 or 0)
-	SetResourceKvp(('%s:keys'):format(plyState.ident), json.encode(plyState.keys))
-	SetResourceKvp(('%s:auth'):format(plyState.ident), json.encode(plyState.auth))
+RegisterServerEvent('esx:playerDropped', function(playerId)
+	saveState(playerId, true)
 end)
 
 RegisterServerEvent('dd_society:revivePlayer', function(player, coords)

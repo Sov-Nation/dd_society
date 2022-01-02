@@ -1,7 +1,7 @@
 CreateThread(function()
 	while true do
 		Wait(100)
-		if PlayerBags.Player.loaded then
+		if PlayerBags.Player.ped then
 			for i = 1, #Data.Doors do
 				local door = Data.Doors[i]
 				if #(pedPos - vectorize(door.coords)) < door.distance then
@@ -57,7 +57,7 @@ CreateThread(function()
 	while true do
 		pedPos = GetEntityCoords(PlayerBags.Player.ped)
 		Wait(0)
-		if PlayerBags.Player.loaded then
+		if PlayerBags.Player.ped then
 			for i = 1, #Data.Doors do
 				local door = Data.Doors[i]
 				applyDoorState(door)

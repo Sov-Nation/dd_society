@@ -1,5 +1,5 @@
 resName = GetCurrentResourceName()
-PlayerBags = {Player = json.decode(GetResourceKvpString('Player')) or {loaded = false, ko = 0}}
+PlayerBags = {Player = json.decode(GetResourceKvpString('Player')) or {ped = false, ko = 0}}
 
 Data = {
 	Societies = GlobalState.Data_Societies,
@@ -32,7 +32,7 @@ function showBlips(target)
 		end
 	end
 
-	if not PlayerBags.Player.loaded then
+	if not PlayerBags.Player.ped then
 		return
 	end
 
@@ -108,7 +108,7 @@ AddStateBagChangeHandler(nil, nil, function(bagName, key, value, reserved, repli
 		if tonumber(id) == Player then
 			PlayerBags.Player[key] = value
 			SetResourceKvp('Player', json.encode(PlayerBags.Player))
-			if key == 'loaded' then
+			if key == 'ped' then
 				showBlips()
 			end
 		else
@@ -121,7 +121,7 @@ AddStateBagChangeHandler(nil, nil, function(bagName, key, value, reserved, repli
 end)
 
 function refreshBussHUD()
-	if not PlayerBags.Player.loaded then
+	if not PlayerBags.Player.ped then
 		return
 	end
 	DisableSocietyMoneyHUDElement()
