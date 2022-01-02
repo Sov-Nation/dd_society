@@ -155,7 +155,7 @@ RegisterCommand('resuscitate', function(source, args, rawCommand)
 		targetActive = false
 		isBusy = true
 		local targetId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(validEntity))
-		if PlayerBags.targetId.dead then
+		if PlayerBags[targetId].dead then
 			ClearPedTasks(PlayerBags.Player.ped)
 			TaskGoToEntity(PlayerBags.Player.ped, validEntity, 2000, 1.5, 1.5, 0, 0)
 			local count = 0
