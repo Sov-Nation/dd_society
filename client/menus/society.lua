@@ -70,9 +70,9 @@ function sOpen()
 							if not details or details:len() < 1 then
 								details = 'Invoice'
 							end
-							local target = ESX.PlayerData.job.label
+							local target = PlayerBags.Player.job
 							if data2.current.value == 'personal' then
-								target = GetPlayerServerId(PlayerId())
+								target = PlayerBags.Player.ident
 							end
 							TriggerServerEvent('dd_society:aCreateBill', datad.current.value, datadd.value, target, details)
 						end, false)
