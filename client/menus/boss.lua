@@ -109,9 +109,9 @@ function bOpen(zone)
 						end)
 					end, property.owner)
 				elseif data2.current.value == 'washedMoney' then
-					ServerCallback.Async('dd_society', 'aGetWashedMoney', 100, function(WashedMoney, ready)
+					ServerCallback.Async('dd_society', 'aGetWashedMoney', 100, function(washedMoney, ready)
 						local elements = {}
-						if Ready.amount == 0 then
+						if ready == 0 then
 							elements[1] = {label = 'No money ready to collect'}
 						else
 							elements[1] = {
