@@ -96,6 +96,10 @@ function loadTables()
 	end
 
 	Respawn = json.decode(GetResourceKvpString('Respawn'))
+
+	for k, v in pairs(Respawn) do
+		Respawn[k] = vectorize(v)
+	end
 end
 
 function saveTables(tab, set, delete)
