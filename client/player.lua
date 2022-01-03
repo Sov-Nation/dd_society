@@ -144,6 +144,21 @@ CreateThread(function()
 					LocalPlayer.state:set('vehicle', vehicle ~= 0 and vehicle or false, false)
 				end
 
+				if PlayerBags.Player.vehicle and PlayerBags.Player.escorting then
+					local backSeats = GetVehicleModelNumberOfSeats(GetEntityModel(PlayerBags.Player.vehicle)) - 2
+					if backSeats > 0 then
+						for i = 1, backSeats do
+							if IsVehicleSeatFree(PlayerBags.Player.vehicle, i) then
+								TriggerServerEvent('dd_society:escort', PlayerBags.Player.escorting, NetworkGetNetworkIdFromEntity(PlayerBags.Player.vehicle), i)
+								break
+							end
+						end
+						TriggerServerEvent('dd_society:escort', PlayerBags.Player.escorting)
+					else
+						TriggerServerEvent('dd_society:escort', PlayerBags.Player.escorting)
+					end
+				end
+
 				local health = GetEntityHealth(PlayerBags.Player.ped)
 				if health < 125 or IsPedBeingStunned(PlayerBags.Player.ped, 0) then
 					if PlayerBags.Player.ko < 30 then
