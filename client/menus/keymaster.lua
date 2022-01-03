@@ -143,11 +143,13 @@ function kmOpen()
 			function(data2, menu2)
 				local elements = {}
 				for k, v in pairs(data2.current.value) do
-					local property = Indexed.Properties[k]
-					elements[#elements + 1] = {
-						label = ('%s - (%s)'):format(property.id, property.ownerName),
-						value = property.id,
-					}
+					if k ~= 'config' then
+						local property = Indexed.Properties[k]
+						elements[#elements + 1] = {
+							label = ('%s - (%s)'):format(property.id, property.ownerName),
+							value = property.id,
+						}
+					end
 				end
 				ESX.UI.Menu.Open('default', resName, 'keymasterPropTypesProperties',{
 					title    = ('Keymaster - %s - Properties'):format(data2.current.propType),

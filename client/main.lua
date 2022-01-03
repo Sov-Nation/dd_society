@@ -40,7 +40,8 @@ function showBlips(target)
 	for i = 1, #Data.Properties do
 		local property = Data.Properties[i]
 		local blip = AddBlipForCoord(vectorize(property.blip))
-		SetBlipSprite(blip, Config.PropertyTypes[property.type].sprite)
+		local pType = GlobalState.PropertyList[property.type].config
+		SetBlipSprite(blip, pType.sprite)
 		if Indexed.Societies[property.owner] then
 			local society = Indexed.Societies[property.owner]
 			SetBlipDisplay(blip, 2)

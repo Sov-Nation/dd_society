@@ -3,6 +3,7 @@ local ServerCallback = import 'callbacks'
 function bOpen(zone)
 	local property = Indexed.Properties[zone.property]
 	local society = Indexed.Societies[property.owner]
+	local pType = GlobalState.PropertyList[property.type].config
 	ESX.UI.Menu.Open('default', resName, 'boss', {
 		title    = ('%s - %s'):format(zone.property, zone.name),
 		align    = 'top-left',
@@ -24,8 +25,8 @@ function bOpen(zone)
 				{label = 'Deposit cash', value = 'deposit'},
 				{label = 'Bills', value = 'bills'},
 			}
-			for i = 1, #Config.PropertyTypes[property.type].bMenu do
-				elements[#elements + 1] = Config.Menus[Config.PropertyTypes[property.type].bMenu[i]]
+			for k, v in pairs(pType.boss) do
+				elements[#elements + 1] = Config.Menus[k]
 			end
 			ESX.UI.Menu.Open('default', resName, 'finance', {
 				title    = ('Manage Finances - %s'):format(property.ownerName),

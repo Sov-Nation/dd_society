@@ -36,26 +36,30 @@ end
 function createTables()
 	for k, v in pairs(PropertyList) do
 		for k2, v2 in pairs(v) do
-			local property = GetResourceKvpString(k2)
-			property = json.decode(property)
+			if k2 == 'config' then
+				PropertyList[k][k2] = data('properties/' .. k .. '/config')
+			else
+				local property = GetResourceKvpString(k2)
+				property = json.decode(property)
 
-			if property.respawn then
-				Respawn[property.id] = property.respawn
+				if property.respawn then
+					Respawn[property.id] = property.respawn
+				end
+
+				Data.Properties[#Data.Properties + 1] = property
+
+				for i = 1, #property.doors do
+					property.doors[i].id = ('%s:%s'):format(property.id, i)
+					property.doors[i].locked = property.doors[i].onstart
+					Data.Doors[#Data.Doors + 1] = property.doors[i]
+				end
+
+				for i = 1, #property.zones do
+					property.zones[i].id = ('%s:%s'):format(property.id, i)
+					Data.Zones[#Data.Zones + 1] = property.zones[i]
+				end
+				SetResourceKvp(k2, json.encode(property))
 			end
-
-			Data.Properties[#Data.Properties + 1] = property
-
-			for i = 1, #property.doors do
-				property.doors[i].id = ('%s:%s'):format(property.id, i)
-				property.doors[i].locked = property.doors[i].onstart
-				Data.Doors[#Data.Doors + 1] = property.doors[i]
-			end
-
-			for i = 1, #property.zones do
-				property.zones[i].id = ('%s:%s'):format(property.id, i)
-				Data.Zones[#Data.Zones + 1] = property.zones[i]
-			end
-			SetResourceKvp(k2, json.encode(property))
 		end
 	end
 
@@ -131,7 +135,7 @@ CreateThread(function()
 		PropertyData[line] = {}
 		local properties = io.popen(command .. types .. '/' .. line .. suffix)
 		for filename in properties:lines() do
-			PropertyData[line][filename:gsub('.lua', '')] = true
+			PropertyData[line][string.strsplit('.', filename)] = true
 		end
 	end
 	dir:close()
@@ -144,25 +148,27 @@ CreateThread(function()
 		else
 			for k, v in pairs(PropertyData) do
 				for k2, v2 in pairs(v) do
-					if not PropertyList[k]?[k2] then
+					if k2 ~= 'config' and not PropertyList[k]?[k2] then
 						createProperty(k, k2)
 					end
 				end
 			end
 			PropertyList = PropertyData
-			SetResourceKvp('PropertyList', json.encode(PropertyList))
 			createTables()
 		end
 	else
 		PropertyList = PropertyData
-		SetResourceKvp('PropertyList', json.encode(PropertyList))
 		for k, v in pairs(PropertyList) do
 			for k2, v2 in pairs(v) do
-				createProperty(k, k2)
+				if k2 ~= 'config' then
+					createProperty(k, k2)
+				end
 			end
 		end
 		createTables()
 	end
+	
+	SetResourceKvp('PropertyList', json.encode(PropertyList))
 	GlobalState['PropertyList'] = PropertyList
 
 	for i = 1, #Data.Zones do

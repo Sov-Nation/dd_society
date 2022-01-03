@@ -12,24 +12,25 @@ function sOpen()
 	local elements = {{label = 'New bill', value = 'newBill'}}
 	if PlayerBags.Player.job ~= 'unemployed' then
 		elements[2] = {label = 'View society bills', value = 'societyBills'}
-		local SocietyPropertyTypes = {}
-		for i = 1, #Data.Properties do
-			local property = Data.Properties[i]
-			if property.owner == PlayerBags.Player.job then
-				if not has_value(SocietyPropertyTypes, property.type) then
-					SocietyPropertyTypes[#SocietyPropertyTypes + 1] = property.type
+
+		local activePropertyTypes = {}
+		for k, v in pairs(GlobalState.PropertyList) do
+			for k2, v2 in pairs(v) do
+				if k2 ~= 'config' and Indexed.Properties[k2].owner == PlayerBags.Player.job then
+					activePropertyTypes[k] = v.config
 				end
 			end
 		end
 
-		for i = 1, #SocietyPropertyTypes do
-			local pType = SocietyPropertyTypes[i]
-			for j = 1, #Config.PropertyTypes[pType].sMenu do
-				local menu = Config.PropertyTypes[pType].sMenu[j]
-				if not has_value(elements, menu) then
-					elements[#elements + 1] = Config.Menus[menu]
-				end
+		local menus = {}
+		for k, v in pairs(activePropertyTypes) do
+			for k2, v2 in pairs(v.society) do
+				menus[k2] = Config.Menus[k2]
 			end
+		end
+
+		for k, v in pairs(menus) do
+			elements[#elements + 1] = v
 		end
 	end
 
