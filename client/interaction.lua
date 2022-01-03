@@ -76,13 +76,13 @@ local entityTypes = {
 local validEntity, actions
 
 RegisterCommand('+interactionMenu', function()
-	if not targetActive and not IsPedInAnyVehicle(PlayerBags.Player.ped, false) and not isBusy and canInteract() and not PlayerBags.Player.invOpen then
+	if not targetActive and not PlayerBags.Player.vehicle and not isBusy and canInteract() and not PlayerBags.Player.invOpen then
 		targetActive = true
 		local hit, coords, entity, entityType = RaycastCamera(switch())
 		local sleep = 10
 		SendNUIMessage({response = 'openTarget'})
 		while targetActive do
-			if IsPedInAnyVehicle(PlayerBags.Player.ped, false) then
+			if PlayerBags.Player.vehicle then
 				SendNUIMessage({response = 'closeTarget'})
 				targetActive = false
 				validEntity = nil

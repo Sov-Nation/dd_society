@@ -20,7 +20,7 @@ function spawnVehicle(vehicle, coords, delete)
 		local vec = coords and coords.xyz or pedPos
 		local heading = coords and coords.w or GetEntityHeading(PlayerBags.Player.ped)
 
-		local oldVeh = GetVehiclePedIsIn(PlayerBags.Player.ped)
+		local oldVeh = PlayerBags.Player.vehicle
 		local vehicle = CreateVehicle(model, vec, heading, true, false)
 		SetModelAsNoLongerNeeded(model)
 
@@ -28,7 +28,7 @@ function spawnVehicle(vehicle, coords, delete)
 		repeat Wait(0) until HasCollisionLoadedAroundEntity(vehicle)
 
 		if delete then
-			if oldVeh and oldVeh ~= 0 then
+			if oldVeh then
 				local velocity = GetEntityVelocity(oldVeh)
 				local fVec = GetEntityForwardVector(oldVeh)
 				DeleteEntity(oldVeh)
@@ -54,8 +54,8 @@ function spawnVehicle(vehicle, coords, delete)
 end
 
 function storeVehicle(zone)
-	if IsPedInAnyVehicle(PlayerBags.Player.ped, false) then
-		local vehicleId = GetVehiclePedIsIn(PlayerBags.Player.ped, false)
+	local vehicleId = PlayerBags.Player.vehicle
+	if vehicleId then
 		if GetPedInVehicleSeat(vehicleId, -1) == PlayerBags.Player.ped then
 			local vehicle = {}
 			vehicle.props = getVehicleProperties(vehicleId)

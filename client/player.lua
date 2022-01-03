@@ -139,6 +139,11 @@ CreateThread(function()
 		Wait(1000)
 		if PlayerBags.Player.ped then
 			if GetEntityType(PlayerBags.Player.ped) == 1 then
+				local vehicle = GetVehiclePedIsIn(PlayerBags.Player.ped, false)
+				if vehicle ~= PlayerBags.Player.vehicle and not (vehicle == 0 and not PlayerBags.Player.vehicle) then
+					LocalPlayer.state:set('vehicle', vehicle ~= 0 and vehicle or false, false)
+				end
+
 				local health = GetEntityHealth(PlayerBags.Player.ped)
 				if health < 125 or IsPedBeingStunned(PlayerBags.Player.ped, 0) then
 					if PlayerBags.Player.ko < 30 then
@@ -153,10 +158,9 @@ CreateThread(function()
 				end
 
 				if PlayerBags.Player.ko > 0 then
-					local vehicle = GetVehiclePedIsIn(PlayerBags.Player.ped, false)
-					if vehicle ~= 0 then
-						if GetPedInVehicleSeat(vehicle, -1) == PlayerBags.Player.ped then
-							TaskLeaveVehicle(PlayerBags.Player.ped, vehicle, 4160)
+					if PlayerBags.Player.vehicle then
+						if GetPedInVehicleSeat(PlayerBags.Player.vehicle, -1) == PlayerBags.Player.ped then
+							TaskLeaveVehicle(PlayerBags.Player.ped, PlayerBags.Player.vehicle, 4160)
 						end
 					end
 
