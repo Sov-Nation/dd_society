@@ -43,7 +43,7 @@ ServerCallback.Register('pNewKey', function(source, propertyId, name)
 
 	saveTables('Properties', property)
 
-	return property.keys[#property.keys].id
+	return property.keys[#property.keys]
 end)
 
 ServerCallback.Register('pRenameKey', function(source, keyId, name)
