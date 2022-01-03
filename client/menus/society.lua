@@ -35,7 +35,7 @@ function sOpen()
 	end
 
 	ESX.UI.Menu.Open('default', resName, 'society', {
-		title    = ('Society menu - %s'):format(PlayerBags.Player.job),
+		title    = ('Society Menu - %s'):format(Indexed.Societies[PlayerBags.Player.job].label),
 		align    = 'top-left',
 		elements = elements
 	},
