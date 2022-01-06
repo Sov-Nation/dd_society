@@ -126,8 +126,10 @@ function kmOpen()
 			for k, v in pairs(GlobalState.PropertyList) do
 				local pType = k:gsub("^%l", string.upper)
 				local count = 0
-				for _ in pairs(v) do
-					count += 1
+				for k2, v2 in pairs(v) do
+					if k2 ~= 'config' then
+						count += 1
+					end
 				end
 				elements[#elements + 1] = {
 					label = ('%s - (%s)'):format(pType, count),
